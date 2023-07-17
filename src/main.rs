@@ -1,4 +1,4 @@
-use cursor_test::*;
+use winter::*;
 
 fn main() {
     let term = Terminal::new();
@@ -10,7 +10,7 @@ fn main() {
 
     // clear();
 
-    move_to(x, y - 4);
+    // move_to(x, y - 4);
 
     // print!("x");
     // write_char(&term, b"xxxxxxxxxxxxx");

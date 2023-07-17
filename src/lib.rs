@@ -8,6 +8,9 @@ use winapi::{
     },
 };
 
+mod rect;
+mod terminal;
+
 pub const STD_HANDLE: u32 = -11i32 as u32;
 
 pub enum ConsoleMode {
