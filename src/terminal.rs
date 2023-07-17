@@ -14,6 +14,48 @@ pub struct Terminal {
     viewport: Rect,
 }
 
+/*
+/// Synchronizes terminal size, calls the rendering closure, flushes the current internal state
+/// and prepares for the next draw call.
+pub fn draw<F>(&mut self, f: F) -> io::Result<CompletedFrame>
+where
+    F: FnOnce(&mut Frame<B>),
+{
+    // Autoresize - otherwise we get glitches if shrinking or potential desync between widgets
+    // and the terminal (if growing), which may OOB.
+    self.autoresize()?;
+
+    let mut frame = self.get_frame();
+    f(&mut frame);
+    // We can't change the cursor position right away because we have to flush the frame to
+    // stdout first. But we also can't keep the frame around, since it holds a &mut to
+    // Terminal. Thus, we're taking the important data out of the Frame and dropping it.
+    let cursor_position = frame.cursor_position;
+
+    // Draw to stdout
+    self.flush()?;
+
+    match cursor_position {
+        None => self.hide_cursor()?,
+        Some((x, y)) => {
+            self.show_cursor()?;
+            self.set_cursor(x, y)?;
+        }
+    }
+
+    // Swap buffers
+    self.buffers[1 - self.current].reset();
+    self.current = 1 - self.current;
+
+    // Flush
+    self.backend.flush()?;
+    Ok(CompletedFrame {
+        buffer: &self.buffers[1 - self.current],
+        area: self.viewport.area,
+    })
+}
+ */
+
 /// A buffer that maps to the desired content of the terminal after the draw call
 ///
 /// No widget in the library interacts directly with the terminal. Instead each of them is required

@@ -1,4 +1,4 @@
-use std::{mem::zeroed, process::Command};
+use std::{ffi::OsStr, mem::zeroed, os::windows::prelude::OsStrExt, process::Command};
 use winapi::{
     ctypes::c_void,
     um::{
@@ -52,16 +52,17 @@ pub fn window_info(term: &Terminal) -> Info {
     }
 }
 
-pub fn write_char(term: &Terminal, buf: &[u8]) {
-    let utf8 = std::str::from_utf8(buf).unwrap();
-    let utf16: Vec<u16> = utf8.encode_utf16().collect();
-    let utf16_ptr = utf16.as_ptr() as *const c_void;
+pub fn write(term: &Terminal, buf: &[u8]) {
+    let utf16: Vec<u16> = OsStr::new(std::str::from_utf8(buf).unwrap())
+        .encode_wide()
+        .collect();
+
     let mut cells_written: u32 = 0;
 
     let result = unsafe {
         WriteConsoleW(
             term.handle,
-            utf16_ptr,
+            utf16.as_ptr() as *const c_void,
             utf16.len() as u32,
             &mut cells_written,
             zeroed(),

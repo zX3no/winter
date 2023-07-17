@@ -13,7 +13,7 @@ fn main() {
     // move_to(x, y - 4);
 
     // print!("x");
-    // write_char(&term, b"xxxxxxxxxxxxx");
+    write(&term, b"This is a test of the write function!");
 
     // for x in 0..x {
     //     move_to(x, 0);
