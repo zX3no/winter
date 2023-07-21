@@ -1,3 +1,4 @@
+#![allow(soft_unstable)]
 use std::{ffi::OsStr, mem::zeroed, os::windows::prelude::OsStrExt, process::Command};
 use winapi::{
     ctypes::c_void,
@@ -8,8 +9,12 @@ use winapi::{
     },
 };
 
-mod rect;
-mod terminal;
+pub use style::Stylize;
+
+pub mod color;
+pub mod rect;
+pub mod style;
+pub mod terminal;
 
 pub const STD_HANDLE: u32 = -11i32 as u32;
 
@@ -88,14 +93,44 @@ pub fn clear_all() {
     Command::new("cmd").args(["/C", "cls"]).status().unwrap();
 }
 
-pub fn clear() {
-    print!("\x1b[2J");
-}
-
 pub fn shift_up(amount: u16) {
     print!("\x1b[{}S", amount);
 }
 
 pub fn shift_down(amount: u16) {
     print!("\x1b[{}T", amount);
+}
+
+pub fn reset() {
+    print!("\x1b[0m");
+}
+
+pub use clear::*;
+
+mod clear {
+    ///Same as \x1b[0J
+    pub fn clear_from_cursor() {
+        print!("\x1b[J");
+    }
+
+    pub fn clear_from_cursor_to_start() {
+        print!("\x1b[1J");
+    }
+
+    pub fn clear() {
+        print!("\x1b[2J");
+    }
+
+    ///Same as \x1b[0K
+    pub fn clear_line_from_cursor() {
+        print!("\x1b[K");
+    }
+
+    pub fn clear_line_from_cursor_to_start() {
+        print!("\x1b[1K");
+    }
+
+    pub fn clear_line() {
+        print!("\x1b[2K");
+    }
 }

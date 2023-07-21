@@ -8,30 +8,15 @@ fn main() {
         terminal_size: _,
     } = window_info(&term);
 
-    // clear();
+    // println!("{}", "test".blue());
+    // reset();
 
-    // move_to(x, y - 4);
+    clear();
+    move_to(20, 2);
+    print!("x");
+    move_to(25, 4);
+    print!("x");
 
-    // print!("x");
-    write(&term, b"This is a test of the write function!");
-
-    // for x in 0..x {
-    //     move_to(x, 0);
-    //     print!("x");
-    // }
-
-    // for x in 0..x {
-    //     move_to(x, y);
-    //     print!("x");
-    // }
-
-    // for y in 0..y {
-    //     move_to(0, y);
-    //     print!("x");
-    // }
-
-    // for y in 0..y {
-    //     move_to(x, y);
-    //     print!("x");
-    // }
+    // clear_line();
+    clear_line_from_cursor_to_start();
 }
