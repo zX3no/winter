@@ -1,3 +1,4 @@
+use crate::buffer::Buffer;
 use crate::rect::Rect;
 
 /// Interface to the terminal backed by Termion
@@ -48,71 +49,107 @@ where
     self.current = 1 - self.current;
 
     // Flush
-    self.backend.flush()?;
+    stdout.flush();
     Ok(CompletedFrame {
         buffer: &self.buffers[1 - self.current],
         area: self.viewport.area,
     })
 }
- */
-
-/// A buffer that maps to the desired content of the terminal after the draw call
-///
-/// No widget in the library interacts directly with the terminal. Instead each of them is required
-/// to draw their state to an intermediate buffer. It is basically a grid where each cell contains
-/// a grapheme, a foreground color and a background color. This grid will then be used to output
-/// the appropriate escape sequences and characters to draw the UI as the user has defined it.
-///
-/// # Examples:
-///
-/// ```
-/// use tui::buffer::{Buffer, Cell};
-/// use tui::layout::Rect;
-/// use tui::style::{Color, Style, Modifier};
-///
-/// let mut buf = Buffer::empty(Rect{x: 0, y: 0, width: 10, height: 5});
-/// buf.get_mut(0, 2).set_symbol("x");
-/// assert_eq!(buf.get(0, 2).symbol, "x");
-/// buf.set_string(3, 0, "string", Style::default().fg(Color::Red).bg(Color::White));
-/// assert_eq!(buf.get(5, 0), &Cell{
-///     symbol: String::from("r"),
-///     fg: Color::Red,
-///     bg: Color::White,
-///     modifier: Modifier::empty()
-/// });
-/// buf.get_mut(5, 0).set_char('x');
-/// assert_eq!(buf.get(5, 0).symbol, "x");
-/// ```
-#[derive(Debug, Clone, PartialEq, Eq, Default)]
-pub struct Buffer {
-    /// The area represented by this buffer
-    pub area: Rect,
-    /// The content of the buffer. The length of this Vec should always be equal to area.width *
-    /// area.height
-    pub content: Vec<Cell>,
+/// Obtains a difference between the previous and the current buffer and passes it to the
+/// current backend for drawing.
+pub fn flush(&mut self) -> io::Result<()> {
+    let previous_buffer = &self.buffers[1 - self.current];
+    let current_buffer = &self.buffers[self.current];
+    let updates = previous_buffer.diff(current_buffer);
+    self.backend.draw(updates.into_iter())
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+/// Updates the Terminal so that internal buffers match the requested size. Requested size will
+/// be saved so the size can remain consistent when rendering.
+/// This leads to a full clear of the screen.
+pub fn resize(&mut self, area: Rect) -> io::Result<()> {
+    self.buffers[self.current].resize(area);
+    self.buffers[1 - self.current].resize(area);
+    self.viewport.area = area;
+    self.clear()
+}
+
+/// Queries the backend for size and resizes if it doesn't match the previous size.
+pub fn autoresize(&mut self) -> io::Result<()> {
+    if self.viewport.resize_behavior == ResizeBehavior::Auto {
+        let size = self.size()?;
+        if size != self.viewport.area {
+            self.resize(size)?;
+        }
+    };
+    Ok(())
+}
+ */
+
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Ord, PartialOrd, Hash)]
 pub enum Color {
+    /// Resets the terminal color.
     Reset,
+
+    /// Black color.
     Black,
+
+    /// Dark grey color.
+    DarkGrey,
+
+    /// Light red color.
     Red,
+
+    /// Dark red color.
+    DarkRed,
+
+    /// Light green color.
     Green,
+
+    /// Dark green color.
+    DarkGreen,
+
+    /// Light yellow color.
     Yellow,
+
+    /// Dark yellow color.
+    DarkYellow,
+
+    /// Light blue color.
     Blue,
+
+    /// Dark blue color.
+    DarkBlue,
+
+    /// Light magenta color.
     Magenta,
+
+    /// Dark magenta color.
+    DarkMagenta,
+
+    /// Light cyan color.
     Cyan,
-    Gray,
-    DarkGray,
-    LightRed,
-    LightGreen,
-    LightYellow,
-    LightBlue,
-    LightMagenta,
-    LightCyan,
+
+    /// Dark cyan color.
+    DarkCyan,
+
+    /// White color.
     White,
-    Rgb(u8, u8, u8),
-    Indexed(u8),
+
+    /// Grey color.
+    Grey,
+
+    /// An RGB color. See [RGB color model](https://en.wikipedia.org/wiki/RGB_color_model) for more info.
+    ///
+    /// Most UNIX terminals and Windows 10 supported only.
+    /// See [Platform-specific notes](enum.Color.html#platform-specific-notes) for more info.
+    Rgb { r: u8, g: u8, b: u8 },
+
+    /// An ANSI color. See [256 colors - cheat sheet](https://jonasjacek.github.io/colors/) for more info.
+    ///
+    /// Most UNIX terminals and Windows 10 supported only.
+    /// See [Platform-specific notes](enum.Color.html#platform-specific-notes) for more info.
+    AnsiValue(u8),
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -165,25 +202,6 @@ impl Cell {
         self.bg = color;
         self
     }
-
-    // pub fn set_style(&mut self, style: Style) -> &mut Cell {
-    //     if let Some(c) = style.fg {
-    //         self.fg = c;
-    //     }
-    //     if let Some(c) = style.bg {
-    //         self.bg = c;
-    //     }
-    //     self.modifier.insert(style.add_modifier);
-    //     self.modifier.remove(style.sub_modifier);
-    //     self
-    // }
-
-    // pub fn style(&self) -> Style {
-    //     Style::default()
-    //         .fg(self.fg)
-    //         .bg(self.bg)
-    //         .add_modifier(self.modifier)
-    // }
 
     pub fn reset(&mut self) {
         self.symbol.clear();

@@ -1,69 +1,3 @@
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Ord, PartialOrd, Hash)]
-pub enum Color {
-    /// Resets the terminal color.
-    Reset,
-
-    /// Black color.
-    Black,
-
-    /// Dark grey color.
-    DarkGrey,
-
-    /// Light red color.
-    Red,
-
-    /// Dark red color.
-    DarkRed,
-
-    /// Light green color.
-    Green,
-
-    /// Dark green color.
-    DarkGreen,
-
-    /// Light yellow color.
-    Yellow,
-
-    /// Dark yellow color.
-    DarkYellow,
-
-    /// Light blue color.
-    Blue,
-
-    /// Dark blue color.
-    DarkBlue,
-
-    /// Light magenta color.
-    Magenta,
-
-    /// Dark magenta color.
-    DarkMagenta,
-
-    /// Light cyan color.
-    Cyan,
-
-    /// Dark cyan color.
-    DarkCyan,
-
-    /// White color.
-    White,
-
-    /// Grey color.
-    Grey,
-
-    /// An RGB color. See [RGB color model](https://en.wikipedia.org/wiki/RGB_color_model) for more info.
-    ///
-    /// Most UNIX terminals and Windows 10 supported only.
-    /// See [Platform-specific notes](enum.Color.html#platform-specific-notes) for more info.
-    Rgb { r: u8, g: u8, b: u8 },
-
-    /// An ANSI color. See [256 colors - cheat sheet](https://jonasjacek.github.io/colors/) for more info.
-    ///
-    /// Most UNIX terminals and Windows 10 supported only.
-    /// See [Platform-specific notes](enum.Color.html#platform-specific-notes) for more info.
-    AnsiValue(u8),
-}
-
 macro_rules! stylize {
     ($type:ty) => {
         impl Stylize for $type {
@@ -149,6 +83,9 @@ macro_rules! stylize {
 stylize!(String);
 stylize!(&str);
 
+///```rs
+/// "Test".bold().underline().red()
+/// ```
 pub trait Stylize {
     fn bold(self) -> String;
     fn dim(self) -> String;

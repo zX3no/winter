@@ -11,9 +11,16 @@ use winapi::{
 
 pub use style::Stylize;
 
+pub mod block;
+pub mod buffer;
+pub mod layout;
+pub mod spans;
+pub mod test_style;
+
 pub mod color;
 pub mod rect;
 pub mod style;
+pub mod symbols;
 pub mod terminal;
 
 pub const STD_HANDLE: u32 = -11i32 as u32;
@@ -35,8 +42,8 @@ impl Terminal {
 }
 
 pub struct Info {
-    pub buffer_size: (i16, i16),
-    pub terminal_size: (i16, i16),
+    pub buffer_size: (u16, u16),
+    pub terminal_size: (u16, u16),
 }
 
 pub fn window_info(term: &Terminal) -> Info {
@@ -47,10 +54,10 @@ pub fn window_info(term: &Terminal) -> Info {
             panic!("Could not get window size.");
         } else {
             Info {
-                buffer_size: (info.dwSize.X, info.dwSize.Y),
+                buffer_size: (info.dwSize.X as u16, info.dwSize.Y as u16),
                 terminal_size: (
-                    info.srWindow.Right - info.srWindow.Left,
-                    info.srWindow.Bottom - info.srWindow.Top,
+                    (info.srWindow.Right - info.srWindow.Left) as u16,
+                    (info.srWindow.Bottom - info.srWindow.Top) as u16,
                 ),
             }
         }
