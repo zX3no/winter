@@ -1,16 +1,17 @@
 #![allow(unused)]
 use winter::{
     block::{BorderType, Borders},
-    test_style::Style,
+    buffer::Cell,
+    test_style::{Color, Modifier, Style},
     *,
 };
 
 use winter::buffer::Buffer;
 use winter::layout::Rect;
 
-fn render(area: Rect, buf: &mut Buffer) {
+fn render_block(area: Rect, buf: &mut Buffer) {
     let borders = Borders::ALL;
-    let border_type = BorderType::Rounded;
+    let border_type = BorderType::Plain;
     let border_style = Style::default();
 
     if area.area() == 0 {
@@ -117,53 +118,45 @@ fn render(area: Rect, buf: &mut Buffer) {
 //     self.backend.draw(updates.into_iter())
 // }
 
-mod backend {
-    // fn draw<'a, I>(&mut self, content: I) -> io::Result<()>
-    // where
-    //     I: Iterator<Item = (u16, u16, &'a Cell)>,
-    // {
-    //     let mut fg = Color::Reset;
-    //     let mut bg = Color::Reset;
-    //     let mut modifier = Modifier::empty();
-    //     let mut last_pos: Option<(u16, u16)> = None;
-    //     for (x, y, cell) in content {
-    //         // Move the cursor if the previous location was not (x - 1, y)
-    //         if !matches!(last_pos, Some(p) if x == p.0 + 1 && y == p.1) {
-    //             map_error(queue!(self.buffer, MoveTo(x, y)))?;
-    //         }
-    //         last_pos = Some((x, y));
-    //         if cell.modifier != modifier {
-    //             let diff = ModifierDiff {
-    //                 from: modifier,
-    //                 to: cell.modifier,
-    //             };
-    //             diff.queue(&mut self.buffer)?;
-    //             modifier = cell.modifier;
-    //         }
-    //         if cell.fg != fg {
-    //             let color = CColor::from(cell.fg);
-    //             map_error(queue!(self.buffer, SetForegroundColor(color)))?;
-    //             fg = cell.fg;
-    //         }
-    //         if cell.bg != bg {
-    //             let color = CColor::from(cell.bg);
-    //             map_error(queue!(self.buffer, SetBackgroundColor(color)))?;
-    //             bg = cell.bg;
-    //         }
+fn draw(diff: Vec<(u16, u16, &Cell)>) {
+    let mut fg = Color::Reset;
+    let mut bg = Color::Reset;
+    let mut modifier = Modifier::empty();
+    let mut last_pos: Option<(u16, u16)> = None;
 
-    //         map_error(queue!(self.buffer, Print(&cell.symbol)))?;
-    //     }
+    for (x, y, cell) in diff {
+        // Move the cursor if the previous location was not (x - 1, y)
+        if !matches!(last_pos, Some(p) if x == p.0 + 1 && y == p.1) {
+            move_to(x, y);
+        }
 
-    //     map_error(queue!(
-    //         self.buffer,
-    //         SetForegroundColor(CColor::Reset),
-    //         SetBackgroundColor(CColor::Reset),
-    //         SetAttribute(CAttribute::Reset)
-    //     ))
-    // }
+        last_pos = Some((x, y));
+
+        if cell.modifier != modifier {
+            // let diff = ModifierDiff {
+            //     from: modifier,
+            //     to: cell.modifier,
+            // };
+            // diff.queue(&mut self.buffer)?;
+            modifier = cell.modifier;
+        }
+        if cell.fg != fg {
+            let color = Color::from(cell.fg);
+            // map_error(queue!(self.buffer, SetForegroundColor(color)))?;
+            fg = cell.fg;
+        }
+        if cell.bg != bg {
+            let color = Color::from(cell.bg);
+            // map_error(queue!(self.buffer, SetBackgroundColor(color)))?;
+            bg = cell.bg;
+        }
+
+        print!("{}", cell.symbol);
+    }
+
+    reset();
 }
 
-//https://gist.github.com/fnky/458719343aabd01cfb17a3a4f7296797
 fn main() {
     let term = Terminal::new();
 
@@ -174,8 +167,16 @@ fn main() {
 
     let area = Rect::new(0, 0, width, height);
     let mut buffer = Buffer::empty(area);
-    render(area, &mut buffer);
-    dbg!(buffer);
+    render_block(area, &mut buffer);
+
+    let mut empty = Buffer::empty(area);
+
+    let diff = empty.diff(&buffer);
+
+    clear();
+    draw(diff);
+
+    // dbg!(buffer);
 
     // clear();
     // move_to(0, 0);

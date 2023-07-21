@@ -92,7 +92,10 @@ pub fn set_mode(term: &Terminal, mode: ConsoleMode) {
     }
 }
 
-pub fn move_to(x: i16, y: i16) {
+//https://gist.github.com/fnky/458719343aabd01cfb17a3a4f7296797
+
+//TODO: Use a buffer instead of print!
+pub fn move_to(x: u16, y: u16) {
     print!("\x1b[{};{}H", y, x);
 }
 
@@ -108,6 +111,7 @@ pub fn shift_down(amount: u16) {
     print!("\x1b[{}T", amount);
 }
 
+///Reset all modes (styles and colors)
 pub fn reset() {
     print!("\x1b[0m");
 }
