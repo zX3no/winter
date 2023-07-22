@@ -1,8 +1,8 @@
 #![allow(unused)]
 use std::io::Write;
-use winter::buffer::Buffer;
 use winter::layout::Rect;
 use winter::{block::*, buffer::Cell, *};
+use winter::{buffer::Buffer, layout::Margin};
 
 fn draw(diff: Vec<(u16, u16, &Cell)>) {
     let mut fg = Color::Reset;
@@ -41,6 +41,19 @@ fn draw(diff: Vec<(u16, u16, &Cell)>) {
     reset();
 }
 
+fn draw_text(text: &str, area: Rect, buf: &mut Buffer) {
+    let mut chars = text.chars();
+    for y in area.top()..area.bottom() {
+        for x in area.left()..area.right() {
+            if let Some(char) = chars.next() {
+                buf.get_mut(x, y).set_char(char);
+            } else {
+                return;
+            }
+        }
+    }
+}
+
 fn main() {
     let term = Terminal::new();
     let (width, height) = window_info(&term).terminal_size;
@@ -52,13 +65,24 @@ fn main() {
 
     loop {
         //Draw widgets
-        block::draw(
-            Borders::ALL,
-            BorderType::Rounded,
-            Style::default(),
-            area,
-            &mut buffers[current],
-        );
+        {
+            block::draw(
+                Borders::ALL,
+                BorderType::Rounded,
+                Style::default(),
+                area,
+                &mut buffers[current],
+            );
+
+            draw_text(
+                "testing",
+                area.inner(&Margin {
+                    vertical: 2,
+                    horizontal: 2,
+                }),
+                &mut buffers[current],
+            );
+        }
 
         //Calculate difference and draw
         let previous_buffer = &buffers[1 - current];

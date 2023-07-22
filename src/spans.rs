@@ -48,7 +48,6 @@
 //! ```
 use crate::Style;
 use std::borrow::Cow;
-use unicode_segmentation::UnicodeSegmentation;
 use unicode_width::UnicodeWidthStr;
 
 /// A grapheme associated to a style.
