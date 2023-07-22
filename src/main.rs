@@ -1,12 +1,17 @@
 #![allow(unused)]
 use std::io::Write;
 use winter::layout::Rect;
-use winter::{block::*, buffer::Cell, *};
-use winter::{buffer::Buffer, layout::Margin};
+use winter::{block::*, *};
+use winter::{
+    buffer::{Buffer, Cell},
+    layout::Margin,
+};
 
+//Move out of function and into main loop.
+//That way variables are reinitialized.
 fn draw(diff: Vec<(u16, u16, &Cell)>) {
     let mut fg = Color::Reset;
-    let mut bg = BackgroundColor::Reset;
+    let mut bg = BgColor::Reset;
     let mut modifier = Modifier::empty();
     let mut lock = std::io::stdout().lock();
 
@@ -41,12 +46,16 @@ fn draw(diff: Vec<(u16, u16, &Cell)>) {
     reset();
 }
 
-fn draw_text(text: &str, area: Rect, buf: &mut Buffer) {
+//TODO: There needs to be a way to calculate the width and height of text.
+//There is `unicode_width::UnicodeWidthStr`
+//Height should just be the number of lines.
+//There should be a way to write text without wrapping. i.e cutting off the end.
+fn draw_text(text: &str, style: Style, area: Rect, buf: &mut Buffer) {
     let mut chars = text.chars();
     for y in area.top()..area.bottom() {
         for x in area.left()..area.right() {
             if let Some(char) = chars.next() {
-                buf.get_mut(x, y).set_char(char);
+                buf.get_mut(x, y).set_char(char).set_style(style);
             } else {
                 return;
             }
@@ -54,15 +63,21 @@ fn draw_text(text: &str, area: Rect, buf: &mut Buffer) {
     }
 }
 
+//List of widgets gonk uses:
+//Guage
+//List
+//Table
+//Block
+//Paragraph
+
 fn main() {
     let term = Terminal::new();
     let (width, height) = window_info(&term).terminal_size;
-    let mut area = Rect::new(0, 0, width, height);
-    let mut buffers: [Buffer; 2] = [Buffer::empty(area), Buffer::empty(area)];
+    let mut viewport = Rect::new(0, 0, width, height);
+    let mut buffers: [Buffer; 2] = [Buffer::empty(viewport), Buffer::empty(viewport)];
     let mut current = 0;
 
     clear();
-
     loop {
         //Draw widgets
         {
@@ -70,13 +85,14 @@ fn main() {
                 Borders::ALL,
                 BorderType::Rounded,
                 Style::default(),
-                area,
+                viewport,
                 &mut buffers[current],
             );
 
             draw_text(
                 "testing",
-                area.inner(&Margin {
+                style(),
+                viewport.inner(&Margin {
                     vertical: 2,
                     horizontal: 2,
                 }),
@@ -96,10 +112,10 @@ fn main() {
 
         //Resize
         let (width, height) = window_info(&term).terminal_size;
-        area = Rect::new(0, 0, width, height);
-        if buffers[current].area != area {
-            buffers[current].resize(area);
-            buffers[1 - current].resize(area);
+        viewport = Rect::new(0, 0, width, height);
+        if buffers[current].area != viewport {
+            buffers[current].resize(viewport);
+            buffers[1 - current].resize(viewport);
             // Reset the back buffer to make sure the next update will redraw everything.
             //TODO: Clear isn't buffered.
             clear();

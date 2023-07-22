@@ -10,17 +10,19 @@ use winapi::{
     },
 };
 
-pub use style::Stylize;
+pub use stylize::Stylize;
+
+#[allow(unused)]
+pub use unicode_width::{UnicodeWidthChar, UnicodeWidthStr};
 
 pub mod block;
 pub mod buffer;
+pub mod color;
 pub mod layout;
 pub mod spans;
-
-pub mod color;
-pub mod rect;
-pub mod style;
+pub mod stylize;
 pub mod symbols;
+pub mod terminal;
 
 pub const STD_HANDLE: u32 = -11i32 as u32;
 
@@ -79,7 +81,7 @@ impl Color {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Copy)]
-pub enum BackgroundColor {
+pub enum BgColor {
     Black,
     Red,
     Green,
@@ -101,28 +103,28 @@ pub enum BackgroundColor {
     Reset,
 }
 
-impl BackgroundColor {
+impl BgColor {
     pub fn code(self) -> &'static str {
         match self {
-            BackgroundColor::Black => "\x1B[40m",
-            BackgroundColor::Red => "\x1B[41m",
-            BackgroundColor::Green => "\x1B[42m",
-            BackgroundColor::Yellow => "\x1B[43m",
-            BackgroundColor::Blue => "\x1B[44m",
-            BackgroundColor::Magenta => "\x1B[45m",
-            BackgroundColor::Cyan => "\x1B[46m",
-            BackgroundColor::White => "\x1B[47m",
+            BgColor::Black => "\x1B[40m",
+            BgColor::Red => "\x1B[41m",
+            BgColor::Green => "\x1B[42m",
+            BgColor::Yellow => "\x1B[43m",
+            BgColor::Blue => "\x1B[44m",
+            BgColor::Magenta => "\x1B[45m",
+            BgColor::Cyan => "\x1B[46m",
+            BgColor::White => "\x1B[47m",
 
-            BackgroundColor::BrightBlack => "\x1B[100m",
-            BackgroundColor::BrightRed => "\x1B[101m",
-            BackgroundColor::BrightGreen => "\x1B[102m",
-            BackgroundColor::BrightYellow => "\x1B[103m",
-            BackgroundColor::BrightBlue => "\x1B[104m",
-            BackgroundColor::BrightMagenta => "\x1B[105m",
-            BackgroundColor::BrightCyan => "\x1B[106m",
-            BackgroundColor::BrightWhite => "\x1B[107m",
+            BgColor::BrightBlack => "\x1B[100m",
+            BgColor::BrightRed => "\x1B[101m",
+            BgColor::BrightGreen => "\x1B[102m",
+            BgColor::BrightYellow => "\x1B[103m",
+            BgColor::BrightBlue => "\x1B[104m",
+            BgColor::BrightMagenta => "\x1B[105m",
+            BgColor::BrightCyan => "\x1B[106m",
+            BgColor::BrightWhite => "\x1B[107m",
 
-            BackgroundColor::Reset => "\x1B[49m",
+            BgColor::Reset => "\x1B[49m",
         }
     }
 }
@@ -142,20 +144,35 @@ bitflags! {
     }
 }
 
+pub fn style() -> Style {
+    Style {
+        fg: None,
+        bg: None,
+        modifier: Modifier::empty(),
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Copy)]
 pub struct Style {
     pub fg: Option<Color>,
-    pub bg: Option<BackgroundColor>,
+    pub bg: Option<BgColor>,
     pub modifier: Modifier,
+}
+
+impl Style {
+    pub fn fg(mut self, fg: Color) -> Self {
+        self.fg = Some(fg);
+        self
+    }
+    pub fn bg(mut self, bg: BgColor) -> Self {
+        self.bg = Some(bg);
+        self
+    }
 }
 
 impl Default for Style {
     fn default() -> Style {
-        Self {
-            fg: None,
-            bg: None,
-            modifier: Modifier::empty(),
-        }
+        style()
     }
 }
 
