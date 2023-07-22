@@ -1,123 +1,13 @@
 #![allow(unused)]
+use std::io::Write;
+use winter::buffer::Buffer;
+use winter::layout::Rect;
 use winter::{
-    block::{BorderType, Borders},
+    block::*,
     buffer::Cell,
     test_style::{Modifier, Style},
     *,
 };
-
-use winter::buffer::Buffer;
-use winter::layout::Rect;
-
-fn render_block(area: Rect, buf: &mut Buffer) {
-    let borders = Borders::ALL;
-    let border_type = BorderType::Plain;
-    let border_style = Style::default();
-
-    if area.area() == 0 {
-        return;
-    }
-    // buf.set_style(area, self.style);
-    let symbols = BorderType::line_symbols(border_type);
-
-    // Sides
-    if borders.intersects(Borders::LEFT) {
-        for y in area.top()..area.bottom() {
-            buf.get_mut(area.left(), y)
-                .set_symbol(symbols.vertical)
-                .set_style(border_style);
-        }
-    }
-    if borders.intersects(Borders::TOP) {
-        for x in area.left()..area.right() {
-            buf.get_mut(x, area.top())
-                .set_symbol(symbols.horizontal)
-                .set_style(border_style);
-        }
-    }
-    if borders.intersects(Borders::RIGHT) {
-        let x = area.right() - 1;
-        for y in area.top()..area.bottom() {
-            buf.get_mut(x, y)
-                .set_symbol(symbols.vertical)
-                .set_style(border_style);
-        }
-    }
-    if borders.intersects(Borders::BOTTOM) {
-        let y = area.bottom() - 1;
-        for x in area.left()..area.right() {
-            buf.get_mut(x, y)
-                .set_symbol(symbols.horizontal)
-                .set_style(border_style);
-        }
-    }
-
-    // Corners
-    if borders.contains(Borders::RIGHT | Borders::BOTTOM) {
-        buf.get_mut(area.right() - 1, area.bottom() - 1)
-            .set_symbol(symbols.bottom_right)
-            .set_style(border_style);
-    }
-    if borders.contains(Borders::RIGHT | Borders::TOP) {
-        buf.get_mut(area.right() - 1, area.top())
-            .set_symbol(symbols.top_right)
-            .set_style(border_style);
-    }
-    if borders.contains(Borders::LEFT | Borders::BOTTOM) {
-        buf.get_mut(area.left(), area.bottom() - 1)
-            .set_symbol(symbols.bottom_left)
-            .set_style(border_style);
-    }
-    if borders.contains(Borders::LEFT | Borders::TOP) {
-        buf.get_mut(area.left(), area.top())
-            .set_symbol(symbols.top_left)
-            .set_style(border_style);
-    }
-
-    // Title
-    // if let Some(title) = title {
-    //     let left_border_dx = if self.borders.intersects(Borders::LEFT) {
-    //         1
-    //     } else {
-    //         0
-    //     };
-
-    //     let right_border_dx = if self.borders.intersects(Borders::RIGHT) {
-    //         1
-    //     } else {
-    //         0
-    //     };
-
-    //     let title_area_width = area
-    //         .width
-    //         .saturating_sub(left_border_dx)
-    //         .saturating_sub(right_border_dx);
-
-    //     let title_dx = match self.title_alignment {
-    //         Alignment::Left => left_border_dx,
-    //         Alignment::Center => area.width.saturating_sub(title.width() as u16) / 2,
-    //         Alignment::Right => area
-    //             .width
-    //             .saturating_sub(title.width() as u16)
-    //             .saturating_sub(right_border_dx),
-    //     };
-
-    //     let title_x = area.left() + title_dx;
-    //     let title_y = area.top();
-
-    //     buf.set_spans(title_x, title_y, &title, title_area_width);
-    // }
-}
-
-/// Obtains a difference between the previous and the current buffer and passes it to the
-/// current backend for drawing.
-// pub fn flush(&mut self) -> io::Result<()> {
-//     let previous_buffer = &self.buffers[1 - self.current];
-//     let current_buffer = &self.buffers[self.current];
-//     let updates = previous_buffer.diff(current_buffer);
-//     self.backend.draw(updates.into_iter())
-// }
-use std::io::Write;
 
 fn draw(diff: Vec<(u16, u16, &Cell)>) {
     let mut fg = Color::Reset;
@@ -159,19 +49,51 @@ fn draw(diff: Vec<(u16, u16, &Cell)>) {
 fn main() {
     let term = Terminal::new();
 
-    let Info {
-        buffer_size,
-        terminal_size: (width, height),
-    } = window_info(&term);
+    let (width, height) = window_info(&term).terminal_size;
 
-    let area = Rect::new(0, 0, width, height);
-    let mut buffer = Buffer::empty(area);
-    render_block(area, &mut buffer);
-
-    let mut empty = Buffer::empty(area);
-    let diff = empty.diff(&buffer);
+    //TODO: CHANGE TO 1, 1 instead of 0, 0?
+    let mut area = Rect::new(0, 0, width, height);
+    let mut buffers: [Buffer; 2] = [Buffer::empty(area), Buffer::empty(area)];
+    let mut current = 0;
 
     clear();
-    // print!("{}", BackgroundColor::Red.code());
-    draw(diff);
+
+    loop {
+        //Render to the current buffer
+        block::draw(
+            Borders::ALL,
+            BorderType::Rounded,
+            Style::default(),
+            area,
+            &mut buffers[current],
+        );
+
+        //Calculate difference and draw
+        let previous_buffer = &buffers[1 - current];
+        let current_buffer = &buffers[current];
+        let diff = previous_buffer.diff(current_buffer);
+        draw(diff);
+
+        //Swap buffers
+        buffers[1 - current].reset();
+        current = 1 - current;
+
+        //Resize
+        let (width, height) = window_info(&term).terminal_size;
+        area = Rect::new(0, 0, width, height);
+        if buffers[current].area != area {
+            buffers[current].resize(area);
+            buffers[1 - current].resize(area);
+            // Reset the back buffer to make sure the next update will redraw everything.
+            clear();
+            buffers[1 - current].reset();
+        }
+    }
+}
+
+//TOOD: This might be a better way of doing things.
+struct Buffers {
+    front: Vec<Cell>,
+    back: Vec<Cell>,
+    area: Rect,
 }

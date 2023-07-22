@@ -118,7 +118,7 @@ impl Layout {
         self
     }
 
-    pub(crate) fn expand_to_fill(mut self, expand_to_fill: bool) -> Layout {
+    pub fn expand_to_fill(mut self, expand_to_fill: bool) -> Layout {
         self.expand_to_fill = expand_to_fill;
         self
     }

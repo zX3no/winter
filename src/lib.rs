@@ -1,5 +1,5 @@
 #![allow(soft_unstable)]
-use std::{ffi::OsStr, io::Stdout, mem::zeroed, os::windows::prelude::OsStrExt, process::Command};
+use std::{ffi::OsStr, mem::zeroed, os::windows::prelude::OsStrExt, process::Command};
 use winapi::{
     ctypes::c_void,
     um::{
