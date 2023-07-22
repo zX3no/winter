@@ -145,23 +145,29 @@ fn main() {
             //     &mut buffers[current],
             // );
 
-            draw_lines_wrapping(
-                &["testing", "line 2", "line 3asdlkasjdalskdjaslkd ajsdlk asjdasldkjasdl kajdaslkdjasld kasjd lkasjd aslkd jaslkdasjd laskdj alskd jasldkajs dlkasjd laskdj aslkd jaslk djasd asjlasldkasjd laksdj alskdjasldkasdlasjkdasjdlaskdjlaskdjalksddlkasdjaslkd jsalkd jalkdasjdlaskdj asldk jasdl kasjd laksjd aslkdajsdslkdjaslkdja final-word", "test"],
-                style(),
-                viewport.inner(&Margin {
-                    vertical: 2,
-                    horizontal: 2,
-                }),
-                &mut buffers[current],
-            );
+            // draw_lines_wrapping(
+            //     &["testing", "line 2", "line 3asdlkasjdalskdjaslkd ajsdlk asjdasldkjasdl kajdaslkdjasld kasjd lkasjd aslkd jaslkdasjd laskdj alskd jasldkajs dlkasjd laskdj aslkd jaslk djasd asjlasldkasjd laksdj alskdjasldkasdlasjkdasjdlaskdjlaskdjalksddlkasdjaslkd jsalkd jalkdasjdlaskdj asldk jasdl kasjd laksjd aslkdajsdslkdjaslkdja final-word", "test"],
+            //     style(),
+            //     viewport.inner(&Margin {
+            //         vertical: 2,
+            //         horizontal: 2,
+            //     }),
+            //     &mut buffers[current],
+            // );
 
-            // let t = text("test", style().fg(Color::Blue));
+            let t = text("test", style().fg(Color::Blue));
+            let temp = &[t.clone(), t];
+            let l = lines(temp, style());
+            l.draw(style(), viewport, &mut buffers[current]);
             // t.draw(viewport, &mut buffers[current]);
 
             //TODO
             //text("test", blue());
             //text("test", fg_blue());
-            //Here style is enum {Color, Background, }
+            //Here style is enum {Color, Background, Modifier}
+            //
+            //OR
+            //text("test", style().blue().bg_red())
         }
 
         //Calculate difference and draw
