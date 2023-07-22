@@ -15,11 +15,14 @@ pub use stylize::Stylize;
 #[allow(unused)]
 pub use unicode_width::{UnicodeWidthChar, UnicodeWidthStr};
 
+//Widgets
+pub use text::*;
+pub mod text;
 pub mod block;
+
 pub mod buffer;
 pub mod color;
 pub mod layout;
-pub mod spans;
 pub mod stylize;
 pub mod symbols;
 pub mod terminal;
