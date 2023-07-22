@@ -46,11 +46,10 @@
 //!     Span::raw(" title"),
 //! ]);
 //! ```
+use crate::Style;
 use std::borrow::Cow;
 use unicode_segmentation::UnicodeSegmentation;
 use unicode_width::UnicodeWidthStr;
-
-use crate::test_style::Style;
 
 /// A grapheme associated to a style.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -110,75 +109,6 @@ impl<'a> Span<'a> {
     /// Returns the width of the content held by this span.
     pub fn width(&self) -> usize {
         self.content.width()
-    }
-
-    /// Returns an iterator over the graphemes held by this span.
-    ///
-    /// `base_style` is the [`Style`] that will be patched with each grapheme [`Style`] to get
-    /// the resulting [`Style`].
-    ///
-    /// ## Examples
-    ///
-    /// ```rust
-    /// # use tui::text::{Span, StyledGrapheme};
-    /// # use tui::style::{Color, Modifier, Style};
-    /// # use std::iter::Iterator;
-    /// let style = Style::default().fg(Color::Yellow);
-    /// let span = Span::styled("Text", style);
-    /// let style = Style::default().fg(Color::Green).bg(Color::Black);
-    /// let styled_graphemes = span.styled_graphemes(style);
-    /// assert_eq!(
-    ///     vec![
-    ///         StyledGrapheme {
-    ///             symbol: "T",
-    ///             style: Style {
-    ///                 fg: Some(Color::Yellow),
-    ///                 bg: Some(Color::Black),
-    ///                 add_modifier: Modifier::empty(),
-    ///                 sub_modifier: Modifier::empty(),
-    ///             },
-    ///         },
-    ///         StyledGrapheme {
-    ///             symbol: "e",
-    ///             style: Style {
-    ///                 fg: Some(Color::Yellow),
-    ///                 bg: Some(Color::Black),
-    ///                 add_modifier: Modifier::empty(),
-    ///                 sub_modifier: Modifier::empty(),
-    ///             },
-    ///         },
-    ///         StyledGrapheme {
-    ///             symbol: "x",
-    ///             style: Style {
-    ///                 fg: Some(Color::Yellow),
-    ///                 bg: Some(Color::Black),
-    ///                 add_modifier: Modifier::empty(),
-    ///                 sub_modifier: Modifier::empty(),
-    ///             },
-    ///         },
-    ///         StyledGrapheme {
-    ///             symbol: "t",
-    ///             style: Style {
-    ///                 fg: Some(Color::Yellow),
-    ///                 bg: Some(Color::Black),
-    ///                 add_modifier: Modifier::empty(),
-    ///                 sub_modifier: Modifier::empty(),
-    ///             },
-    ///         },
-    ///     ],
-    ///     styled_graphemes.collect::<Vec<StyledGrapheme>>()
-    /// );
-    /// ```
-    pub fn styled_graphemes(
-        &'a self,
-        base_style: Style,
-    ) -> impl Iterator<Item = StyledGrapheme<'a>> {
-        UnicodeSegmentation::graphemes(self.content.as_ref(), true)
-            .map(move |g| StyledGrapheme {
-                symbol: g,
-                style: base_style.patch(self.style),
-            })
-            .filter(|s| s.symbol != "\n")
     }
 }
 
@@ -317,7 +247,7 @@ impl<'a> Text<'a> {
         T: Into<Cow<'a, str>>,
     {
         let mut text = Text::raw(content);
-        text.patch_style(style);
+        // text.patch_style(style);
         text
     }
 
@@ -349,29 +279,6 @@ impl<'a> Text<'a> {
     /// ```
     pub fn height(&self) -> usize {
         self.lines.len()
-    }
-
-    /// Apply a new style to existing text.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// # use tui::text::Text;
-    /// # use tui::style::{Color, Modifier, Style};
-    /// let style = Style::default().fg(Color::Yellow).add_modifier(Modifier::ITALIC);
-    /// let mut raw_text = Text::raw("The first line\nThe second line");
-    /// let styled_text = Text::styled(String::from("The first line\nThe second line"), style);
-    /// assert_ne!(raw_text, styled_text);
-    ///
-    /// raw_text.patch_style(style);
-    /// assert_eq!(raw_text, styled_text);
-    /// ```
-    pub fn patch_style(&mut self, style: Style) {
-        for line in &mut self.lines {
-            for span in &mut line.0 {
-                span.style = span.style.patch(style);
-            }
-        }
     }
 }
 

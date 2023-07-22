@@ -1,4 +1,4 @@
-use crate::{buffer::Buffer, layout::Rect, symbols::*, test_style::Style};
+use crate::{buffer::Buffer, layout::Rect, symbols::*, Style};
 use bitflags::bitflags;
 
 bitflags! {

@@ -1,4 +1,5 @@
 #![allow(soft_unstable)]
+use bitflags::bitflags;
 use std::{ffi::OsStr, mem::zeroed, os::windows::prelude::OsStrExt, process::Command};
 use winapi::{
     ctypes::c_void,
@@ -15,7 +16,6 @@ pub mod block;
 pub mod buffer;
 pub mod layout;
 pub mod spans;
-pub mod test_style;
 
 pub mod color;
 pub mod rect;
@@ -123,6 +123,38 @@ impl BackgroundColor {
             BackgroundColor::BrightWhite => "\x1B[107m",
 
             BackgroundColor::Reset => "\x1B[49m",
+        }
+    }
+}
+
+bitflags! {
+    #[derive(Debug, Clone, PartialEq, Eq, Copy)]
+    pub struct Modifier: u16 {
+        const BOLD              = 0b0000_0000_0001;
+        const DIM               = 0b0000_0000_0010;
+        const ITALIC            = 0b0000_0000_0100;
+        const UNDERLINED        = 0b0000_0000_1000;
+        const SLOW_BLINK        = 0b0000_0001_0000;
+        const RAPID_BLINK       = 0b0000_0010_0000;
+        const REVERSED          = 0b0000_0100_0000;
+        const HIDDEN            = 0b0000_1000_0000;
+        const CROSSED_OUT       = 0b0001_0000_0000;
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Copy)]
+pub struct Style {
+    pub fg: Option<Color>,
+    pub bg: Option<BackgroundColor>,
+    pub modifier: Modifier,
+}
+
+impl Default for Style {
+    fn default() -> Style {
+        Self {
+            fg: None,
+            bg: None,
+            modifier: Modifier::empty(),
         }
     }
 }

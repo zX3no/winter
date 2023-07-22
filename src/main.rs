@@ -2,12 +2,7 @@
 use std::io::Write;
 use winter::buffer::Buffer;
 use winter::layout::Rect;
-use winter::{
-    block::*,
-    buffer::Cell,
-    test_style::{Modifier, Style},
-    *,
-};
+use winter::{block::*, buffer::Cell, *};
 
 fn draw(diff: Vec<(u16, u16, &Cell)>) {
     let mut fg = Color::Reset;
@@ -48,10 +43,7 @@ fn draw(diff: Vec<(u16, u16, &Cell)>) {
 
 fn main() {
     let term = Terminal::new();
-
     let (width, height) = window_info(&term).terminal_size;
-
-    //TODO: CHANGE TO 1, 1 instead of 0, 0?
     let mut area = Rect::new(0, 0, width, height);
     let mut buffers: [Buffer; 2] = [Buffer::empty(area), Buffer::empty(area)];
     let mut current = 0;
@@ -59,7 +51,7 @@ fn main() {
     clear();
 
     loop {
-        //Render to the current buffer
+        //Draw widgets
         block::draw(
             Borders::ALL,
             BorderType::Rounded,
@@ -85,6 +77,7 @@ fn main() {
             buffers[current].resize(area);
             buffers[1 - current].resize(area);
             // Reset the back buffer to make sure the next update will redraw everything.
+            //TODO: Clear isn't buffered.
             clear();
             buffers[1 - current].reset();
         }

@@ -3,7 +3,7 @@ use std::cmp::min;
 use unicode_segmentation::UnicodeSegmentation;
 use unicode_width::UnicodeWidthStr;
 
-use crate::{layout::*, spans::*, test_style::*, BackgroundColor, Color};
+use crate::{layout::*, spans::*, BackgroundColor, Color, Modifier, Style};
 
 /// A buffer that maps to the desired content of the terminal after the draw call
 ///
@@ -425,17 +425,17 @@ impl Cell {
         if let Some(c) = style.bg {
             self.bg = c;
         }
-        self.modifier.insert(style.add_modifier);
-        self.modifier.remove(style.sub_modifier);
+        // self.modifier.insert(style.add_modifier);
+        // self.modifier.remove(style.sub_modifier);
         self
     }
 
-    pub fn style(&self) -> Style {
-        Style::default()
-            .fg(self.fg)
-            .bg(self.bg)
-            .add_modifier(self.modifier)
-    }
+    // pub fn style(&self) -> Style {
+    //     Style::default()
+    //         .fg(self.fg)
+    //         .bg(self.bg)
+    //         .add_modifier(self.modifier)
+    // }
 
     pub fn reset(&mut self) {
         self.symbol.clear();
