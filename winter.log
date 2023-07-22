@@ -1,0 +1,5205 @@
+warning: unused import: `terminal::*`
+ --> src\block.rs:1:46
+  |
+1 | use crate::{layout::*, spans::*, symbols::*, terminal::*, test_style::*};
+  |                                              ^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` on by default
+
+warning: method `expand_to_fill` is never used
+   --> src\layout.rs:121:19
+    |
+89  | impl Layout {
+    | ----------- method in this implementation
+...
+121 |     pub(crate) fn expand_to_fill(mut self, expand_to_fill: bool) -> Layout {
+    |                   ^^^^^^^^^^^^^^
+    |
+    = note: `#[warn(dead_code)]` on by default
+
+warning: fields `buffers`, `current`, `hidden_cursor`, and `viewport` are never read
+  --> src\terminal.rs:9:5
+   |
+6  | pub struct Terminal {
+   |            -------- fields in this struct
+...
+9  |     buffers: [Buffer; 2],
+   |     ^^^^^^^
+10 |     /// Index of the current buffer in the previous array
+11 |     current: usize,
+   |     ^^^^^^^
+12 |     /// Whether the cursor is currently hidden
+13 |     hidden_cursor: bool,
+   |     ^^^^^^^^^^^^^
+14 |     /// Viewport
+15 |     viewport: Rect,
+   |     ^^^^^^^^
+   |
+   = note: `Terminal` has a derived impl for the trait `Debug`, but this is intentionally ignored during dead code analysis
+
+warning: `winter` (lib) generated 3 warnings (run `cargo fix --lib -p winter` to apply 1 suggestion)
+   Compiling winter v0.1.0 (D:\Desktop\winter)
+    Finished dev [unoptimized + debuginfo] target(s) in 0.48s
+     Running `target\debug\winter.exe`
+[src\main.rs:181] diff = [
+    (
+        0,
+        0,
+        Cell {
+            symbol: "Γöî",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        1,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        2,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        3,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        4,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        5,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        6,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        7,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        8,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        9,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        10,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        11,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        12,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        13,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        14,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        15,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        16,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        17,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        18,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        19,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        20,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        21,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        22,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        23,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        24,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        25,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        26,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        27,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        28,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        29,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        30,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        31,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        32,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        33,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        34,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        35,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        36,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        37,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        38,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        39,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        40,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        41,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        42,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        43,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        44,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        45,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        46,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        47,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        48,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        49,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        50,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        51,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        52,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        53,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        54,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        55,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        56,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        57,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        58,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        59,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        60,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        61,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        62,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        63,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        64,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        65,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        66,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        67,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        68,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        69,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        70,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        71,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        72,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        73,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        74,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        75,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        76,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        77,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        78,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        79,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        80,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        81,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        82,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        83,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        84,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        85,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        86,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        87,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        88,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        89,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        90,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        91,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        92,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        93,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        94,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        95,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        96,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        97,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        98,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        99,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        100,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        101,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        102,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        103,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        104,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        105,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        106,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        107,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        108,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        109,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        110,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        111,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        112,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        113,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        114,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        115,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        116,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        117,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        118,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        119,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        120,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        121,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        122,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        123,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        124,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        125,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        126,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        127,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        128,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        129,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        130,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        131,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        132,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        133,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        134,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        135,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        136,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        137,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        138,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        139,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        140,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        141,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        142,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        143,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        144,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        145,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        146,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        147,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        148,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        149,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        150,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        151,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        152,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        153,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        154,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        155,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        156,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        157,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        158,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        159,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        160,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        161,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        162,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        163,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        164,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        165,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        166,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        167,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        168,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        169,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        170,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        171,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        172,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        173,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        174,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        175,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        176,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        177,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        178,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        179,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        180,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        181,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        182,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        183,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        184,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        185,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        186,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        187,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        188,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        189,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        190,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        191,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        192,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        193,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        194,
+        0,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        195,
+        0,
+        Cell {
+            symbol: "ΓöÉ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        0,
+        1,
+        Cell {
+            symbol: "Γöé",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        195,
+        1,
+        Cell {
+            symbol: "Γöé",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        0,
+        2,
+        Cell {
+            symbol: "Γöé",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        195,
+        2,
+        Cell {
+            symbol: "Γöé",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        0,
+        3,
+        Cell {
+            symbol: "Γöé",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        195,
+        3,
+        Cell {
+            symbol: "Γöé",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        0,
+        4,
+        Cell {
+            symbol: "Γöé",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        195,
+        4,
+        Cell {
+            symbol: "Γöé",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        0,
+        5,
+        Cell {
+            symbol: "Γöé",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        195,
+        5,
+        Cell {
+            symbol: "Γöé",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        0,
+        6,
+        Cell {
+            symbol: "Γöé",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        195,
+        6,
+        Cell {
+            symbol: "Γöé",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        0,
+        7,
+        Cell {
+            symbol: "Γöé",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        195,
+        7,
+        Cell {
+            symbol: "Γöé",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        0,
+        8,
+        Cell {
+            symbol: "Γöé",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        195,
+        8,
+        Cell {
+            symbol: "Γöé",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        0,
+        9,
+        Cell {
+            symbol: "Γöé",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        195,
+        9,
+        Cell {
+            symbol: "Γöé",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        0,
+        10,
+        Cell {
+            symbol: "Γöé",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        195,
+        10,
+        Cell {
+            symbol: "Γöé",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        0,
+        11,
+        Cell {
+            symbol: "Γöé",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        195,
+        11,
+        Cell {
+            symbol: "Γöé",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        0,
+        12,
+        Cell {
+            symbol: "Γöé",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        195,
+        12,
+        Cell {
+            symbol: "Γöé",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        0,
+        13,
+        Cell {
+            symbol: "Γöé",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        195,
+        13,
+        Cell {
+            symbol: "Γöé",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        0,
+        14,
+        Cell {
+            symbol: "Γöé",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        195,
+        14,
+        Cell {
+            symbol: "Γöé",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        0,
+        15,
+        Cell {
+            symbol: "Γöé",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        195,
+        15,
+        Cell {
+            symbol: "Γöé",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        0,
+        16,
+        Cell {
+            symbol: "Γöé",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        195,
+        16,
+        Cell {
+            symbol: "Γöé",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        0,
+        17,
+        Cell {
+            symbol: "Γöé",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        195,
+        17,
+        Cell {
+            symbol: "Γöé",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        0,
+        18,
+        Cell {
+            symbol: "Γöé",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        195,
+        18,
+        Cell {
+            symbol: "Γöé",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        0,
+        19,
+        Cell {
+            symbol: "Γöé",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        195,
+        19,
+        Cell {
+            symbol: "Γöé",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        0,
+        20,
+        Cell {
+            symbol: "Γöö",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        1,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        2,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        3,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        4,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        5,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        6,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        7,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        8,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        9,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        10,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        11,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        12,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        13,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        14,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        15,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        16,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        17,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        18,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        19,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        20,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        21,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        22,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        23,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        24,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        25,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        26,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        27,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        28,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        29,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        30,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        31,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        32,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        33,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        34,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        35,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        36,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        37,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        38,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        39,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        40,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        41,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        42,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        43,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        44,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        45,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        46,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        47,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        48,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        49,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        50,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        51,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        52,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        53,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        54,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        55,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        56,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        57,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        58,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        59,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        60,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        61,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        62,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        63,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        64,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        65,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        66,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        67,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        68,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        69,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        70,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        71,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        72,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        73,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        74,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        75,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        76,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        77,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        78,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        79,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        80,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        81,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        82,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        83,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        84,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        85,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        86,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        87,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        88,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        89,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        90,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        91,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        92,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        93,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        94,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        95,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        96,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        97,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        98,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        99,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        100,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        101,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        102,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        103,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        104,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        105,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        106,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        107,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        108,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        109,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        110,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        111,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        112,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        113,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        114,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        115,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        116,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        117,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        118,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        119,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        120,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        121,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        122,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        123,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        124,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        125,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        126,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        127,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        128,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        129,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        130,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        131,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        132,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        133,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        134,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        135,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        136,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        137,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        138,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        139,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        140,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        141,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        142,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        143,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        144,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        145,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        146,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        147,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        148,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        149,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        150,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        151,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        152,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        153,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        154,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        155,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        156,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        157,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        158,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        159,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        160,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        161,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        162,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        163,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        164,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        165,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        166,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        167,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        168,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        169,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        170,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        171,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        172,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        173,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        174,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        175,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        176,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        177,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        178,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        179,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        180,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        181,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        182,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        183,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        184,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        185,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        186,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        187,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        188,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        189,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        190,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        191,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        192,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        193,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        194,
+        20,
+        Cell {
+            symbol: "ΓöÇ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+    (
+        195,
+        20,
+        Cell {
+            symbol: "Γöÿ",
+            fg: Reset,
+            bg: Reset,
+            modifier: Modifier(
+                0x0,
+            ),
+        },
+    ),
+]

@@ -3,7 +3,7 @@ use std::cmp::min;
 use unicode_segmentation::UnicodeSegmentation;
 use unicode_width::UnicodeWidthStr;
 
-use crate::{layout::*, spans::*, test_style::*};
+use crate::{layout::*, spans::*, test_style::*, BackgroundColor, Color};
 
 /// A buffer that maps to the desired content of the terminal after the draw call
 ///
@@ -262,7 +262,7 @@ impl Buffer {
         since = "0.10.0",
         note = "You should use styling capabilities of `Buffer::set_style`"
     )]
-    pub fn set_background(&mut self, area: Rect, color: Color) {
+    pub fn set_background(&mut self, area: Rect, color: BackgroundColor) {
         for y in area.top()..area.bottom() {
             for x in area.left()..area.right() {
                 self.get_mut(x, y).set_bg(color);
@@ -391,7 +391,7 @@ impl Buffer {
 pub struct Cell {
     pub symbol: String,
     pub fg: Color,
-    pub bg: Color,
+    pub bg: BackgroundColor,
     pub modifier: Modifier,
 }
 
@@ -413,7 +413,7 @@ impl Cell {
         self
     }
 
-    pub fn set_bg(&mut self, color: Color) -> &mut Cell {
+    pub fn set_bg(&mut self, color: BackgroundColor) -> &mut Cell {
         self.bg = color;
         self
     }
@@ -441,7 +441,7 @@ impl Cell {
         self.symbol.clear();
         self.symbol.push(' ');
         self.fg = Color::Reset;
-        self.bg = Color::Reset;
+        self.bg = BackgroundColor::Reset;
         self.modifier = Modifier::empty();
     }
 }
@@ -451,7 +451,7 @@ impl Default for Cell {
         Cell {
             symbol: " ".into(),
             fg: Color::Reset,
-            bg: Color::Reset,
+            bg: BackgroundColor::Reset,
             modifier: Modifier::empty(),
         }
     }

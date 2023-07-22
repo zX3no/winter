@@ -1,4 +1,4 @@
-use crate::{layout::*, spans::*, symbols::*, terminal::*, test_style::*};
+use crate::{layout::*, spans::*, symbols::*, test_style::*};
 use bitflags::bitflags;
 
 bitflags! {

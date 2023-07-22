@@ -2,7 +2,7 @@
 use winter::{
     block::{BorderType, Borders},
     buffer::Cell,
-    test_style::{Color, Modifier, Style},
+    test_style::{Modifier, Style},
     *,
 };
 
@@ -117,20 +117,19 @@ fn render_block(area: Rect, buf: &mut Buffer) {
 //     let updates = previous_buffer.diff(current_buffer);
 //     self.backend.draw(updates.into_iter())
 // }
+use std::io::Write;
 
 fn draw(diff: Vec<(u16, u16, &Cell)>) {
     let mut fg = Color::Reset;
-    let mut bg = Color::Reset;
+    let mut bg = BackgroundColor::Reset;
     let mut modifier = Modifier::empty();
-    let mut last_pos: Option<(u16, u16)> = None;
+    let mut lock = std::io::stdout().lock();
 
     for (x, y, cell) in diff {
-        // Move the cursor if the previous location was not (x - 1, y)
-        if !matches!(last_pos, Some(p) if x == p.0 + 1 && y == p.1) {
-            move_to(x, y);
-        }
-
-        last_pos = Some((x, y));
+        //Apparently 0, 0 and 1, 1 are the same?
+        let x = x + 1;
+        let y = y + 1;
+        move_to(x, y);
 
         if cell.modifier != modifier {
             // let diff = ModifierDiff {
@@ -141,18 +140,18 @@ fn draw(diff: Vec<(u16, u16, &Cell)>) {
             modifier = cell.modifier;
         }
         if cell.fg != fg {
-            let color = Color::from(cell.fg);
-            // map_error(queue!(self.buffer, SetForegroundColor(color)))?;
+            write!(lock, "{}", cell.fg.code());
             fg = cell.fg;
         }
         if cell.bg != bg {
-            let color = Color::from(cell.bg);
-            // map_error(queue!(self.buffer, SetBackgroundColor(color)))?;
+            write!(lock, "{}", cell.bg.code());
             bg = cell.bg;
         }
 
-        print!("{}", cell.symbol);
+        write!(lock, "{}", cell.symbol).unwrap();
     }
+
+    lock.flush().unwrap();
 
     reset();
 }
@@ -170,17 +169,9 @@ fn main() {
     render_block(area, &mut buffer);
 
     let mut empty = Buffer::empty(area);
-
     let diff = empty.diff(&buffer);
 
     clear();
+    // print!("{}", BackgroundColor::Red.code());
     draw(diff);
-
-    // dbg!(buffer);
-
-    // clear();
-    // move_to(0, 0);
-    // print!("xxxxxxxxxxxxxxxxxx");
-    // move_to(0, 10);
-    // print!("xxxxxxxxxxxxxxxxxx");
 }

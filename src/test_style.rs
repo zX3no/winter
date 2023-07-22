@@ -1,30 +1,31 @@
 //! `style` contains the primitives used to control how your user interface will look.
 
+use crate::{BackgroundColor, Color};
 use bitflags::bitflags;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-pub enum Color {
-    Reset,
-    Black,
-    Red,
-    Green,
-    Yellow,
-    Blue,
-    Magenta,
-    Cyan,
-    Gray,
-    DarkGray,
-    LightRed,
-    LightGreen,
-    LightYellow,
-    LightBlue,
-    LightMagenta,
-    LightCyan,
-    White,
-    Rgb(u8, u8, u8),
-    Indexed(u8),
-}
+// #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+// #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+// pub enum Color {
+//     Reset,
+//     Black,
+//     Red,
+//     Green,
+//     Yellow,
+//     Blue,
+//     Magenta,
+//     Cyan,
+//     Gray,
+//     DarkGray,
+//     LightRed,
+//     LightGreen,
+//     LightYellow,
+//     LightBlue,
+//     LightMagenta,
+//     LightCyan,
+//     White,
+//     Rgb(u8, u8, u8),
+//     Indexed(u8),
+// }
 
 bitflags! {
     /// Modifier changes the way a piece of text is displayed.
@@ -120,7 +121,7 @@ bitflags! {
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Style {
     pub fg: Option<Color>,
-    pub bg: Option<Color>,
+    pub bg: Option<BackgroundColor>,
     pub add_modifier: Modifier,
     pub sub_modifier: Modifier,
 }
@@ -141,7 +142,7 @@ impl Style {
     pub fn reset() -> Style {
         Style {
             fg: Some(Color::Reset),
-            bg: Some(Color::Reset),
+            bg: Some(BackgroundColor::Reset),
             add_modifier: Modifier::empty(),
             sub_modifier: Modifier::all(),
         }
@@ -172,7 +173,7 @@ impl Style {
     /// let diff = Style::default().bg(Color::Red);
     /// assert_eq!(style.patch(diff), Style::default().bg(Color::Red));
     /// ```
-    pub fn bg(mut self, color: Color) -> Style {
+    pub fn bg(mut self, color: BackgroundColor) -> Style {
         self.bg = Some(color);
         self
     }
@@ -251,7 +252,7 @@ mod tests {
         vec![
             Style::default(),
             Style::default().fg(Color::Yellow),
-            Style::default().bg(Color::Yellow),
+            Style::default().bg(BackgroundColor::Yellow),
             Style::default().add_modifier(Modifier::BOLD),
             Style::default().remove_modifier(Modifier::BOLD),
             Style::default().add_modifier(Modifier::ITALIC),

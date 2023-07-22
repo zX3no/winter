@@ -1,5 +1,5 @@
 #![allow(soft_unstable)]
-use std::{ffi::OsStr, mem::zeroed, os::windows::prelude::OsStrExt, process::Command};
+use std::{ffi::OsStr, io::Stdout, mem::zeroed, os::windows::prelude::OsStrExt, process::Command};
 use winapi::{
     ctypes::c_void,
     um::{
@@ -21,9 +21,111 @@ pub mod color;
 pub mod rect;
 pub mod style;
 pub mod symbols;
-pub mod terminal;
 
 pub const STD_HANDLE: u32 = -11i32 as u32;
+
+/// Example of changing color
+/// ```rs
+/// let color = Color::Red;
+/// print!("{}", color.code());
+/// ```
+#[derive(Debug, Clone, PartialEq, Eq, Copy)]
+pub enum Color {
+    Black,
+    Red,
+    Green,
+    Yellow,
+    Blue,
+    Magenta,
+    Cyan,
+    White,
+
+    BrightBlack,
+    BrightRed,
+    BrightGreen,
+    BrightYellow,
+    BrightBlue,
+    BrightMagenta,
+    BrightCyan,
+    BrightWhite,
+
+    Reset,
+}
+
+impl Color {
+    pub fn code(self) -> &'static str {
+        match self {
+            Color::Black => "\x1B[30m",
+            Color::Red => "\x1B[31m",
+            Color::Green => "\x1B[32m",
+            Color::Yellow => "\x1B[33m",
+            Color::Blue => "\x1B[34m",
+            Color::Magenta => "\x1B[35m",
+            Color::Cyan => "\x1B[36m",
+            Color::White => "\x1B[37m",
+
+            Color::BrightBlack => "\x1B[90m",
+            Color::BrightRed => "\x1B[91m",
+            Color::BrightGreen => "\x1B[92m",
+            Color::BrightYellow => "\x1B[93m",
+            Color::BrightBlue => "\x1B[94m",
+            Color::BrightMagenta => "\x1B[95m",
+            Color::BrightCyan => "\x1B[96m",
+            Color::BrightWhite => "\x1B[97m",
+
+            Color::Reset => "\x1B[0m",
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Copy)]
+pub enum BackgroundColor {
+    Black,
+    Red,
+    Green,
+    Yellow,
+    Blue,
+    Magenta,
+    Cyan,
+    White,
+
+    BrightBlack,
+    BrightRed,
+    BrightGreen,
+    BrightYellow,
+    BrightBlue,
+    BrightMagenta,
+    BrightCyan,
+    BrightWhite,
+
+    Reset,
+}
+
+impl BackgroundColor {
+    pub fn code(self) -> &'static str {
+        match self {
+            BackgroundColor::Black => "\x1B[40m",
+            BackgroundColor::Red => "\x1B[41m",
+            BackgroundColor::Green => "\x1B[42m",
+            BackgroundColor::Yellow => "\x1B[43m",
+            BackgroundColor::Blue => "\x1B[44m",
+            BackgroundColor::Magenta => "\x1B[45m",
+            BackgroundColor::Cyan => "\x1B[46m",
+            BackgroundColor::White => "\x1B[47m",
+
+            BackgroundColor::BrightBlack => "\x1B[100m",
+            BackgroundColor::BrightRed => "\x1B[101m",
+            BackgroundColor::BrightGreen => "\x1B[102m",
+            BackgroundColor::BrightYellow => "\x1B[103m",
+            BackgroundColor::BrightBlue => "\x1B[104m",
+            BackgroundColor::BrightMagenta => "\x1B[105m",
+            BackgroundColor::BrightCyan => "\x1B[106m",
+            BackgroundColor::BrightWhite => "\x1B[107m",
+
+            BackgroundColor::Reset => "\x1B[49m",
+        }
+    }
+}
 
 pub enum ConsoleMode {
     EnableVirtualInputProcessing = 0x0004,

@@ -83,6 +83,8 @@ macro_rules! stylize {
 stylize!(String);
 stylize!(&str);
 
+//https://learn.microsoft.com/en-us/windows/console/console-virtual-terminal-sequences
+
 ///```rs
 /// "Test".bold().underline().red()
 /// ```
