@@ -17,8 +17,8 @@ pub use unicode_width::{UnicodeWidthChar, UnicodeWidthStr};
 
 //Widgets
 pub use text::*;
-pub mod text;
 pub mod block;
+pub mod text;
 
 pub mod buffer;
 pub mod color;
@@ -193,6 +193,64 @@ impl Terminal {
             handle: unsafe { GetStdHandle(STD_HANDLE) },
         }
     }
+
+    //TODO: Cleanup into term.size() or something this API sucks.
+    /// Get the screen buffer information like terminal size, cursor position, buffer size.
+    ///
+    /// This wraps
+    /// [`GetConsoleScreenBufferInfo`](https://docs.microsoft.com/en-us/windows/console/getconsolescreenbufferinfo).
+    pub fn info(&self) -> Info {
+        unsafe {
+            let mut info: CONSOLE_SCREEN_BUFFER_INFO = zeroed();
+            let result = GetConsoleScreenBufferInfo(self.handle, &mut info);
+            if result != 1 {
+                panic!("Could not get window size.");
+            } else {
+                Info {
+                    buffer_size: (info.dwSize.X as u16, info.dwSize.Y as u16),
+                    terminal_size: (
+                        (info.srWindow.Right - info.srWindow.Left) as u16,
+                        (info.srWindow.Bottom - info.srWindow.Top) as u16,
+                    ),
+                }
+            }
+        }
+    }
+
+    ///
+    ///
+    /// This wraps
+    /// [`SetConsoleMode`](https://learn.microsoft.com/en-us/windows/console/setconsolemode).
+    pub fn set_mode(&self, mode: ConsoleMode) {
+        unsafe {
+            SetConsoleMode(self.handle, mode as u32);
+        }
+    }
+    ///
+    ///
+    /// This wraps
+    /// [`WriteConsoleW`](https://learn.microsoft.com/en-us/windows/console/writeconsole).
+    pub fn write(&self, buf: &[u8]) {
+        let utf16: Vec<u16> = OsStr::new(std::str::from_utf8(buf).unwrap())
+            .encode_wide()
+            .collect();
+
+        let mut cells_written: u32 = 0;
+
+        let result = unsafe {
+            WriteConsoleW(
+                self.handle,
+                utf16.as_ptr() as *const c_void,
+                utf16.len() as u32,
+                &mut cells_written,
+                zeroed(),
+            )
+        };
+
+        if result != 1 {
+            panic!("Could not write to console.");
+        }
+    }
 }
 
 pub struct Info {
@@ -200,50 +258,12 @@ pub struct Info {
     pub terminal_size: (u16, u16),
 }
 
-pub fn window_info(term: &Terminal) -> Info {
-    unsafe {
-        let mut info: CONSOLE_SCREEN_BUFFER_INFO = zeroed();
-        let result = GetConsoleScreenBufferInfo(term.handle, &mut info);
-        if result != 1 {
-            panic!("Could not get window size.");
-        } else {
-            Info {
-                buffer_size: (info.dwSize.X as u16, info.dwSize.Y as u16),
-                terminal_size: (
-                    (info.srWindow.Right - info.srWindow.Left) as u16,
-                    (info.srWindow.Bottom - info.srWindow.Top) as u16,
-                ),
-            }
-        }
-    }
+pub fn enter_alternate_screen() {
+    print!("\x1b[?1049h");
 }
 
-pub fn write(term: &Terminal, buf: &[u8]) {
-    let utf16: Vec<u16> = OsStr::new(std::str::from_utf8(buf).unwrap())
-        .encode_wide()
-        .collect();
-
-    let mut cells_written: u32 = 0;
-
-    let result = unsafe {
-        WriteConsoleW(
-            term.handle,
-            utf16.as_ptr() as *const c_void,
-            utf16.len() as u32,
-            &mut cells_written,
-            zeroed(),
-        )
-    };
-
-    if result != 1 {
-        panic!("Could not write to console.");
-    }
-}
-
-pub fn set_mode(term: &Terminal, mode: ConsoleMode) {
-    unsafe {
-        SetConsoleMode(term.handle, mode as u32);
-    }
+pub fn leave_alternate_screen() {
+    print!("\x1b[?1049l");
 }
 
 //https://gist.github.com/fnky/458719343aabd01cfb17a3a4f7296797

@@ -1,4 +1,4 @@
-use crate::{layout::Rect, symbols::*, buffer::Buffer, Style};
+use crate::{buffer::Buffer, layout::Rect, symbols::*, Style};
 use bitflags::bitflags;
 
 bitflags! {
@@ -50,6 +50,7 @@ pub fn draw(borders: Borders, border_type: BorderType, style: Style, area: Rect,
     if borders.intersects(Borders::LEFT) {
         for y in area.top()..area.bottom() {
             buf.get_mut(area.left(), y)
+                .unwrap()
                 .set_symbol(symbols.vertical)
                 .set_style(style);
         }
@@ -57,6 +58,7 @@ pub fn draw(borders: Borders, border_type: BorderType, style: Style, area: Rect,
     if borders.intersects(Borders::TOP) {
         for x in area.left()..area.right() {
             buf.get_mut(x, area.top())
+                .unwrap()
                 .set_symbol(symbols.horizontal)
                 .set_style(style);
         }
@@ -65,6 +67,7 @@ pub fn draw(borders: Borders, border_type: BorderType, style: Style, area: Rect,
         let x = area.right() - 1;
         for y in area.top()..area.bottom() {
             buf.get_mut(x, y)
+                .unwrap()
                 .set_symbol(symbols.vertical)
                 .set_style(style);
         }
@@ -73,6 +76,7 @@ pub fn draw(borders: Borders, border_type: BorderType, style: Style, area: Rect,
         let y = area.bottom() - 1;
         for x in area.left()..area.right() {
             buf.get_mut(x, y)
+                .unwrap()
                 .set_symbol(symbols.horizontal)
                 .set_style(style);
         }
@@ -81,21 +85,25 @@ pub fn draw(borders: Borders, border_type: BorderType, style: Style, area: Rect,
     // Corners
     if borders.contains(Borders::RIGHT | Borders::BOTTOM) {
         buf.get_mut(area.right() - 1, area.bottom() - 1)
+            .unwrap()
             .set_symbol(symbols.bottom_right)
             .set_style(style);
     }
     if borders.contains(Borders::RIGHT | Borders::TOP) {
         buf.get_mut(area.right() - 1, area.top())
+            .unwrap()
             .set_symbol(symbols.top_right)
             .set_style(style);
     }
     if borders.contains(Borders::LEFT | Borders::BOTTOM) {
         buf.get_mut(area.left(), area.bottom() - 1)
+            .unwrap()
             .set_symbol(symbols.bottom_left)
             .set_style(style);
     }
     if borders.contains(Borders::LEFT | Borders::TOP) {
         buf.get_mut(area.left(), area.top())
+            .unwrap()
             .set_symbol(symbols.top_left)
             .set_style(style);
     }

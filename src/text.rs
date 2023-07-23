@@ -1,6 +1,9 @@
+use unicode_width::UnicodeWidthStr;
+
 use crate::{buffer::Buffer, layout::Rect, Style};
 use std::borrow::Cow;
 
+//TODO: Should `Lines` impl Deref so that lines[0].width() will work?
 #[derive(Debug, Clone)]
 pub struct Lines<'a> {
     pub lines: &'a [Text<'a>],
@@ -16,9 +19,12 @@ impl<'a> Lines<'a> {
                 for x in area.left()..area.right() {
                     if let Some(char) = chars.next() {
                         if let Some(style) = self.style {
-                            buf.get_mut(x, y).set_char(char).set_style(style);
+                            buf.get_mut(x, y).unwrap().set_char(char).set_style(style);
                         } else {
-                            buf.get_mut(x, y).set_char(char).set_style(line.style);
+                            buf.get_mut(x, y)
+                                .unwrap()
+                                .set_char(char)
+                                .set_style(line.style);
                         }
                     } else {
                         break;
@@ -29,7 +35,6 @@ impl<'a> Lines<'a> {
             }
         }
     }
-
     pub fn draw_wrapping(&self, area: Rect, buf: &mut Buffer) {
         if self.lines.is_empty() {
             return;
@@ -45,9 +50,12 @@ impl<'a> Lines<'a> {
             for x in area.left()..area.right() {
                 if let Some(char) = chars.next() {
                     if let Some(style) = self.style {
-                        buf.get_mut(x, y).set_char(char).set_style(style);
+                        buf.get_mut(x, y).unwrap().set_char(char).set_style(style);
                     } else {
-                        buf.get_mut(x, y).set_char(char).set_style(line.style);
+                        buf.get_mut(x, y)
+                            .unwrap()
+                            .set_char(char)
+                            .set_style(line.style);
                     }
                 } else {
                     if let Some(l) = lines.next() {
@@ -60,6 +68,9 @@ impl<'a> Lines<'a> {
                 }
             }
         }
+    }
+    pub fn height(&self) -> usize {
+        self.lines.len()
     }
 }
 
@@ -75,9 +86,9 @@ macro_rules! lines {
             style: None,
         }
     };
-    ($Lines:expr, $style:expr) => {
+    ($lines:expr, $style:expr) => {
         Lines {
-            lines,
+            lines: $lines,
             style: Some($style),
         }
     };
@@ -95,12 +106,18 @@ impl<'a> Text<'a> {
         for y in area.top()..area.bottom() {
             for x in area.left()..area.right() {
                 if let Some(char) = chars.next() {
-                    buf.get_mut(x, y).set_char(char).set_style(self.style);
+                    buf.get_mut(x, y)
+                        .unwrap()
+                        .set_char(char)
+                        .set_style(self.style);
                 } else {
                     return;
                 }
             }
         }
+    }
+    pub fn width(&self) -> usize {
+        self.text.width()
     }
 }
 
