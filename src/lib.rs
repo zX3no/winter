@@ -29,11 +29,6 @@ pub mod terminal;
 
 pub const STD_HANDLE: u32 = -11i32 as u32;
 
-/// Example of changing color
-/// ```rs
-/// let color = Color::Red;
-/// print!("{}", color.code());
-/// ```
 #[derive(Debug, Clone, PartialEq, Eq, Copy)]
 pub enum Color {
     Black,
@@ -128,6 +123,7 @@ pub fn style() -> Style {
         modifier: Modifier::empty(),
     }
 }
+
 pub fn fg(fg: Color) -> Style {
     Style {
         fg: Some(fg),
@@ -135,6 +131,7 @@ pub fn fg(fg: Color) -> Style {
         modifier: Modifier::empty(),
     }
 }
+
 pub fn bg(bg: Color) -> Style {
     Style {
         fg: None,
@@ -171,6 +168,12 @@ pub enum ConsoleMode {
     EnableVirtualInputProcessing = 0x0004,
 }
 
+pub struct Info {
+    pub buffer_size: (u16, u16),
+    pub window_size: (u16, u16),
+    pub cursor_position: (u16, u16),
+}
+
 pub struct Terminal {
     pub handle: *mut c_void,
 }
@@ -196,9 +199,13 @@ impl Terminal {
             } else {
                 Info {
                     buffer_size: (info.dwSize.X as u16, info.dwSize.Y as u16),
-                    terminal_size: (
+                    window_size: (
                         (info.srWindow.Right - info.srWindow.Left) as u16,
                         (info.srWindow.Bottom - info.srWindow.Top) as u16,
+                    ),
+                    cursor_position: (
+                        info.dwCursorPosition.X as u16,
+                        info.dwCursorPosition.Y as u16,
                     ),
                 }
             }
@@ -239,11 +246,6 @@ impl Terminal {
             panic!("Could not write to console.");
         }
     }
-}
-
-pub struct Info {
-    pub buffer_size: (u16, u16),
-    pub terminal_size: (u16, u16),
 }
 
 pub fn enter_alternate_screen() {
