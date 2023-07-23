@@ -82,10 +82,6 @@ impl<'a> Lines<'a> {
     }
 }
 
-pub fn lines<'a>(lines: &'a [Text<'a>], style: Option<Style>) -> Lines<'a> {
-    Lines { lines, style }
-}
-
 #[macro_export]
 macro_rules! lines {
     ($lines:expr) => {
@@ -129,13 +125,8 @@ impl<'a> Text<'a> {
     }
 }
 
-pub fn text<'a>(text: &'a str, style: Style) -> Text<'a> {
-    Text {
-        text: Cow::from(text),
-        style,
-    }
-}
-
+///Keep in mind wide characters must be formatted with spaces. FIXME: This is not needed in block titles.
+/// `う ず ま き` instead of `うずまき`
 #[macro_export]
 macro_rules! text {
     ($text:expr) => {

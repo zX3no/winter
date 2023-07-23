@@ -7,14 +7,6 @@ use winter::{
     layout::Margin,
 };
 
-//List of widgets gonk uses:
-//Text with different styles
-//Guage
-//List
-//Table
-//Block [x]
-//Paragraph [x]
-
 fn main() {
     let mut term = Terminal::new();
     let (width, height) = term.info().window_size;
@@ -42,22 +34,19 @@ fn main() {
         //Draw widgets
         {
             block::draw(
-                //TODO: Text offset would be really nice for titles.
-                //Sometimes you want it a couple of pixels to the left.
-                //Maybe centered left, center and right aligned titles aswell?
-                //I feel like text can have all of these properties.
-                Some(text!("う ず ま き ", fg(Blue).bg(White))),
+                Some(text!("うずまき", fg(Blue).bg(White))),
                 Borders::ALL,
                 BorderType::Rounded,
                 Style::default(),
                 viewport,
                 &mut buffers[current],
             );
+            let text = text!("うずまき");
+            text.draw(viewport, &mut buffers[current]);
 
             let str = "line 3asdlkasjdalskdjaslkd ajsdlk asjdasldkjasdl kajdaslkdjasld kasjd lkasjd aslkd jaslkdasjd laskdj alskd jasldkajs dlkasjd laskdj aslkd jaslk djasd asjlasldkasjd laksdj alskdjasldkasdlasjkdasjdlaskdjlaskdjalksddlkasdjaslkd jsalkd jalkdasjdlaskdj asldk jasdl kasjd laksjd aslkdajsdslkdjaslkdja final-word";
 
-            //TODO: Draw text inside of block.
-            let temp = &[text!(str), text!(str)];
+            let temp = &[text!(str), text!(str), text!("う ず ま き")];
             let l = lines!(temp);
 
             let mut v = viewport.clone();
@@ -67,14 +56,6 @@ fn main() {
             // dbg!(v);
             // panic!();
             l.draw_wrapping(v, &mut buffers[current]);
-
-            //TODO
-            //text("test", blue());
-            //text("test", fg_blue());
-            //Here style is enum {Color, Background, Modifier}
-            //
-            //OR
-            //text("test", style().blue().bg_red())
         }
 
         //Calculate difference and draw

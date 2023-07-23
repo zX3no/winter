@@ -32,8 +32,11 @@ pub mod terminal;
 
 pub const STD_HANDLE: u32 = -11i32 as u32;
 
+#[derive(Debug)]
 pub enum ConsoleMode {
     EnableVirtualInputProcessing = 0x0004,
+    EnableMouseInput = 0x0010,
+    Reset = 0,
 }
 
 pub struct Info {
@@ -44,12 +47,14 @@ pub struct Info {
 
 pub struct Terminal {
     pub handle: *mut c_void,
+    pub mode: u32,
 }
 
 impl Terminal {
     pub fn new() -> Self {
         Self {
             handle: unsafe { GetStdHandle(STD_HANDLE) },
+            mode: 0,
         }
     }
 
@@ -80,13 +85,38 @@ impl Terminal {
         }
     }
 
+    //TODO: Not sure if these are working correctly.
+
+    pub fn enable_raw_mode(&mut self) {
+        self.mode = self.mode | 0x0004;
+        self.set_mode(self.mode);
+    }
+
+    pub fn disable_raw_mode(&mut self) {
+        self.mode = self.mode & 0x0004;
+        self.set_mode(self.mode);
+    }
+
+    pub fn enable_mouse_input(&mut self) {
+        self.mode = self.mode | 0x0010;
+        self.set_mode(self.mode);
+    }
+
+    pub fn disable_mouse_input(&mut self) {
+        self.mode = self.mode & 0x0010;
+        self.set_mode(self.mode);
+    }
+
     ///
     ///
     /// This wraps
     /// [`SetConsoleMode`](https://learn.microsoft.com/en-us/windows/console/setconsolemode).
-    pub fn set_mode(&self, mode: ConsoleMode) {
+    pub fn set_mode(&self, mode: u32) {
         unsafe {
-            SetConsoleMode(self.handle, mode as u32);
+            let result = SetConsoleMode(self.handle, mode);
+            if result != 1 {
+                panic!("Failed to set console mode {:?}", mode);
+            }
         }
     }
     ///

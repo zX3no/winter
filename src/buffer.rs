@@ -242,6 +242,7 @@ impl Buffer {
     }
 }
 
+//TODO: Why is symbol a string?
 #[derive(Debug, Clone, PartialEq)]
 pub struct Cell {
     pub symbol: String,
