@@ -1,4 +1,4 @@
-use crate::{layout::Rect, move_to, reset, BgColor, Color, Modifier, Style};
+use crate::{layout::Rect, move_to, reset, Color, Modifier, Style};
 use std::io::Write;
 use unicode_width::UnicodeWidthStr;
 
@@ -6,7 +6,7 @@ use unicode_width::UnicodeWidthStr;
 //That way variables are not reinitialized.
 pub fn draw(diff: Vec<(u16, u16, &Cell)>) {
     let mut fg = Color::Reset;
-    let mut bg = BgColor::Reset;
+    let mut bg = Color::Reset;
     //TODO: Maybe have a variable for all modifiers?
     //That way we can turn each indiviually on and off.
     let mut modifier = Modifier::empty();
@@ -33,11 +33,11 @@ pub fn draw(diff: Vec<(u16, u16, &Cell)>) {
             modifier = cell.modifier;
         }
         if cell.fg != fg {
-            write!(lock, "{}", cell.fg.code()).unwrap();
+            write!(lock, "{}", cell.fg.fg_code()).unwrap();
             fg = cell.fg;
         }
         if cell.bg != bg {
-            write!(lock, "{}", cell.bg.code()).unwrap();
+            write!(lock, "{}", cell.bg.bg_code()).unwrap();
             bg = cell.bg;
         }
 
@@ -206,7 +206,7 @@ impl Buffer {
 pub struct Cell {
     pub symbol: String,
     pub fg: Color,
-    pub bg: BgColor,
+    pub bg: Color,
     pub modifier: Modifier,
 }
 
@@ -237,7 +237,7 @@ impl Cell {
         self.fg = color;
         self
     }
-    pub fn set_bg(&mut self, color: BgColor) -> &mut Cell {
+    pub fn set_bg(&mut self, color: Color) -> &mut Cell {
         self.bg = color;
         self
     }
@@ -249,7 +249,7 @@ impl Cell {
         self.symbol.clear();
         self.symbol.push(' ');
         self.fg = Color::Reset;
-        self.bg = BgColor::Reset;
+        self.bg = Color::Reset;
         self.modifier = Modifier::empty();
     }
 }
@@ -259,7 +259,7 @@ impl Default for Cell {
         Cell {
             symbol: " ".into(),
             fg: Color::Reset,
-            bg: BgColor::Reset,
+            bg: Color::Reset,
             modifier: Modifier::empty(),
         }
     }

@@ -51,16 +51,16 @@ fn main() {
 
             //TODO: Draw text inside of block.
             let temp = &[
-                text!(str),
-                text!(str, style().fg(Color::Blue)),
-                text!("う ず ま き "),
+                // text!(str),
+                // text!(str, fg(Color::Blue)),
+                text!("う ず ま き ", fg(Color::Blue).bg(Color::White)),
             ];
-            let l = lines!(temp, style().fg(Color::Red));
+            let l = lines!(temp);
 
             let mut v = viewport.clone();
             v.x += 2;
 
-            l.draw_wrapping(viewport, &mut buffers[current]);
+            l.draw_wrapping(v, &mut buffers[current]);
 
             //TODO
             //text("test", blue());

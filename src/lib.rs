@@ -58,7 +58,7 @@ pub enum Color {
 }
 
 impl Color {
-    pub fn code(self) -> &'static str {
+    pub fn fg_code(self) -> &'static str {
         match self {
             Color::Black => "\x1B[30m",
             Color::Red => "\x1B[31m",
@@ -81,53 +81,27 @@ impl Color {
             Color::Reset => "\x1B[0m",
         }
     }
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Copy)]
-pub enum BgColor {
-    Black,
-    Red,
-    Green,
-    Yellow,
-    Blue,
-    Magenta,
-    Cyan,
-    White,
-
-    BrightBlack,
-    BrightRed,
-    BrightGreen,
-    BrightYellow,
-    BrightBlue,
-    BrightMagenta,
-    BrightCyan,
-    BrightWhite,
-
-    Reset,
-}
-
-impl BgColor {
-    pub fn code(self) -> &'static str {
+    pub fn bg_code(self) -> &'static str {
         match self {
-            BgColor::Black => "\x1B[40m",
-            BgColor::Red => "\x1B[41m",
-            BgColor::Green => "\x1B[42m",
-            BgColor::Yellow => "\x1B[43m",
-            BgColor::Blue => "\x1B[44m",
-            BgColor::Magenta => "\x1B[45m",
-            BgColor::Cyan => "\x1B[46m",
-            BgColor::White => "\x1B[47m",
+            Color::Black => "\x1B[40m",
+            Color::Red => "\x1B[41m",
+            Color::Green => "\x1B[42m",
+            Color::Yellow => "\x1B[43m",
+            Color::Blue => "\x1B[44m",
+            Color::Magenta => "\x1B[45m",
+            Color::Cyan => "\x1B[46m",
+            Color::White => "\x1B[47m",
 
-            BgColor::BrightBlack => "\x1B[100m",
-            BgColor::BrightRed => "\x1B[101m",
-            BgColor::BrightGreen => "\x1B[102m",
-            BgColor::BrightYellow => "\x1B[103m",
-            BgColor::BrightBlue => "\x1B[104m",
-            BgColor::BrightMagenta => "\x1B[105m",
-            BgColor::BrightCyan => "\x1B[106m",
-            BgColor::BrightWhite => "\x1B[107m",
+            Color::BrightBlack => "\x1B[100m",
+            Color::BrightRed => "\x1B[101m",
+            Color::BrightGreen => "\x1B[102m",
+            Color::BrightYellow => "\x1B[103m",
+            Color::BrightBlue => "\x1B[104m",
+            Color::BrightMagenta => "\x1B[105m",
+            Color::BrightCyan => "\x1B[106m",
+            Color::BrightWhite => "\x1B[107m",
 
-            BgColor::Reset => "\x1B[49m",
+            Color::Reset => "\x1B[49m",
         }
     }
 }
@@ -154,11 +128,25 @@ pub fn style() -> Style {
         modifier: Modifier::empty(),
     }
 }
+pub fn fg(fg: Color) -> Style {
+    Style {
+        fg: Some(fg),
+        bg: None,
+        modifier: Modifier::empty(),
+    }
+}
+pub fn bg(bg: Color) -> Style {
+    Style {
+        fg: None,
+        bg: Some(bg),
+        modifier: Modifier::empty(),
+    }
+}
 
 #[derive(Debug, Clone, PartialEq, Eq, Copy)]
 pub struct Style {
     pub fg: Option<Color>,
-    pub bg: Option<BgColor>,
+    pub bg: Option<Color>,
     pub modifier: Modifier,
 }
 
@@ -167,7 +155,7 @@ impl Style {
         self.fg = Some(fg);
         self
     }
-    pub fn bg(mut self, bg: BgColor) -> Self {
+    pub fn bg(mut self, bg: Color) -> Self {
         self.bg = Some(bg);
         self
     }
