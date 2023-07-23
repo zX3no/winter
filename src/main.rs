@@ -89,7 +89,9 @@ fn draw_lines_wrapping(lines: &[&str], style: Style, area: Rect, buf: &mut Buffe
     }
 
     let mut lines = lines.iter();
-    let mut line = lines.next().unwrap();
+    let Some(mut line) = lines.next() else {
+        return;
+    };
     let mut chars = line.chars();
 
     for y in area.top()..area.bottom() {
