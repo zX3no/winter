@@ -1,7 +1,15 @@
-use unicode_width::UnicodeWidthStr;
-
 use crate::{buffer::Buffer, layout::Rect, Style};
 use std::borrow::Cow;
+use unicode_width::UnicodeWidthStr;
+
+//TODO: Text alignment?
+// fn get_line_offset(line_width: u16, text_area_width: u16, alignment: Alignment) -> u16 {
+//     match alignment {
+//         Alignment::Center => (text_area_width / 2).saturating_sub(line_width / 2),
+//         Alignment::Right => text_area_width.saturating_sub(line_width),
+//         Alignment::Left => 0,
+//     }
+// }
 
 //TODO: Should `Lines` impl Deref so that lines[0].width() will work?
 #[derive(Debug, Clone)]

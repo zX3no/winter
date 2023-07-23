@@ -12,8 +12,8 @@ use winter::{
 //Guage
 //List
 //Table
-//Block
-//Paragraph
+//Block [x]
+//Paragraph [x]
 
 fn main() {
     let mut term = Terminal::new();
@@ -23,23 +23,30 @@ fn main() {
     let mut current = 0;
 
     //Prevents panic messages from being hidden.
-    // let orig_hook = std::panic::take_hook();
-    // std::panic::set_hook(Box::new(move |panic_info| {
-    //     // disable_raw_mode();
-    //     // disable_mouse_caputure();
-    //     leave_alternate_screen();
-    //     orig_hook(panic_info);
-    //     std::process::exit(1);
-    // }));
+    let orig_hook = std::panic::take_hook();
+    std::panic::set_hook(Box::new(move |panic_info| {
+        // disable_raw_mode();
+        // disable_mouse_caputure();
+        leave_alternate_screen();
+        show_cursor();
+        orig_hook(panic_info);
+        std::process::exit(1);
+    }));
 
     //TODO: Enable raw mode.
-    // enter_alternate_screen();
-    // clear();
+    hide_cursor();
+    enter_alternate_screen();
+    clear();
 
     loop {
         //Draw widgets
         {
             block::draw(
+                //TODO: Text offset would be really nice for titles.
+                //Sometimes you want it a couple of pixels to the left.
+                //Maybe centered left, center and right aligned titles aswell?
+                //I feel like text can have all of these properties.
+                Some(text!("う ず ま き ", fg(Blue).bg(White))),
                 Borders::ALL,
                 BorderType::Rounded,
                 Style::default(),
@@ -50,16 +57,15 @@ fn main() {
             let str = "line 3asdlkasjdalskdjaslkd ajsdlk asjdasldkjasdl kajdaslkdjasld kasjd lkasjd aslkd jaslkdasjd laskdj alskd jasldkajs dlkasjd laskdj aslkd jaslk djasd asjlasldkasjd laksdj alskdjasldkasdlasjkdasjdlaskdjlaskdjalksddlkasdjaslkd jsalkd jalkdasjdlaskdj asldk jasdl kasjd laksjd aslkdajsdslkdjaslkdja final-word";
 
             //TODO: Draw text inside of block.
-            let temp = &[
-                // text!(str),
-                // text!(str, fg(Color::Blue)),
-                text!("う ず ま き ", fg(Color::Blue).bg(Color::White)),
-            ];
+            let temp = &[text!(str), text!(str)];
             let l = lines!(temp);
 
             let mut v = viewport.clone();
+            v.y = 2;
+            v.width -= 4;
             v.x += 2;
-
+            // dbg!(v);
+            // panic!();
             l.draw_wrapping(v, &mut buffers[current]);
 
             //TODO
@@ -75,11 +81,7 @@ fn main() {
         let previous_buffer = &buffers[1 - current];
         let current_buffer = &buffers[current];
         let diff = previous_buffer.diff(current_buffer);
-
-        clear();
         buffer::draw(diff);
-
-        return;
 
         //Swap buffers
         buffers[1 - current].reset();
@@ -98,7 +100,7 @@ fn main() {
         }
     }
 
-    leave_alternate_screen();
+    unreachable!();
 }
 
 //TOOD: This might be a better way of doing things.

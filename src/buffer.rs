@@ -1,5 +1,6 @@
 use crate::{layout::Rect, move_to, reset, Color, Modifier, Style};
-use std::io::Write;
+use std::{cmp::min, io::Write};
+use unicode_segmentation::UnicodeSegmentation;
 use unicode_width::UnicodeWidthStr;
 
 //Move out of function and into main loop.
@@ -70,6 +71,45 @@ impl Buffer {
     pub fn get_mut(&mut self, x: u16, y: u16) -> Result<&mut Cell, String> {
         let i = self.index_of(x, y)?;
         Ok(&mut self.content[i])
+    }
+    /// Print at most the first n characters of a string if enough space is available
+    /// until the end of the line
+    pub fn set_stringn<S>(
+        &mut self,
+        x: u16,
+        y: u16,
+        string: S,
+        width: usize,
+        style: Style,
+    ) -> (u16, u16)
+    where
+        S: AsRef<str>,
+    {
+        let mut index = self.index_of(x, y).unwrap();
+        let mut x_offset = x as usize;
+        let graphemes = UnicodeSegmentation::graphemes(string.as_ref(), true);
+        let max_offset = min(self.area.right() as usize, width.saturating_add(x as usize));
+        for s in graphemes {
+            let width = s.width();
+            if width == 0 {
+                continue;
+            }
+            // `x_offset + width > max_offset` could be integer overflow on 32-bit machines if we
+            // change dimenstions to usize or u32 and someone resizes the terminal to 1x2^32.
+            if width > max_offset.saturating_sub(x_offset) {
+                break;
+            }
+
+            self.content[index].set_symbol(s);
+            self.content[index].set_style(style);
+            // Reset following cells if multi-width (they would be hidden by the grapheme),
+            for i in index + 1..index + width {
+                self.content[i].reset();
+            }
+            index += width;
+            x_offset += width;
+        }
+        (x_offset as u16, y)
     }
     pub fn index_of(&self, x: u16, y: u16) -> Result<usize, String> {
         if !(x >= self.area.left()
@@ -222,12 +262,8 @@ impl Cell {
         self
     }
     pub fn set_style(&mut self, style: Style) -> &mut Cell {
-        if let Some(c) = style.fg {
-            self.fg = c;
-        }
-        if let Some(c) = style.bg {
-            self.bg = c;
-        }
+        self.fg = style.fg;
+        self.bg = style.bg;
         if !style.modifier.is_empty() {
             self.modifier = style.modifier;
         }

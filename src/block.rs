@@ -1,4 +1,4 @@
-use crate::{buffer::Buffer, layout::Rect, symbols::*, Style};
+use crate::{buffer::Buffer, layout::Rect, symbols::*, Style, Text};
 use bitflags::bitflags;
 
 bitflags! {
@@ -39,7 +39,14 @@ impl BorderType {
     }
 }
 
-pub fn draw(borders: Borders, border_type: BorderType, style: Style, area: Rect, buf: &mut Buffer) {
+pub fn draw<'a>(
+    title: Option<Text<'a>>,
+    borders: Borders,
+    border_type: BorderType,
+    style: Style,
+    area: Rect,
+    buf: &mut Buffer,
+) {
     if area.area() == 0 {
         return;
     }
@@ -109,36 +116,44 @@ pub fn draw(borders: Borders, border_type: BorderType, style: Style, area: Rect,
     }
 
     // Title
-    // if let Some(title) = title {
-    //     let left_border_dx = if self.borders.intersects(Borders::LEFT) {
-    //         1
-    //     } else {
-    //         0
-    //     };
+    if let Some(title) = title {
+        let left_border_dx = if borders.intersects(Borders::LEFT) {
+            1
+        } else {
+            0
+        };
 
-    //     let right_border_dx = if self.borders.intersects(Borders::RIGHT) {
-    //         1
-    //     } else {
-    //         0
-    //     };
+        let right_border_dx = if borders.intersects(Borders::RIGHT) {
+            1
+        } else {
+            0
+        };
 
-    //     let title_area_width = area
-    //         .width
-    //         .saturating_sub(left_border_dx)
-    //         .saturating_sub(right_border_dx);
+        let title_area_width = area
+            .width
+            .saturating_sub(left_border_dx)
+            .saturating_sub(right_border_dx);
 
-    //     let title_dx = match self.title_alignment {
-    //         Alignment::Left => left_border_dx,
-    //         Alignment::Center => area.width.saturating_sub(title.width() as u16) / 2,
-    //         Alignment::Right => area
-    //             .width
-    //             .saturating_sub(title.width() as u16)
-    //             .saturating_sub(right_border_dx),
-    //     };
+        // let title_dx = match title_alignment {
+        //     Alignment::Left => left_border_dx,
+        //     Alignment::Center => area.width.saturating_sub(title.width() as u16) / 2,
+        //     Alignment::Right => area
+        //         .width
+        //         .saturating_sub(title.width() as u16)
+        //         .saturating_sub(right_border_dx),
+        // };
+        let title_dx = left_border_dx;
 
-    //     let title_x = area.left() + title_dx;
-    //     let title_y = area.top();
+        let title_x = area.left() + title_dx;
+        let title_y = area.top();
 
-    //     buf.set_spans(title_x, title_y, &title, title_area_width);
-    // }
+        //TODO: Title style and title offset.
+        buf.set_stringn(
+            title_x,
+            title_y,
+            &title.text,
+            title_area_width as usize,
+            title.style,
+        );
+    }
 }
