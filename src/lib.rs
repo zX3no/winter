@@ -146,6 +146,8 @@ impl Terminal {
     }
 }
 
+//TODO: Move functions into terminal and use the same stdout handle.
+
 //[](https://learn.microsoft.com/en-us/windows/console/console-virtual-terminal-sequences)
 pub fn show_cursor() {
     print!("\x1b[?25h");

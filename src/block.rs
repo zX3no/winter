@@ -39,121 +39,153 @@ impl BorderType {
     }
 }
 
-pub fn draw<'a>(
-    title: Option<Text<'a>>,
-    borders: Borders,
-    border_type: BorderType,
-    style: Style,
-    area: Rect,
-    buf: &mut Buffer,
-) {
-    if area.area() == 0 {
-        return;
-    }
-    // buf.set_style(area, self.style);
-    let symbols = BorderType::line_symbols(border_type);
+#[derive(Debug, Clone)]
+pub struct Block<'a> {
+    pub title: Option<Text<'a>>,
 
-    // Sides
-    if borders.intersects(Borders::LEFT) {
-        for y in area.top()..area.bottom() {
-            buf.get_mut(area.left(), y)
-                .unwrap()
-                .set_symbol(symbols.vertical)
-                .set_style(style);
+    // pub title_alignment: Alignment,
+    pub borders: Borders,
+    pub border_type: BorderType,
+
+    pub style: Style,
+}
+
+#[macro_export]
+///Example:
+///```rs
+/// block!(text, Borders::ALL, BorderType::Rounded, fg(Red));
+///
+/// block!(Borders::ALL, BorderType::Rounded, style());
+/// ```
+macro_rules! block {
+    ($title:expr, $borders:expr, $border_type:expr, $style:expr) => {
+        Block {
+            title: Some($title),
+            borders: $borders,
+            border_type: $border_type,
+            style: $style,
         }
-    }
-    if borders.intersects(Borders::TOP) {
-        for x in area.left()..area.right() {
-            buf.get_mut(x, area.top())
-                .unwrap()
-                .set_symbol(symbols.horizontal)
-                .set_style(style);
+    };
+    ($borders:expr, $border_type:expr, $style:expr) => {
+        Block {
+            title: None,
+            borders: $borders,
+            border_type: $border_type,
+            style: $style,
         }
-    }
-    if borders.intersects(Borders::RIGHT) {
-        let x = area.right() - 1;
-        for y in area.top()..area.bottom() {
-            buf.get_mut(x, y)
-                .unwrap()
-                .set_symbol(symbols.vertical)
-                .set_style(style);
+    };
+}
+
+impl<'a> Block<'a> {
+    pub fn draw(&self, area: Rect, buf: &mut Buffer) {
+        if area.area() == 0 {
+            return;
         }
-    }
-    if borders.intersects(Borders::BOTTOM) {
-        let y = area.bottom() - 1;
-        for x in area.left()..area.right() {
-            buf.get_mut(x, y)
-                .unwrap()
-                .set_symbol(symbols.horizontal)
-                .set_style(style);
+        // buf.set_style(area, self.style);
+        let symbols = BorderType::line_symbols(self.border_type);
+
+        // Sides
+        if self.borders.intersects(Borders::LEFT) {
+            for y in area.top()..area.bottom() {
+                buf.get_mut(area.left(), y)
+                    .unwrap()
+                    .set_symbol(symbols.vertical)
+                    .set_style(self.style);
+            }
         }
-    }
+        if self.borders.intersects(Borders::TOP) {
+            for x in area.left()..area.right() {
+                buf.get_mut(x, area.top())
+                    .unwrap()
+                    .set_symbol(symbols.horizontal)
+                    .set_style(self.style);
+            }
+        }
+        if self.borders.intersects(Borders::RIGHT) {
+            let x = area.right() - 1;
+            for y in area.top()..area.bottom() {
+                buf.get_mut(x, y)
+                    .unwrap()
+                    .set_symbol(symbols.vertical)
+                    .set_style(self.style);
+            }
+        }
+        if self.borders.intersects(Borders::BOTTOM) {
+            let y = area.bottom() - 1;
+            for x in area.left()..area.right() {
+                buf.get_mut(x, y)
+                    .unwrap()
+                    .set_symbol(symbols.horizontal)
+                    .set_style(self.style);
+            }
+        }
 
-    // Corners
-    if borders.contains(Borders::RIGHT | Borders::BOTTOM) {
-        buf.get_mut(area.right() - 1, area.bottom() - 1)
-            .unwrap()
-            .set_symbol(symbols.bottom_right)
-            .set_style(style);
-    }
-    if borders.contains(Borders::RIGHT | Borders::TOP) {
-        buf.get_mut(area.right() - 1, area.top())
-            .unwrap()
-            .set_symbol(symbols.top_right)
-            .set_style(style);
-    }
-    if borders.contains(Borders::LEFT | Borders::BOTTOM) {
-        buf.get_mut(area.left(), area.bottom() - 1)
-            .unwrap()
-            .set_symbol(symbols.bottom_left)
-            .set_style(style);
-    }
-    if borders.contains(Borders::LEFT | Borders::TOP) {
-        buf.get_mut(area.left(), area.top())
-            .unwrap()
-            .set_symbol(symbols.top_left)
-            .set_style(style);
-    }
+        // Corners
+        if self.borders.contains(Borders::RIGHT | Borders::BOTTOM) {
+            buf.get_mut(area.right() - 1, area.bottom() - 1)
+                .unwrap()
+                .set_symbol(symbols.bottom_right)
+                .set_style(self.style);
+        }
+        if self.borders.contains(Borders::RIGHT | Borders::TOP) {
+            buf.get_mut(area.right() - 1, area.top())
+                .unwrap()
+                .set_symbol(symbols.top_right)
+                .set_style(self.style);
+        }
+        if self.borders.contains(Borders::LEFT | Borders::BOTTOM) {
+            buf.get_mut(area.left(), area.bottom() - 1)
+                .unwrap()
+                .set_symbol(symbols.bottom_left)
+                .set_style(self.style);
+        }
+        if self.borders.contains(Borders::LEFT | Borders::TOP) {
+            buf.get_mut(area.left(), area.top())
+                .unwrap()
+                .set_symbol(symbols.top_left)
+                .set_style(self.style);
+        }
 
-    // Title
-    if let Some(title) = title {
-        let left_border_dx = if borders.intersects(Borders::LEFT) {
-            1
-        } else {
-            0
-        };
+        // Title
+        if let Some(title) = &self.title {
+            let left_border_dx = if self.borders.intersects(Borders::LEFT) {
+                1
+            } else {
+                0
+            };
 
-        let right_border_dx = if borders.intersects(Borders::RIGHT) {
-            1
-        } else {
-            0
-        };
+            let right_border_dx = if self.borders.intersects(Borders::RIGHT) {
+                1
+            } else {
+                0
+            };
 
-        let title_area_width = area
-            .width
-            .saturating_sub(left_border_dx)
-            .saturating_sub(right_border_dx);
+            let title_area_width = area
+                .width
+                .saturating_sub(left_border_dx)
+                .saturating_sub(right_border_dx);
 
-        // let title_dx = match title_alignment {
-        //     Alignment::Left => left_border_dx,
-        //     Alignment::Center => area.width.saturating_sub(title.width() as u16) / 2,
-        //     Alignment::Right => area
-        //         .width
-        //         .saturating_sub(title.width() as u16)
-        //         .saturating_sub(right_border_dx),
-        // };
-        let title_dx = left_border_dx;
+            // let title_dx = match title_alignment {
+            //     Alignment::Left => left_border_dx,
+            //     Alignment::Center => area.width.saturating_sub(title.width() as u16) / 2,
+            //     Alignment::Right => area
+            //         .width
+            //         .saturating_sub(title.width() as u16)
+            //         .saturating_sub(right_border_dx),
+            // };
+            let title_dx = left_border_dx;
 
-        let title_x = area.left() + title_dx;
-        let title_y = area.top();
+            let title_x = area.left() + title_dx;
+            let title_y = area.top();
 
-        //TODO: Title style and title offset.
-        buf.set_stringn(
-            title_x,
-            title_y,
-            &title.text,
-            title_area_width as usize,
-            title.style,
-        );
+            //TODO: Title style and title offset.
+            buf.set_stringn(
+                title_x,
+                title_y,
+                &title.text,
+                title_area_width as usize,
+                title.style,
+            );
+        }
     }
 }

@@ -1,4 +1,4 @@
-use crate::{buffer::Buffer, layout::Rect, Style};
+use crate::{block::Block, buffer::Buffer, layout::Rect, Style};
 use std::borrow::Cow;
 use unicode_width::UnicodeWidthStr;
 
@@ -15,6 +15,7 @@ use unicode_width::UnicodeWidthStr;
 #[derive(Debug, Clone)]
 pub struct Lines<'a> {
     pub lines: &'a [Text<'a>],
+    pub block: Option<Block<'a>>,
     pub style: Option<Style>,
 }
 
@@ -87,12 +88,14 @@ macro_rules! lines {
     ($lines:expr) => {
         Lines {
             lines: $lines,
+            block: None,
             style: None,
         }
     };
     ($lines:expr, $style:expr) => {
         Lines {
             lines: $lines,
+            block: None,
             style: Some($style),
         }
     };

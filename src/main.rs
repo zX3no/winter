@@ -33,16 +33,11 @@ fn main() {
     loop {
         //Draw widgets
         {
-            block::draw(
-                Some(text!("うずまき", fg(Blue).bg(White))),
-                Borders::ALL,
-                BorderType::Rounded,
-                Style::default(),
-                viewport,
-                &mut buffers[current],
-            );
-            let text = text!("うずまき");
-            text.draw(viewport, &mut buffers[current]);
+            let buf = &mut buffers[current];
+
+            let title = text!("うずまき", fg(Blue).bg(White));
+            let block = block!(title, Borders::ALL, BorderType::Rounded, fg(Red));
+            block.draw(viewport, buf);
 
             let str = "line 3asdlkasjdalskdjaslkd ajsdlk asjdasldkjasdl kajdaslkdjasld kasjd lkasjd aslkd jaslkdasjd laskdj alskd jasldkajs dlkasjd laskdj aslkd jaslk djasd asjlasldkasjd laksdj alskdjasldkasdlasjkdasjdlaskdjlaskdjalksddlkasdjaslkd jsalkd jalkdasjdlaskdj asldk jasdl kasjd laksjd aslkdajsdslkdjaslkdja final-word";
 
@@ -55,7 +50,7 @@ fn main() {
             v.x += 2;
             // dbg!(v);
             // panic!();
-            l.draw_wrapping(v, &mut buffers[current]);
+            l.draw_wrapping(v, buf);
         }
 
         //Calculate difference and draw
