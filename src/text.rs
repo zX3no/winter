@@ -118,6 +118,8 @@ macro_rules! lines {
     };
 }
 
+//TODO: Should this be replaced?
+//Lines would be replaced to Text.
 #[derive(Debug, Clone)]
 pub struct Text<'a> {
     pub text: Cow<'a, str>,

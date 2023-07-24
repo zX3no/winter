@@ -6,10 +6,10 @@
 - [ ] Simplify main loop
 
 ### Widgets:
-- [ ] Guage
 - [ ] List
 - [ ] Table
 - [ ] Constraints
+- [x] Guage
 - [x] Block
 - [x] Text
 
@@ -21,3 +21,10 @@
 ### Block
 - [ ] Offset titles using constraints
 - [x] Text inside of blocks
+
+### List
+- [ ] Only index 0 shows selection symbol
+- [ ] Broken styles
+
+### Gauge
+

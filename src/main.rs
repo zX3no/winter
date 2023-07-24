@@ -44,20 +44,34 @@ fn main() {
             let str = "line 3asdlkasjdalskdjaslkd ajsdlk asjdasldkjasdl kajdaslkdjasld kasjd lkasjd aslkd jaslkdasjd laskdj alskd jasldkajs dlkasjd laskdj aslkd jaslk djasd asjlasldkasjd laksdj alskdjasldkasdlasjkdasjdlaskdjlaskdjalksddlkasdjaslkd jsalkd jalkdasjdlaskdj asldk jasdl kasjd laksjd aslkdajsdslkdjaslkdja final-word";
             let temp = &[
                 text!(str),
-                text!(""),
+                // text!(""),
                 text!(str),
-                text!(""),
+                // text!(""),
                 text!("う ず ま き"),
+            ];
+            let temp = &[
+                text!("hi"),
+                text!("test"),
+                text!("test2"),
+                text!("test"),
+                text!("test"),
+                text!("test"),
+                text!("test"),
+                text!("test"),
+                text!("test"),
             ];
 
             let title = text!("うずまき", fg(Blue).bg(White));
             let block = block(Some(title), Borders::ALL, BorderType::Rounded, fg(Red));
-            // let lines = lines!(temp, block);
-
+            let lines = lines!(temp, block);
+            let slice = &[lines];
             // lines.draw_wrapping(viewport, buf);
+            // let guage = guage(None, 0.25, None, bg(Blue), style());
+            // guage.draw(viewport, buf);
 
-            let guage = guage(None, 0.25, None, bg(Blue), style());
-            guage.draw(viewport, buf);
+            let list = list(None, slice, style(), Corner::TopLeft, style(), Some(">"));
+            let mut state = list_state(Some(0));
+            list.draw(viewport, buf, &mut state)
         }
 
         //Calculate difference and draw
