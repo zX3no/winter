@@ -35,22 +35,16 @@ fn main() {
         {
             let buf = &mut buffers[current];
 
-            let title = text!("うずまき", fg(Blue).bg(White));
-            let block = block!(title, Borders::ALL, BorderType::Rounded, fg(Red));
-            block.draw(viewport, buf);
-
             let str = "line 3asdlkasjdalskdjaslkd ajsdlk asjdasldkjasdl kajdaslkdjasld kasjd lkasjd aslkd jaslkdasjd laskdj alskd jasldkajs dlkasjd laskdj aslkd jaslk djasd asjlasldkasjd laksdj alskdjasldkasdlasjkdasjdlaskdjlaskdjalksddlkasdjaslkd jsalkd jalkdasjdlaskdj asldk jasdl kasjd laksjd aslkdajsdslkdjaslkdja final-word";
-
             let temp = &[text!(str), text!(str), text!("う ず ま き")];
-            let l = lines!(temp);
 
-            let mut v = viewport.clone();
-            v.y = 2;
-            v.width -= 4;
-            v.x += 2;
-            // dbg!(v);
-            // panic!();
-            l.draw_wrapping(v, buf);
+            let title = text!("うずまき", fg(Blue).bg(White));
+            let lines = lines!(
+                temp,
+                block(Some(title), Borders::ALL, BorderType::Rounded, fg(Red))
+            );
+
+            lines.draw(viewport, buf);
         }
 
         //Calculate difference and draw

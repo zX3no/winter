@@ -21,6 +21,13 @@ pub struct Lines<'a> {
 
 impl<'a> Lines<'a> {
     pub fn draw(&self, area: Rect, buf: &mut Buffer) {
+        let area = if let Some(block) = &self.block {
+            block.draw(area, buf);
+            block.inner(area)
+        } else {
+            area
+        };
+
         let mut lines_iter = self.lines.iter();
         for y in area.top()..area.bottom() {
             if let Some(line) = lines_iter.next() {
@@ -92,10 +99,17 @@ macro_rules! lines {
             style: None,
         }
     };
-    ($lines:expr, $style:expr) => {
+    ($lines:expr, $block:expr) => {
         Lines {
             lines: $lines,
-            block: None,
+            block: Some($block),
+            style: None,
+        }
+    };
+    ($lines:expr, $block:expr, $style:expr) => {
+        Lines {
+            lines: $lines,
+            block: Some($block),
             style: Some($style),
         }
     };

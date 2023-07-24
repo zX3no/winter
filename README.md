@@ -20,4 +20,4 @@
 
 ### Block
 - [ ] Offset titles using constraints
-- [ ] Text inside of blocks
+- [x] Text inside of blocks

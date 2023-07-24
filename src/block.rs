@@ -76,7 +76,46 @@ macro_rules! block {
     };
 }
 
+//TODO: This is probably better than a macro.
+//Macros aren't powerfull enough to allow omitting all fields.
+//This is simple and consistant.
+//It allows gets people in the habbit of using style()
+//instead of omitting it.
+
+pub fn block<'a>(
+    title: Option<Text<'a>>,
+    borders: Borders,
+    border_type: BorderType,
+    style: Style,
+) -> Block<'a> {
+    Block {
+        title,
+        borders,
+        border_type,
+        style,
+    }
+}
+
 impl<'a> Block<'a> {
+    /// Compute the inner area of a block based on its border visibility rules.
+    pub fn inner(&self, area: Rect) -> Rect {
+        let mut inner = area;
+        if self.borders.intersects(Borders::LEFT) {
+            inner.x = inner.x.saturating_add(1).min(inner.right());
+            inner.width = inner.width.saturating_sub(1);
+        }
+        if self.borders.intersects(Borders::TOP) || self.title.is_some() {
+            inner.y = inner.y.saturating_add(1).min(inner.bottom());
+            inner.height = inner.height.saturating_sub(1);
+        }
+        if self.borders.intersects(Borders::RIGHT) {
+            inner.width = inner.width.saturating_sub(1);
+        }
+        if self.borders.intersects(Borders::BOTTOM) {
+            inner.height = inner.height.saturating_sub(1);
+        }
+        inner
+    }
     pub fn draw(&self, area: Rect, buf: &mut Buffer) {
         if area.area() == 0 {
             return;
