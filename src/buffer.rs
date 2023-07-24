@@ -1,27 +1,26 @@
-use crate::{layout::Rect, move_to, reset, Color, Modifier, Style};
+use crate::{layout::Rect, move_to, Color, Modifier, Style};
 use std::{cmp::min, io::Write};
 use unicode_segmentation::UnicodeSegmentation;
 use unicode_width::UnicodeWidthStr;
 
 //Move out of function and into main loop.
 //That way variables are not reinitialized.
-pub fn draw(diff: Vec<(u16, u16, &Cell)>) {
+pub fn draw<W: Write>(w: &mut W, diff: Vec<(u16, u16, &Cell)>) {
     let mut fg = Color::Reset;
     let mut bg = Color::Reset;
     //TODO: Maybe have a variable for all modifiers?
     //That way we can turn each indiviually on and off.
     let mut modifier = Modifier::empty();
     let mut last_pos: Option<(u16, u16)> = None;
-    let mut lock = std::io::stdout().lock();
 
     //Move to start.
-    move_to(1, 1);
+    move_to(w, 1, 1);
     for (x, y, cell) in diff {
         //Apparently 0, 0 and 1, 1 are the same?
         let x = x + 1;
         let y = y + 1;
         if !matches!(last_pos, Some(p) if x == p.0 + 1 && y == p.1) {
-            move_to(x, y);
+            move_to(w, x, y);
         }
         last_pos = Some((x, y));
 
@@ -34,20 +33,18 @@ pub fn draw(diff: Vec<(u16, u16, &Cell)>) {
             modifier = cell.modifier;
         }
         if cell.fg != fg {
-            write!(lock, "{}", cell.fg.fg_code()).unwrap();
+            write!(w, "{}", cell.fg.fg_code()).unwrap();
             fg = cell.fg;
         }
         if cell.bg != bg {
-            write!(lock, "{}", cell.bg.bg_code()).unwrap();
+            write!(w, "{}", cell.bg.bg_code()).unwrap();
             bg = cell.bg;
         }
 
-        write!(lock, "{}", cell.symbol).unwrap();
+        write!(w, "{}", cell.symbol).unwrap();
     }
 
-    lock.flush().unwrap();
-
-    reset();
+    w.flush().unwrap();
 }
 
 #[derive(Debug)]
@@ -222,9 +219,9 @@ impl Buffer {
         }
         self.area = area;
     }
-    pub fn draw(&self) {
+    pub fn draw<W: Write>(&self, w: &mut W) {
         let diff = self.to_vec();
-        draw(diff);
+        draw(w, diff);
     }
     pub fn is_empty(&self) -> bool {
         for c in &self.content {

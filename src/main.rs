@@ -1,5 +1,9 @@
 #![allow(unused)]
-use std::{borrow::Cow, io::Write, time::Instant};
+use std::{
+    borrow::Cow,
+    io::{stdout, Write},
+    time::Instant,
+};
 use winter::layout::Rect;
 use winter::{block::*, *};
 use winter::{
@@ -9,7 +13,7 @@ use winter::{
 
 fn main() {
     let mut term = Terminal::new();
-    let (width, height) = term.info().window_size;
+    let (width, height) = term.area();
     let mut viewport = Rect::new(0, 0, width, height);
     let mut buffers: [Buffer; 2] = [Buffer::empty(viewport), Buffer::empty(viewport)];
     let mut current = 0;
@@ -17,18 +21,20 @@ fn main() {
     //Prevents panic messages from being hidden.
     let orig_hook = std::panic::take_hook();
     std::panic::set_hook(Box::new(move |panic_info| {
+        let mut stdout = stdout();
         // disable_raw_mode();
         // disable_mouse_caputure();
-        leave_alternate_screen();
-        show_cursor();
+        leave_alternate_screen(&mut stdout);
+        show_cursor(&mut stdout);
         orig_hook(panic_info);
         std::process::exit(1);
     }));
 
     //TODO: Enable raw mode.
-    hide_cursor();
-    enter_alternate_screen();
-    clear();
+    let mut stdout = stdout();
+    hide_cursor(&mut stdout);
+    enter_alternate_screen(&mut stdout);
+    clear(&mut stdout);
 
     loop {
         //Draw widgets
@@ -57,21 +63,21 @@ fn main() {
         let previous_buffer = &buffers[1 - current];
         let current_buffer = &buffers[current];
         let diff = previous_buffer.diff(current_buffer);
-        buffer::draw(diff);
+        buffer::draw(&mut stdout, diff);
 
         //Swap buffers
         buffers[1 - current].reset();
         current = 1 - current;
 
         //Resize
-        let (width, height) = term.info().window_size;
+        let (width, height) = term.area();
         viewport = Rect::new(0, 0, width, height);
         if buffers[current].area != viewport {
             buffers[current].resize(viewport);
             buffers[1 - current].resize(viewport);
             // Reset the back buffer to make sure the next update will redraw everything.
             //TODO: Clear isn't buffered.
-            clear();
+            clear(&mut stdout);
             buffers[1 - current].reset();
         }
     }

@@ -1,5 +1,9 @@
 #![allow(soft_unstable)]
-use std::{mem::zeroed, process::Command};
+use std::{
+    io::{stdout, Stdout, Write},
+    mem::zeroed,
+    process::Command,
+};
 use winapi::{
     ctypes::c_void,
     um::{
@@ -29,14 +33,9 @@ pub mod style;
 pub mod stylize;
 pub mod symbols;
 
-pub const STD_HANDLE: u32 = -11i32 as u32;
-
-#[derive(Debug)]
-pub enum ConsoleMode {
-    EnableVirtualInputProcessing = 0x0004,
-    EnableMouseInput = 0x0010,
-    Reset = 0,
-}
+const STD_HANDLE: u32 = -11i32 as u32;
+const ENABLE_VIRTUAL_INPUT_PROCESSING: u32 = 0x0004;
+const ENABLE_MOUSE_INPUT: u32 = 0x0010;
 
 pub struct Info {
     pub buffer_size: (u16, u16),
@@ -46,6 +45,7 @@ pub struct Info {
 
 pub struct Terminal {
     pub handle: *mut c_void,
+    pub stdout: Stdout,
     pub mode: u32,
 }
 
@@ -53,7 +53,23 @@ impl Terminal {
     pub fn new() -> Self {
         Self {
             handle: unsafe { GetStdHandle(STD_HANDLE) },
+            stdout: stdout(),
             mode: 0,
+        }
+    }
+
+    ///Get the terminal area that is usable.
+    pub fn area(&self) -> (u16, u16) {
+        unsafe {
+            let mut info: CONSOLE_SCREEN_BUFFER_INFO = zeroed();
+            let result = GetConsoleScreenBufferInfo(self.handle, &mut info);
+            if result != 1 {
+                panic!("Could not get window size.");
+            }
+            (
+                (info.srWindow.Right - info.srWindow.Left) as u16,
+                (info.srWindow.Bottom - info.srWindow.Top) as u16,
+            )
         }
     }
 
@@ -68,41 +84,36 @@ impl Terminal {
             let result = GetConsoleScreenBufferInfo(self.handle, &mut info);
             if result != 1 {
                 panic!("Could not get window size.");
-            } else {
-                Info {
-                    buffer_size: (info.dwSize.X as u16, info.dwSize.Y as u16),
-                    window_size: (
-                        (info.srWindow.Right - info.srWindow.Left) as u16,
-                        (info.srWindow.Bottom - info.srWindow.Top) as u16,
-                    ),
-                    cursor_position: (
-                        info.dwCursorPosition.X as u16,
-                        info.dwCursorPosition.Y as u16,
-                    ),
-                }
+            }
+            Info {
+                buffer_size: (info.dwSize.X as u16, info.dwSize.Y as u16),
+                window_size: (
+                    (info.srWindow.Right - info.srWindow.Left) as u16,
+                    (info.srWindow.Bottom - info.srWindow.Top) as u16,
+                ),
+                cursor_position: (
+                    info.dwCursorPosition.X as u16,
+                    info.dwCursorPosition.Y as u16,
+                ),
             }
         }
     }
 
     //TODO: Not sure if these are working correctly.
-
     pub fn enable_raw_mode(&mut self) {
-        self.mode = self.mode | 0x0004;
+        self.mode = self.mode | ENABLE_VIRTUAL_INPUT_PROCESSING;
         self.set_mode(self.mode);
     }
-
     pub fn disable_raw_mode(&mut self) {
-        self.mode = self.mode & 0x0004;
+        self.mode = self.mode & ENABLE_VIRTUAL_INPUT_PROCESSING;
         self.set_mode(self.mode);
     }
-
     pub fn enable_mouse_input(&mut self) {
-        self.mode = self.mode | 0x0010;
+        self.mode = self.mode | ENABLE_MOUSE_INPUT;
         self.set_mode(self.mode);
     }
-
     pub fn disable_mouse_input(&mut self) {
-        self.mode = self.mode & 0x0010;
+        self.mode = self.mode & ENABLE_MOUSE_INPUT;
         self.set_mode(self.mode);
     }
 
@@ -120,75 +131,54 @@ impl Terminal {
     }
 }
 
-//TODO: Move functions into terminal and use the same stdout handle.
-
 //[](https://learn.microsoft.com/en-us/windows/console/console-virtual-terminal-sequences)
-pub fn show_cursor() {
-    print!("\x1b[?25h");
-}
 
-pub fn hide_cursor() {
-    print!("\x1b[?25l");
-}
-
-pub fn enter_alternate_screen() {
-    print!("\x1b[?1049h");
-}
-
-pub fn leave_alternate_screen() {
-    print!("\x1b[?1049l");
-}
-
-//https://gist.github.com/fnky/458719343aabd01cfb17a3a4f7296797
-
-//TODO: Use a buffer instead of print!
-pub fn move_to(x: u16, y: u16) {
-    print!("\x1b[{};{}H", y, x);
-}
-
+///Clear the entire screen, using `cmd /c cls`.
 pub fn clear_all() {
     Command::new("cmd").args(["/C", "cls"]).status().unwrap();
 }
-
-pub fn shift_up(amount: u16) {
-    print!("\x1b[{}S", amount);
+pub fn show_cursor<W: Write>(w: &mut W) {
+    write!(w, "\x1b[?25h").unwrap();
 }
-
-pub fn shift_down(amount: u16) {
-    print!("\x1b[{}T", amount);
+pub fn hide_cursor<W: Write>(w: &mut W) {
+    write!(w, "\x1b[?25l").unwrap();
 }
-
+pub fn enter_alternate_screen<W: Write>(w: &mut W) {
+    write!(w, "\x1b[?1049h").unwrap();
+}
+pub fn leave_alternate_screen<W: Write>(w: &mut W) {
+    write!(w, "\x1b[?1049l").unwrap();
+}
+pub fn move_to<W: Write>(w: &mut W, x: u16, y: u16) {
+    write!(w, "\x1b[{};{}H", y, x).unwrap();
+}
+pub fn shift_up<W: Write>(w: &mut W, amount: u16) {
+    write!(w, "\x1b[{}S", amount).unwrap();
+}
+pub fn shift_down<W: Write>(w: &mut W, amount: u16) {
+    write!(w, "\x1b[{}T", amount).unwrap();
+}
 ///Reset all modes (styles and colors)
-pub fn reset() {
-    print!("\x1b[0m");
+pub fn reset<W: Write>(w: &mut W) {
+    write!(w, "\x1b[0m").unwrap();
 }
-
-pub use clear::*;
-
-mod clear {
-    ///Same as \x1b[0J
-    pub fn clear_from_cursor() {
-        print!("\x1b[J");
-    }
-
-    pub fn clear_from_cursor_to_start() {
-        print!("\x1b[1J");
-    }
-
-    pub fn clear() {
-        print!("\x1b[2J");
-    }
-
-    ///Same as \x1b[0K
-    pub fn clear_line_from_cursor() {
-        print!("\x1b[K");
-    }
-
-    pub fn clear_line_from_cursor_to_start() {
-        print!("\x1b[1K");
-    }
-
-    pub fn clear_line() {
-        print!("\x1b[2K");
-    }
+///Same as \x1b[0J
+pub fn clear_from_cursor<W: Write>(w: &mut W) {
+    write!(w, "\x1b[J").unwrap();
+}
+pub fn clear_from_cursor_to_start<W: Write>(w: &mut W) {
+    write!(w, "\x1b[1J").unwrap();
+}
+pub fn clear<W: Write>(w: &mut W) {
+    write!(w, "\x1b[2J").unwrap();
+}
+///Same as \x1b[0K
+pub fn clear_line_from_cursor<W: Write>(w: &mut W) {
+    write!(w, "\x1b[K").unwrap();
+}
+pub fn clear_line_from_cursor_to_start<W: Write>(w: &mut W) {
+    write!(w, "\x1b[1K").unwrap();
+}
+pub fn clear_line<W: Write>(w: &mut W) {
+    write!(w, "\x1b[2K").unwrap();
 }
