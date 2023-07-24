@@ -4,12 +4,9 @@ use std::{
     io::{stdout, Write},
     time::Instant,
 };
+use winter::buffer::{Buffer, Cell};
 use winter::layout::Rect;
 use winter::{block::*, *};
-use winter::{
-    buffer::{Buffer, Cell},
-    layout::Margin,
-};
 
 fn main() {
     let mut term = Terminal::new();
@@ -49,29 +46,42 @@ fn main() {
                 // text!(""),
                 text!("う ず ま き"),
             ];
-            let temp = &[
-                text!("hi"),
-                text!("test"),
-                text!("test2"),
-                text!("test"),
-                text!("test"),
-                text!("test"),
-                text!("test"),
-                text!("test"),
-                text!("test"),
-            ];
+
+            let chunks = layout_new(
+                Direction::Vertical,
+                (0, 0),
+                [Constraint::Percentage(50), Constraint::Percentage(50)],
+                viewport,
+            );
+
+            {
+                let temp = &[
+                    text!("hi"),
+                    text!("test"),
+                    text!("test2"),
+                    text!("test"),
+                    text!("test"),
+                    text!("test"),
+                    text!("test"),
+                    text!("test"),
+                    text!("test"),
+                ];
+                let lines = lines!(temp);
+                let slice = &[lines];
+                let list = list(None, slice, style(), Corner::TopLeft, style(), Some(">"));
+                //TODO: Doesn't select correct item?
+                let mut state = list_state(Some(1));
+                //TODO: Doesn't draw at all?
+                list.draw(chunks[0], buf, &mut state)
+            }
 
             let title = text!("うずまき", fg(Blue).bg(White));
             let block = block(Some(title), Borders::ALL, BorderType::Rounded, fg(Red));
             let lines = lines!(temp, block);
-            let slice = &[lines];
-            // lines.draw_wrapping(viewport, buf);
-            // let guage = guage(None, 0.25, None, bg(Blue), style());
-            // guage.draw(viewport, buf);
+            lines.draw_wrapping(chunks[0], buf);
 
-            let list = list(None, slice, style(), Corner::TopLeft, style(), Some(">"));
-            let mut state = list_state(Some(0));
-            list.draw(viewport, buf, &mut state)
+            let guage = guage(None, 0.25, None, bg(Blue), style());
+            guage.draw(chunks[1], buf);
         }
 
         //Calculate difference and draw

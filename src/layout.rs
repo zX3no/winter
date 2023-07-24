@@ -45,12 +45,6 @@ impl Constraint {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct Margin {
-    pub vertical: u16,
-    pub horizontal: u16,
-}
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Alignment {
     Left,
@@ -58,14 +52,44 @@ pub enum Alignment {
     Right,
 }
 
+pub fn layout_new<C: Into<Vec<Constraint>>>(
+    direction: Direction,
+    margin: (u16, u16),
+    constraints: C,
+    area: Rect,
+) -> Vec<Rect> {
+    Layout {
+        direction,
+        margin,
+        constraints: constraints.into(),
+        expand_to_fill: true,
+    }
+    .split(area)
+}
+
+pub fn layout<C: Into<Vec<Constraint>>>(
+    direction: Direction,
+    margin: (u16, u16),
+    constraints: C,
+    expand_to_fill: bool,
+) -> Layout {
+    Layout {
+        direction,
+        margin,
+        constraints: constraints.into(),
+        expand_to_fill,
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Layout {
-    direction: Direction,
-    margin: Margin,
-    constraints: Vec<Constraint>,
+    pub direction: Direction,
+    ///(Vertical, Horizontal)
+    pub margin: (u16, u16),
+    pub constraints: Vec<Constraint>,
     /// Whether the last chunk of the computed layout should be expanded to fill the available
     /// space.
-    expand_to_fill: bool,
+    pub expand_to_fill: bool,
 }
 
 thread_local! {
@@ -76,10 +100,7 @@ impl Default for Layout {
     fn default() -> Layout {
         Layout {
             direction: Direction::Vertical,
-            margin: Margin {
-                horizontal: 0,
-                vertical: 0,
-            },
+            margin: (0, 0),
             constraints: Vec::new(),
             expand_to_fill: true,
         }
@@ -95,94 +116,36 @@ impl Layout {
         self
     }
 
-    pub fn margin(mut self, margin: u16) -> Layout {
-        self.margin = Margin {
-            horizontal: margin,
-            vertical: margin,
-        };
-        self
-    }
-
-    pub fn horizontal_margin(mut self, horizontal: u16) -> Layout {
-        self.margin.horizontal = horizontal;
-        self
-    }
-
-    pub fn vertical_margin(mut self, vertical: u16) -> Layout {
-        self.margin.vertical = vertical;
-        self
-    }
-
     pub fn direction(mut self, direction: Direction) -> Layout {
         self.direction = direction;
         self
     }
 
-    pub fn expand_to_fill(mut self, expand_to_fill: bool) -> Layout {
-        self.expand_to_fill = expand_to_fill;
-        self
-    }
+    // pub fn margin(mut self, margin: u16) -> Layout {
+    //     self.margin = Margin {
+    //         horizontal: margin,
+    //         vertical: margin,
+    //     };
+    //     self
+    // }
+
+    // pub fn horizontal_margin(mut self, horizontal: u16) -> Layout {
+    //     self.margin.horizontal = horizontal;
+    //     self
+    // }
+
+    // pub fn vertical_margin(mut self, vertical: u16) -> Layout {
+    //     self.margin.vertical = vertical;
+    //     self
+    // }
+
+    // pub fn expand_to_fill(mut self, expand_to_fill: bool) -> Layout {
+    //     self.expand_to_fill = expand_to_fill;
+    //     self
+    // }
 
     /// Wrapper function around the cassowary-rs solver to be able to split a given
     /// area into smaller ones based on the preferred widths or heights and the direction.
-    ///
-    /// # Examples
-    /// ```
-    /// # use tui::layout::{Rect, Constraint, Direction, Layout};
-    /// let chunks = Layout::default()
-    ///     .direction(Direction::Vertical)
-    ///     .constraints([Constraint::Length(5), Constraint::Min(0)].as_ref())
-    ///     .split(Rect {
-    ///         x: 2,
-    ///         y: 2,
-    ///         width: 10,
-    ///         height: 10,
-    ///     });
-    /// assert_eq!(
-    ///     chunks,
-    ///     vec![
-    ///         Rect {
-    ///             x: 2,
-    ///             y: 2,
-    ///             width: 10,
-    ///             height: 5
-    ///         },
-    ///         Rect {
-    ///             x: 2,
-    ///             y: 7,
-    ///             width: 10,
-    ///             height: 5
-    ///         }
-    ///     ]
-    /// );
-    ///
-    /// let chunks = Layout::default()
-    ///     .direction(Direction::Horizontal)
-    ///     .constraints([Constraint::Ratio(1, 3), Constraint::Ratio(2, 3)].as_ref())
-    ///     .split(Rect {
-    ///         x: 0,
-    ///         y: 0,
-    ///         width: 9,
-    ///         height: 2,
-    ///     });
-    /// assert_eq!(
-    ///     chunks,
-    ///     vec![
-    ///         Rect {
-    ///             x: 0,
-    ///             y: 0,
-    ///             width: 3,
-    ///             height: 2
-    ///         },
-    ///         Rect {
-    ///             x: 3,
-    ///             y: 0,
-    ///             width: 6,
-    ///             height: 2
-    ///         }
-    ///     ]
-    /// );
-    /// ```
     pub fn split(&self, area: Rect) -> Vec<Rect> {
         // TODO: Maybe use a fixed size cache ?
         LAYOUT_CACHE.with(|c| {
@@ -208,7 +171,7 @@ fn split(area: Rect, layout: &Layout) -> Vec<Rect> {
         .map(|_| Rect::default())
         .collect::<Vec<Rect>>();
 
-    let dest_area = area.inner(&layout.margin);
+    let dest_area = area.inner(layout.margin);
     for (i, e) in elements.iter().enumerate() {
         vars.insert(e.x, (i, 0));
         vars.insert(e.y, (i, 1));
@@ -414,15 +377,15 @@ impl Rect {
         self.y.saturating_add(self.height)
     }
 
-    pub fn inner(self, margin: &Margin) -> Rect {
-        if self.width < 2 * margin.horizontal || self.height < 2 * margin.vertical {
+    pub fn inner(self, (v, h): (u16, u16)) -> Rect {
+        if self.width < 2 * h || self.height < 2 * v {
             Rect::default()
         } else {
             Rect {
-                x: self.x + margin.horizontal,
-                y: self.y + margin.vertical,
-                width: self.width - 2 * margin.horizontal,
-                height: self.height - 2 * margin.vertical,
+                x: self.x + h,
+                y: self.y + v,
+                width: self.width - 2 * h,
+                height: self.height - 2 * v,
             }
         }
     }
@@ -474,17 +437,17 @@ mod tests {
             height: 10,
         };
 
-        let chunks = Layout::default()
-            .direction(Direction::Vertical)
-            .constraints(
-                [
-                    Constraint::Percentage(10),
-                    Constraint::Max(5),
-                    Constraint::Min(1),
-                ]
-                .as_ref(),
-            )
-            .split(target);
+        let chunks = layout(
+            Direction::Vertical,
+            (0, 0),
+            [
+                Constraint::Percentage(10),
+                Constraint::Max(5),
+                Constraint::Min(1),
+            ],
+            true,
+        )
+        .split(target);
 
         assert_eq!(target.height, chunks.iter().map(|r| r.height).sum::<u16>());
         chunks.windows(2).for_each(|w| assert!(w[0].y <= w[1].y));
