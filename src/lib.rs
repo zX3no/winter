@@ -1,9 +1,9 @@
 #![allow(soft_unstable)]
-use std::{ffi::OsStr, mem::zeroed, os::windows::prelude::OsStrExt, process::Command};
+use std::{mem::zeroed, process::Command};
 use winapi::{
     ctypes::c_void,
     um::{
-        consoleapi::{SetConsoleMode, WriteConsoleW},
+        consoleapi::SetConsoleMode,
         processenv::GetStdHandle,
         wincon::{GetConsoleScreenBufferInfo, CONSOLE_SCREEN_BUFFER_INFO},
     },
@@ -28,7 +28,6 @@ pub mod layout;
 pub mod style;
 pub mod stylize;
 pub mod symbols;
-pub mod terminal;
 
 pub const STD_HANDLE: u32 = -11i32 as u32;
 
@@ -117,31 +116,6 @@ impl Terminal {
             if result != 1 {
                 panic!("Failed to set console mode {:?}", mode);
             }
-        }
-    }
-    ///
-    ///
-    /// This wraps
-    /// [`WriteConsoleW`](https://learn.microsoft.com/en-us/windows/console/writeconsole).
-    pub fn write(&self, buf: &[u8]) {
-        let utf16: Vec<u16> = OsStr::new(std::str::from_utf8(buf).unwrap())
-            .encode_wide()
-            .collect();
-
-        let mut cells_written: u32 = 0;
-
-        let result = unsafe {
-            WriteConsoleW(
-                self.handle,
-                utf16.as_ptr() as *const c_void,
-                utf16.len() as u32,
-                &mut cells_written,
-                zeroed(),
-            )
-        };
-
-        if result != 1 {
-            panic!("Could not write to console.");
         }
     }
 }

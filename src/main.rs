@@ -1,5 +1,5 @@
 #![allow(unused)]
-use std::{borrow::Cow, io::Write};
+use std::{borrow::Cow, io::Write, time::Instant};
 use winter::layout::Rect;
 use winter::{block::*, *};
 use winter::{
@@ -36,7 +36,13 @@ fn main() {
             let buf = &mut buffers[current];
 
             let str = "line 3asdlkasjdalskdjaslkd ajsdlk asjdasldkjasdl kajdaslkdjasld kasjd lkasjd aslkd jaslkdasjd laskdj alskd jasldkajs dlkasjd laskdj aslkd jaslk djasd asjlasldkasjd laksdj alskdjasldkasdlasjkdasjdlaskdjlaskdjalksddlkasdjaslkd jsalkd jalkdasjdlaskdj asldk jasdl kasjd laksjd aslkdajsdslkdjaslkdja final-word";
-            let temp = &[text!(str), text!(str), text!("う ず ま き")];
+            let temp = &[
+                text!(str),
+                text!(""),
+                text!(str),
+                text!(""),
+                text!("う ず ま き"),
+            ];
 
             let title = text!("うずまき", fg(Blue).bg(White));
             let lines = lines!(
