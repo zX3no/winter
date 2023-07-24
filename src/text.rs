@@ -52,15 +52,18 @@ impl<'a> Lines<'a> {
         }
     }
     pub fn draw_wrapping(&self, area: Rect, buf: &mut Buffer) {
-        if self.lines.is_empty() {
-            return;
-        }
-
         let mut lines = self.lines.iter();
         let Some(mut line) = lines.next() else {
             return;
         };
         let mut chars = line.text.chars();
+
+        let area = if let Some(block) = &self.block {
+            block.draw(area, buf);
+            block.inner(area)
+        } else {
+            area
+        };
 
         for y in area.top()..area.bottom() {
             for x in area.left()..area.right() {

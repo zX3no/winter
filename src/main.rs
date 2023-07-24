@@ -44,7 +44,7 @@ fn main() {
                 block(Some(title), Borders::ALL, BorderType::Rounded, fg(Red))
             );
 
-            lines.draw(viewport, buf);
+            lines.draw_wrapping(viewport, buf);
         }
 
         //Calculate difference and draw
