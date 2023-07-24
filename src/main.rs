@@ -51,12 +51,13 @@ fn main() {
             ];
 
             let title = text!("うずまき", fg(Blue).bg(White));
-            let lines = lines!(
-                temp,
-                block(Some(title), Borders::ALL, BorderType::Rounded, fg(Red))
-            );
+            let block = block(Some(title), Borders::ALL, BorderType::Rounded, fg(Red));
+            // let lines = lines!(temp, block);
 
-            lines.draw_wrapping(viewport, buf);
+            // lines.draw_wrapping(viewport, buf);
+
+            let guage = guage(None, 0.25, None, bg(Blue), style());
+            guage.draw(viewport, buf);
         }
 
         //Calculate difference and draw

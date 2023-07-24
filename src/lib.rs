@@ -19,8 +19,10 @@ pub use stylize::Stylize;
 pub use unicode_width::{UnicodeWidthChar, UnicodeWidthStr};
 
 //Widgets
+pub use guage::*;
 pub use text::*;
 pub mod block;
+pub mod guage;
 pub mod text;
 
 pub use style::Color::*;

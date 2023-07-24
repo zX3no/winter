@@ -108,6 +108,13 @@ impl Buffer {
         }
         (x_offset as u16, y)
     }
+    pub fn set_style(&mut self, area: Rect, style: Style) {
+        for y in area.top()..area.bottom() {
+            for x in area.left()..area.right() {
+                self.get_mut(x, y).unwrap().set_style(style);
+            }
+        }
+    }
     pub fn index_of(&self, x: u16, y: u16) -> Result<usize, String> {
         if !(x >= self.area.left()
             && x < self.area.right()
