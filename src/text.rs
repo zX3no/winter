@@ -12,6 +12,8 @@ use unicode_width::UnicodeWidthStr;
 // }
 
 //TODO: Should `Lines` impl Deref so that lines[0].width() will work?
+//TODO: Split on \n so that each line has it's own item in the array.
+//Otherwise Lines::height() will not work correctly.
 #[derive(Debug, Clone)]
 pub struct Lines<'a> {
     pub lines: &'a [Text<'a>],

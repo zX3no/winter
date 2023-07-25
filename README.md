@@ -6,9 +6,9 @@
 - [ ] Simplify main loop
 
 ### Widgets:
-- [ ] List
 - [ ] Table
 - [ ] Constraints
+- [x] List
 - [x] Guage
 - [x] Block
 - [x] Text
@@ -24,6 +24,10 @@
 
 ### List
 - [x] Only index 0 shows selection symbol
+- [ ] Broken styles
+
+### Table
+- [ ] Only first line is displayed
 - [ ] Broken styles
 
 ### Gauge

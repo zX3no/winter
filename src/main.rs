@@ -69,16 +69,47 @@ fn main() {
 
                 let mut state = list_state(Some(5));
 
-                //TODO: Doesn't draw at all?
                 let list = list_fn(
                     Some(block(None, Borders::ALL, BorderType::Rounded, fg(Red))),
                     lines,
                     style(),
                     Corner::TopLeft,
                     style(),
-                    Some(">"),
+                    Some("> "),
                     |list| list.draw(chunks[0], buf, &mut state),
                 );
+            }
+            {
+                let block = block(None, Borders::ALL, BorderType::Rounded, style());
+                //TODO: Only the first part of text shows up?
+                //TODO: Styles seem quite broken.
+                let temp = &["hi".into(), "test".into(), "?????".into()];
+                let lines = lines!(temp);
+                let row = row(
+                    vec![lines.clone(), lines.clone(), lines.clone(), lines.clone()],
+                    fg(Blue).bg(Blue),
+                    0,
+                );
+                let temp = &[row.clone(), row.clone(), row.clone()];
+                let mut state = table_state(Some(2));
+                let con = [
+                    Constraint::Length(2),
+                    Constraint::Percentage(33),
+                    Constraint::Percentage(33),
+                    Constraint::Percentage(33),
+                ];
+                let table = table(
+                    Some(block),
+                    style(),
+                    &con,
+                    1,
+                    style(),
+                    Some("> "),
+                    None,
+                    temp,
+                    false,
+                );
+                table.draw(chunks[1], buf, &mut state);
             }
 
             let title = text!("うずまき", fg(Blue).bg(White));
@@ -86,8 +117,8 @@ fn main() {
             let lines = lines!(temp, block);
             // lines.draw_wrapping(chunks[0], buf);
 
-            let guage = guage(None, 0.25, None, bg(Blue), style());
-            guage.draw(chunks[1], buf);
+            // let guage = guage(None, 0.25, None, bg(Blue), style());
+            // guage.draw(chunks[1], buf);
         }
 
         //Calculate difference and draw
