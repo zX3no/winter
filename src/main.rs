@@ -42,6 +42,7 @@ fn main() {
             let test = lines_s!("hi", style(), "hi", style());
             let str = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed vitae nisi et mi sollicitudin vulputate. Vestibulum et hendrerit mauris. Nam euismod, nulla sit amet bibendum consequat, arcu sapien hendrerit odio, ut venenatis elit urna et risus. Vivamus laoreet volutpat urna, at interdum massa eleifend a. Fusce ut congue lectus. Aenean quis cursus arcu. Sed fermentum, enim vitae fermentum ultrices, orci risus blandit sem, nec egestas tortor odio id dui. Sed quis quam eu mauris hendrerit aliquam. Sed malesuada iaculis neque, id porttitor velit vulputate nec. Duis ac dapibus mi, nec gravida mauris. Ut id";
             let temp = lines![str, str, "う ず ま き"];
+
             // temp.draw(viewport, buf);
             // break 'draw;
 
@@ -92,6 +93,7 @@ fn main() {
                 );
                 table.draw(chunks[1], buf, &mut state);
             }
+
             {
                 let lines = lines!["hi", "test", "test", "test", "test", "test", "test", "test"];
                 let mut state = list_state(Some(5));

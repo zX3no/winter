@@ -14,9 +14,9 @@ use unicode_width::UnicodeWidthStr;
 //     }
 // }
 
-//TODO: Should `Lines` impl Deref so that lines[0].width() will work?
 //TODO: Split on \n so that each line has it's own item in the array.
 //Otherwise Lines::height() will not work correctly.
+//I think this is what graphemes are used for.
 
 ///Keep in mind wide characters must be formatted with spaces. FIXME: This is not needed in block titles.
 /// `う ず ま き` instead of `うずまき`
@@ -103,6 +103,14 @@ impl<'a> Lines<'a> {
     }
 }
 
+impl<'a> Deref for Lines<'a> {
+    type Target = &'a [Text<'a>];
+
+    fn deref(&self) -> &Self::Target {
+        &self.lines
+    }
+}
+
 pub fn lines<'a>(
     lines: &'a [Text<'a>],
     block: Option<Block<'a>>,
@@ -115,6 +123,9 @@ pub fn lines<'a>(
     }
 }
 
+///```rs
+/// lines!["Text", "Text", "Text", "Text",]
+/// ```
 #[macro_export]
 macro_rules! lines {
     ($($text:expr),*) => {
@@ -133,6 +144,9 @@ macro_rules! lines {
     };
 }
 
+///```rs
+/// lines_s!["Text", fg(Blue), "Text", fg(Red)]
+/// ```
 #[macro_export]
 macro_rules! lines_s{
     ($($text:expr, $style:expr),*) => {
@@ -199,4 +213,15 @@ impl<'a> Into<Text<'a>> for &'static str {
             style: Style::default(),
         }
     }
+}
+
+// Dummy function to apply style to a string (or just return the style)
+pub fn apply_style_internal<'a>(input: impl Into<StyledText<'a>>) -> StyledText<'a> {
+    input.into()
+}
+
+// StyledText enum to wrap &str and Style
+pub enum StyledText<'a> {
+    Text(&'a str, Style),
+    SingleStyle(Style),
 }
