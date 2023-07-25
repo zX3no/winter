@@ -1,10 +1,9 @@
-use std::cell::RefCell;
-use std::cmp::{max, min};
-use std::collections::HashMap;
-
 use cassowary::strength::{REQUIRED, WEAK};
 use cassowary::WeightedRelation::*;
 use cassowary::{Constraint as CassowaryConstraint, Expression, Solver, Variable};
+use std::cell::RefCell;
+use std::cmp::{max, min};
+use std::collections::HashMap;
 
 #[derive(Debug, Hash, Clone, Copy, PartialEq, Eq)]
 pub enum Corner {
@@ -52,33 +51,29 @@ pub enum Alignment {
     Right,
 }
 
-pub fn layout_new<C: Into<Vec<Constraint>>>(
+pub fn layout<C: Into<Vec<Constraint>>>(
     direction: Direction,
     margin: (u16, u16),
     constraints: C,
     area: Rect,
 ) -> Vec<Rect> {
-    Layout {
+    let layout = Layout {
         direction,
         margin,
         constraints: constraints.into(),
+        //TODO: This could be added back as an argument.
         expand_to_fill: true,
-    }
-    .split(area)
+    };
+    LAYOUT_CACHE.with(|c| {
+        c.borrow_mut()
+            .entry((area, layout.clone()))
+            .or_insert_with(|| split(area, &layout))
+            .clone()
+    })
 }
 
-pub fn layout<C: Into<Vec<Constraint>>>(
-    direction: Direction,
-    margin: (u16, u16),
-    constraints: C,
-    expand_to_fill: bool,
-) -> Layout {
-    Layout {
-        direction,
-        margin,
-        constraints: constraints.into(),
-        expand_to_fill,
-    }
+thread_local! {
+    static LAYOUT_CACHE: RefCell<HashMap<(Rect, Layout), Vec<Rect>>> = RefCell::new(HashMap::new());
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -90,71 +85,6 @@ pub struct Layout {
     /// Whether the last chunk of the computed layout should be expanded to fill the available
     /// space.
     pub expand_to_fill: bool,
-}
-
-thread_local! {
-    static LAYOUT_CACHE: RefCell<HashMap<(Rect, Layout), Vec<Rect>>> = RefCell::new(HashMap::new());
-}
-
-impl Default for Layout {
-    fn default() -> Layout {
-        Layout {
-            direction: Direction::Vertical,
-            margin: (0, 0),
-            constraints: Vec::new(),
-            expand_to_fill: true,
-        }
-    }
-}
-
-impl Layout {
-    pub fn constraints<C>(mut self, constraints: C) -> Layout
-    where
-        C: Into<Vec<Constraint>>,
-    {
-        self.constraints = constraints.into();
-        self
-    }
-
-    pub fn direction(mut self, direction: Direction) -> Layout {
-        self.direction = direction;
-        self
-    }
-
-    // pub fn margin(mut self, margin: u16) -> Layout {
-    //     self.margin = Margin {
-    //         horizontal: margin,
-    //         vertical: margin,
-    //     };
-    //     self
-    // }
-
-    // pub fn horizontal_margin(mut self, horizontal: u16) -> Layout {
-    //     self.margin.horizontal = horizontal;
-    //     self
-    // }
-
-    // pub fn vertical_margin(mut self, vertical: u16) -> Layout {
-    //     self.margin.vertical = vertical;
-    //     self
-    // }
-
-    // pub fn expand_to_fill(mut self, expand_to_fill: bool) -> Layout {
-    //     self.expand_to_fill = expand_to_fill;
-    //     self
-    // }
-
-    /// Wrapper function around the cassowary-rs solver to be able to split a given
-    /// area into smaller ones based on the preferred widths or heights and the direction.
-    pub fn split(&self, area: Rect) -> Vec<Rect> {
-        // TODO: Maybe use a fixed size cache ?
-        LAYOUT_CACHE.with(|c| {
-            c.borrow_mut()
-                .entry((area, self.clone()))
-                .or_insert_with(|| split(area, self))
-                .clone()
-        })
-    }
 }
 
 fn split(area: Rect, layout: &Layout) -> Vec<Rect> {
@@ -445,9 +375,8 @@ mod tests {
                 Constraint::Max(5),
                 Constraint::Min(1),
             ],
-            true,
-        )
-        .split(target);
+            target,
+        );
 
         assert_eq!(target.height, chunks.iter().map(|r| r.height).sum::<u16>());
         chunks.windows(2).for_each(|w| assert!(w[0].y <= w[1].y));

@@ -1,6 +1,5 @@
+use crate::{buffer::Buffer, layout, lines, Block, Constraint, Direction, Lines, Rect, Style};
 use std::borrow::Cow;
-
-use crate::{buffer::Buffer, lines, Block, Constraint, Direction, Layout, Lines, Rect, Style};
 
 pub fn table_state(index: Option<usize>) -> TableState {
     TableState { selected: index }
@@ -102,15 +101,17 @@ impl<'a> Table<'a> {
         if !self.widths.is_empty() {
             constraints.pop();
         }
-        let mut chunks = Layout::default()
-            .direction(Direction::Horizontal)
-            .constraints(constraints)
-            .split(Rect {
+        let mut chunks = layout(
+            Direction::Horizontal,
+            (0, 0),
+            constraints,
+            Rect {
                 x: 0,
                 y: 0,
                 width: max_width,
                 height: 1,
-            });
+            },
+        );
         if has_selection {
             chunks.remove(0);
         }
@@ -301,7 +302,7 @@ fn draw_cell(buf: &mut Buffer, cell: &Lines, area: Rect) {
             area.y + i as u16,
             line,
             area.width as usize,
-            line.style(),
+            line.style,
         );
     }
 }

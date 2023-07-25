@@ -49,7 +49,7 @@ impl<'a> Lines<'a> {
                             buf.get_mut(x, y)
                                 .unwrap()
                                 .set_char(char)
-                                .set_style(line.style());
+                                .set_style(line.style);
                         }
                     } else {
                         break;
@@ -84,7 +84,7 @@ impl<'a> Lines<'a> {
                         buf.get_mut(x, y)
                             .unwrap()
                             .set_char(char)
-                            .set_style(line.style());
+                            .set_style(line.style);
                     }
                 } else {
                     if let Some(new_line) = lines.next() {
@@ -172,17 +172,8 @@ pub struct Text<'a> {
 }
 
 impl<'a> Text<'a> {
-    pub fn new(inner: Cow<'a, str>, style: Style) -> Self {
-        Self { inner, style }
-    }
-}
-
-impl<'a> Text<'a> {
     pub fn width(&self) -> usize {
         self.inner.width()
-    }
-    pub fn style(&self) -> Style {
-        self.style
     }
 }
 

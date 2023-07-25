@@ -192,7 +192,7 @@ impl<'a> List<'a> {
 
             let (elem_x, max_element_width) = if state.selected {
                 let (elem_x, _) =
-                    buf.set_stringn(x, y, symbol, list_area.width as usize, line.style());
+                    buf.set_stringn(x, y, symbol, list_area.width as usize, line.style);
                 (elem_x, (list_area.width - (elem_x - x)))
             } else {
                 (x, list_area.width)
@@ -202,7 +202,7 @@ impl<'a> List<'a> {
                 y + 0 as u16,
                 &*line,
                 max_element_width as usize,
-                line.style(),
+                line.style,
             );
 
             //sets the style of the selection

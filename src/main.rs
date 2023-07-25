@@ -9,8 +9,8 @@ use winter::layout::Rect;
 use winter::{block::*, *};
 
 fn main() {
-    let mut term = Terminal::new();
-    let (width, height) = term.area();
+    let mut terminal = Terminal::new();
+    let (width, height) = terminal.area();
     let mut viewport = Rect::new(0, 0, width, height);
     let mut buffers: [Buffer; 2] = [Buffer::empty(viewport), Buffer::empty(viewport)];
     let mut current = 0;
@@ -46,7 +46,7 @@ fn main() {
             // temp.draw(viewport, buf);
             // break 'draw;
 
-            let chunks = layout_new(
+            let chunks = layout(
                 Direction::Vertical,
                 (0, 0),
                 [
@@ -120,7 +120,7 @@ fn main() {
         current = 1 - current;
 
         //Resize
-        let (width, height) = term.area();
+        let (width, height) = terminal.area();
         viewport = Rect::new(0, 0, width, height);
         if buffers[current].area != viewport {
             buffers[current].resize(viewport);

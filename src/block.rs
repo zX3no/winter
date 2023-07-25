@@ -1,7 +1,6 @@
-use std::borrow::Cow;
-
 use crate::{buffer::Buffer, layout::Rect, style, symbols::*, Style};
 use bitflags::bitflags;
+use std::borrow::Cow;
 
 bitflags! {
     /// Bitflags that can be composed to set the visible borders essentially on the block widget.

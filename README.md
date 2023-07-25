@@ -12,6 +12,7 @@
 - [x] Guage
 - [x] Block
 - [x] Text
+- [x] Layout
 
 ### Lines
 - [ ] Simplify the way text and lines work.
@@ -34,5 +35,9 @@
 - [ ] Only first line is displayed
 - [ ] Fix styles
 
+### Layout
+- [x] Cleanup
+
 ### Gauge
+- [ ] Fix styles
 
