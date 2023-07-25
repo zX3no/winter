@@ -6,12 +6,16 @@
 - [ ] Simplify main loop
 
 ### Widgets:
-- [ ] Table
-- [ ] Constraints
+- [x] Table
+- [x] Constraints
 - [x] List
 - [x] Guage
 - [x] Block
 - [x] Text
+
+### Lines
+- [ ] Simplify the way text and lines work.
+- [ ] Fix styles
 
 ### Text
 - [ ] Text alignment: Left, Center, Right
@@ -24,11 +28,11 @@
 
 ### List
 - [x] Only index 0 shows selection symbol
-- [ ] Broken styles
+- [ ] Fix styles
 
 ### Table
 - [ ] Only first line is displayed
-- [ ] Broken styles
+- [ ] Fix styles
 
 ### Gauge
 
