@@ -1,12 +1,19 @@
-use crate::{block::Block, buffer::Buffer, layout::Rect, text, Style, Text};
+use std::borrow::Cow;
 
+use unicode_width::UnicodeWidthStr;
+
+use crate::{block::Block, buffer::Buffer, layout::Rect, style, Style};
+
+///Use "" as a blank label. Not my fault the trait system is shit.
 pub fn guage<'a>(
     block: Option<Block<'a>>,
     ratio: f64,
-    label: Option<Text<'a>>,
+    label: impl Into<Cow<'a, str>>,
     style: Style,
     gauge_style: Style,
 ) -> Gauge<'a> {
+    let l = label.into();
+    let label = if l.is_empty() { None } else { Some(l) };
     Gauge {
         block,
         ratio,
@@ -20,7 +27,7 @@ pub fn guage<'a>(
 pub struct Gauge<'a> {
     pub block: Option<Block<'a>>,
     pub ratio: f64,
-    pub label: Option<Text<'a>>,
+    pub label: Option<Cow<'a, str>>,
     pub style: Style,
     pub gauge_style: Style,
 }
@@ -45,8 +52,8 @@ impl<'a> Gauge<'a> {
         // compute label value and its position
         // label is put at the center of the gauge_area
         let pct = f64::round(self.ratio * 100.0);
-        let text = text!(format!("{pct}%"));
-        let label = &self.label.as_ref().unwrap_or_else(|| &text);
+        let text = Cow::from(format!("{pct}%"));
+        let label = self.label.as_ref().unwrap_or_else(|| &text);
 
         let clamped_label_width = area.width.min(label.width() as u16);
         let label_col = area.left() + (area.width - clamped_label_width) / 2;
@@ -70,9 +77,10 @@ impl<'a> Gauge<'a> {
         buf.set_stringn(
             label_col,
             label_row,
-            &label.text,
+            &label,
             clamped_label_width as usize,
-            label.style,
+            style(),
+            // label.style,
         );
     }
 }

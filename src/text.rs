@@ -1,5 +1,8 @@
 use crate::{block::Block, buffer::Buffer, layout::Rect, Style};
-use std::borrow::Cow;
+use std::{
+    borrow::Cow,
+    ops::{Deref, DerefMut},
+};
 use unicode_width::UnicodeWidthStr;
 
 //TODO: Text alignment?
@@ -14,6 +17,10 @@ use unicode_width::UnicodeWidthStr;
 //TODO: Should `Lines` impl Deref so that lines[0].width() will work?
 //TODO: Split on \n so that each line has it's own item in the array.
 //Otherwise Lines::height() will not work correctly.
+
+///Keep in mind wide characters must be formatted with spaces. FIXME: This is not needed in block titles.
+/// `う ず ま き` instead of `うずまき`
+
 #[derive(Debug, Clone)]
 pub struct Lines<'a> {
     pub lines: &'a [Text<'a>],
@@ -33,7 +40,7 @@ impl<'a> Lines<'a> {
         let mut lines_iter = self.lines.iter();
         for y in area.top()..area.bottom() {
             if let Some(line) = lines_iter.next() {
-                let mut chars = line.text.chars();
+                let mut chars = line.chars();
                 for x in area.left()..area.right() {
                     if let Some(char) = chars.next() {
                         if let Some(style) = self.style {
@@ -42,7 +49,7 @@ impl<'a> Lines<'a> {
                             buf.get_mut(x, y)
                                 .unwrap()
                                 .set_char(char)
-                                .set_style(line.style);
+                                .set_style(line.style());
                         }
                     } else {
                         break;
@@ -58,7 +65,8 @@ impl<'a> Lines<'a> {
         let Some(mut line) = lines.next() else {
             return;
         };
-        let mut chars = line.text.chars();
+        //Don't ask.
+        let mut chars = line.chars();
 
         let area = if let Some(block) = &self.block {
             block.draw(area, buf);
@@ -76,12 +84,12 @@ impl<'a> Lines<'a> {
                         buf.get_mut(x, y)
                             .unwrap()
                             .set_char(char)
-                            .set_style(line.style);
+                            .set_style(line.style());
                     }
                 } else {
-                    if let Some(l) = lines.next() {
-                        line = l;
-                        chars = line.text.chars();
+                    if let Some(new_line) = lines.next() {
+                        line = new_line;
+                        chars = line.chars();
                     } else {
                         return;
                     }
@@ -95,87 +103,100 @@ impl<'a> Lines<'a> {
     }
 }
 
+pub fn lines<'a>(
+    lines: &'a [Text<'a>],
+    block: Option<Block<'a>>,
+    style: Option<Style>,
+) -> Lines<'a> {
+    Lines {
+        lines,
+        block,
+        style,
+    }
+}
+
 #[macro_export]
 macro_rules! lines {
-    ($lines:expr) => {
+    ($($text:expr),*) => {
         Lines {
-            lines: $lines,
+            lines: &[
+                $(
+                    crate::Text {
+                        inner: Cow::Borrowed($text),
+                        style: Style::default(),
+                    }
+                ),*
+            ],
             block: None,
             style: None,
         }
     };
-    ($lines:expr, $block:expr) => {
+}
+
+#[macro_export]
+macro_rules! lines_s{
+    ($($text:expr, $style:expr),*) => {
         Lines {
-            lines: $lines,
-            block: Some($block),
+            lines: &[
+                $(
+                    crate::Text {
+                        inner: Cow::Borrowed($text),
+                        style: $style,
+                    }
+                ),*
+            ],
+            block: None,
             style: None,
-        }
-    };
-    ($lines:expr, $block:expr, $style:expr) => {
-        Lines {
-            lines: $lines,
-            block: Some($block),
-            style: Some($style),
         }
     };
 }
 
-//TODO: Should this be replaced?
-//Lines would be replaced to Text.
 #[derive(Debug, Clone)]
 pub struct Text<'a> {
-    pub text: Cow<'a, str>,
+    pub inner: Cow<'a, str>,
     pub style: Style,
 }
 
 impl<'a> Text<'a> {
-    pub fn draw(&self, area: Rect, buf: &mut Buffer) {
-        let mut chars = self.text.chars();
-        for y in area.top()..area.bottom() {
-            for x in area.left()..area.right() {
-                if let Some(char) = chars.next() {
-                    buf.get_mut(x, y)
-                        .unwrap()
-                        .set_char(char)
-                        .set_style(self.style);
-                } else {
-                    return;
-                }
-            }
-        }
+    pub fn new(inner: Cow<'a, str>, style: Style) -> Self {
+        Self { inner, style }
     }
-    //TODO: Find out why list needed this.
-    pub fn height(&self) -> usize {
-        1
-    }
+}
+
+impl<'a> Text<'a> {
     pub fn width(&self) -> usize {
-        self.text.width()
+        self.inner.width()
+    }
+    pub fn style(&self) -> Style {
+        self.style
+    }
+}
+
+impl<'a> AsRef<str> for Text<'a> {
+    fn as_ref(&self) -> &str {
+        &self.inner as &str
+    }
+}
+
+impl<'a> Deref for Text<'a> {
+    type Target = Cow<'a, str>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.inner
+    }
+}
+
+impl<'a> DerefMut for Text<'a> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.inner
     }
 }
 
 impl<'a> Into<Text<'a>> for &'static str {
     fn into(self) -> Text<'a> {
         Text {
-            text: std::borrow::Cow::from(self),
+            inner: std::borrow::Cow::from(self),
             style: Style::default(),
         }
     }
-}
-
-///Keep in mind wide characters must be formatted with spaces. FIXME: This is not needed in block titles.
-/// `う ず ま き` instead of `うずまき`
-#[macro_export]
-macro_rules! text {
-    ($text:expr) => {
-        Text {
-            text: std::borrow::Cow::from($text),
-            style: Style::default(),
-        }
-    };
-    ($text:expr, $style:expr) => {
-        Text {
-            text: std::borrow::Cow::from($text),
-            style: $style,
-        }
-    };
 }

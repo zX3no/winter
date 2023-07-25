@@ -1,3 +1,5 @@
+use std::borrow::Cow;
+
 use crate::{buffer::Buffer, lines, Block, Constraint, Direction, Layout, Lines, Rect, Style};
 
 pub fn table_state(index: Option<usize>) -> TableState {
@@ -220,7 +222,7 @@ impl<'a> Table<'a> {
                 for i in table_area.left() + 3..max + table_area.left() + 4 {
                     draw_cell(
                         buf,
-                        &lines!(&["─".into()]),
+                        &lines!("─"),
                         Rect {
                             x: i,
                             y: table_area.top() + 1,
@@ -290,16 +292,16 @@ fn draw_cell(buf: &mut Buffer, cell: &Lines, area: Rect) {
         buf.set_style(area, style);
     }
 
-    for (i, lines) in cell.lines.iter().enumerate() {
+    for (i, line) in cell.lines.iter().enumerate() {
         if i as u16 >= area.height {
             break;
         }
         buf.set_stringn(
             area.x,
             area.y + i as u16,
-            &lines.text,
+            line,
             area.width as usize,
-            lines.style,
+            line.style(),
         );
     }
 }

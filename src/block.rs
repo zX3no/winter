@@ -1,4 +1,6 @@
-use crate::{buffer::Buffer, layout::Rect, symbols::*, Style, Text};
+use std::borrow::Cow;
+
+use crate::{buffer::Buffer, layout::Rect, style, symbols::*, Style};
 use bitflags::bitflags;
 
 bitflags! {
@@ -41,7 +43,7 @@ impl BorderType {
 
 #[derive(Debug, Clone)]
 pub struct Block<'a> {
-    pub title: Option<Text<'a>>,
+    pub title: Option<Cow<'a, str>>,
 
     // pub title_alignment: Alignment,
     pub borders: Borders,
@@ -83,7 +85,7 @@ macro_rules! block {
 //instead of omitting it.
 
 pub fn block<'a>(
-    title: Option<Text<'a>>,
+    title: Option<Cow<'a, str>>,
     borders: Borders,
     border_type: BorderType,
     style: Style,
@@ -221,9 +223,10 @@ impl<'a> Block<'a> {
             buf.set_stringn(
                 title_x,
                 title_y,
-                &title.text,
+                &title,
                 title_area_width as usize,
-                title.style,
+                style(),
+                // title.style,
             );
         }
     }

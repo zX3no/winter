@@ -35,56 +35,37 @@ fn main() {
 
     loop {
         //Draw widgets
-        {
+        'draw: {
             let buf = &mut buffers[current];
 
-            let str = "line 3asdlkasjdalskdjaslkd ajsdlk asjdasldkjasdl kajdaslkdjasld kasjd lkasjd aslkd jaslkdasjd laskdj alskd jasldkajs dlkasjd laskdj aslkd jaslk djasd asjlasldkasjd laksdj alskdjasldkasdlasjkdasjdlaskdjlaskdjalksddlkasdjaslkd jsalkd jalkdasjdlaskdj asldk jasdl kasjd laksjd aslkdajsdslkdjaslkdja final-word";
-            let temp = &[
-                text!(str),
-                // text!(""),
-                text!(str),
-                // text!(""),
-                text!("う ず ま き"),
-            ];
+            let test = lines!("hi", "hi");
+            let test = lines_s!("hi", style(), "hi", style());
+            let str = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed vitae nisi et mi sollicitudin vulputate. Vestibulum et hendrerit mauris. Nam euismod, nulla sit amet bibendum consequat, arcu sapien hendrerit odio, ut venenatis elit urna et risus. Vivamus laoreet volutpat urna, at interdum massa eleifend a. Fusce ut congue lectus. Aenean quis cursus arcu. Sed fermentum, enim vitae fermentum ultrices, orci risus blandit sem, nec egestas tortor odio id dui. Sed quis quam eu mauris hendrerit aliquam. Sed malesuada iaculis neque, id porttitor velit vulputate nec. Duis ac dapibus mi, nec gravida mauris. Ut id";
+            let temp = lines![str, str, "う ず ま き"];
+            // temp.draw(viewport, buf);
+            // break 'draw;
 
             let chunks = layout_new(
                 Direction::Vertical,
                 (0, 0),
-                [Constraint::Percentage(50), Constraint::Percentage(50)],
+                [
+                    Constraint::Percentage(33),
+                    Constraint::Percentage(33),
+                    Constraint::Percentage(33),
+                ],
                 viewport,
             );
 
             {
-                let temp = &[
-                    "hi".into(),
-                    "test".into(),
-                    "test".into(),
-                    "test".into(),
-                    "test".into(),
-                    "test".into(),
-                    "test".into(),
-                    "test".into(),
-                ];
-                let lines = lines!(temp);
-
-                let mut state = list_state(Some(5));
-
-                let list = list_fn(
-                    Some(block(None, Borders::ALL, BorderType::Rounded, fg(Red))),
-                    lines,
-                    style(),
-                    Corner::TopLeft,
-                    style(),
-                    Some("> "),
-                    |list| list.draw(chunks[0], buf, &mut state),
-                );
+                let guage = guage(None, 0.25, "", bg(Blue), style());
+                guage.draw(chunks[0], buf);
             }
+
             {
                 let block = block(None, Borders::ALL, BorderType::Rounded, style());
                 //TODO: Only the first part of text shows up?
                 //TODO: Styles seem quite broken.
-                let temp = &["hi".into(), "test".into(), "?????".into()];
-                let lines = lines!(temp);
+                let lines = lines!["hi", "test", "????"];
                 let row = row(
                     vec![lines.clone(), lines.clone(), lines.clone(), lines.clone()],
                     fg(Blue).bg(Blue),
@@ -111,14 +92,19 @@ fn main() {
                 );
                 table.draw(chunks[1], buf, &mut state);
             }
-
-            let title = text!("うずまき", fg(Blue).bg(White));
-            let block = block(Some(title), Borders::ALL, BorderType::Rounded, fg(Red));
-            let lines = lines!(temp, block);
-            // lines.draw_wrapping(chunks[0], buf);
-
-            // let guage = guage(None, 0.25, None, bg(Blue), style());
-            // guage.draw(chunks[1], buf);
+            {
+                let lines = lines!["hi", "test", "test", "test", "test", "test", "test", "test"];
+                let mut state = list_state(Some(5));
+                let list = list_fn(
+                    Some(block(None, Borders::ALL, BorderType::Rounded, fg(Red))),
+                    lines,
+                    style(),
+                    Corner::TopLeft,
+                    style(),
+                    Some("> "),
+                    |list| list.draw(chunks[2], buf, &mut state),
+                );
+            }
         }
 
         //Calculate difference and draw
@@ -142,14 +128,10 @@ fn main() {
             clear(&mut stdout);
             buffers[1 - current].reset();
         }
+
+        std::thread::park();
+        // std::thread::sleep(std::time::Duration::from_millis(16));
     }
 
     unreachable!();
-}
-
-//TOOD: This might be a better way of doing things.
-struct Buffers {
-    front: Vec<Cell>,
-    back: Vec<Cell>,
-    area: Rect,
 }

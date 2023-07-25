@@ -96,11 +96,13 @@ impl<'a> List<'a> {
     fn get_items_bounds(&self, selection: usize, terminal_height: usize) -> (usize, usize) {
         let mut real_end = 0;
         let mut height = 0;
-        for item in self.items.lines {
-            if height + item.height() > terminal_height {
+        //Was `item.height()`
+        let item_height = 1;
+        for _item in self.items.lines {
+            if height + item_height > terminal_height {
                 break;
             }
-            height += item.height();
+            height += item_height;
             real_end += 1;
         }
 
@@ -146,7 +148,7 @@ impl<'a> List<'a> {
         let blank_symbol = " ".repeat(highlight_symbol.len());
         let mut current_height = 0;
 
-        for (i, item) in self
+        for (i, line) in self
             .items
             .lines
             .iter()
@@ -154,12 +156,15 @@ impl<'a> List<'a> {
             .skip(start)
             .take(end - start)
         {
+            //Was `item.height()`
+            let height: u16 = 1;
+
             let (x, y) = if self.start_corner == Corner::BottomLeft {
-                current_height += item.height() as u16;
+                current_height += height;
                 (list_area.left(), list_area.bottom() - current_height)
             } else {
                 let pos = (list_area.left(), list_area.top() + current_height);
-                current_height += item.height() as u16;
+                current_height += height;
                 pos
             };
 
@@ -167,7 +172,7 @@ impl<'a> List<'a> {
                 x,
                 y,
                 width: list_area.width,
-                height: item.height() as u16,
+                height,
             };
 
             // let item_style = self.style.patch(item.style);
@@ -187,7 +192,7 @@ impl<'a> List<'a> {
 
             let (elem_x, max_element_width) = if state.selected {
                 let (elem_x, _) =
-                    buf.set_stringn(x, y, symbol, list_area.width as usize, item.style);
+                    buf.set_stringn(x, y, symbol, list_area.width as usize, line.style());
                 (elem_x, (list_area.width - (elem_x - x)))
             } else {
                 (x, list_area.width)
@@ -195,9 +200,9 @@ impl<'a> List<'a> {
             buf.set_stringn(
                 elem_x,
                 y + 0 as u16,
-                &item.text,
+                &*line,
                 max_element_width as usize,
-                item.style,
+                line.style(),
             );
 
             //sets the style of the selection

@@ -13,8 +13,6 @@ use winapi::{
     },
 };
 
-pub use stylize::Stylize;
-
 #[allow(unused)]
 pub use unicode_width::{UnicodeWidthChar, UnicodeWidthStr};
 
@@ -36,10 +34,8 @@ pub use style::Color::*;
 pub use style::*;
 
 pub mod buffer;
-pub mod color;
 pub mod layout;
 pub mod style;
-pub mod stylize;
 pub mod symbols;
 
 const STD_HANDLE: u32 = -11i32 as u32;
