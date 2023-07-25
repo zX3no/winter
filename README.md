@@ -23,7 +23,7 @@
 - [x] Text inside of blocks
 
 ### List
-- [ ] Only index 0 shows selection symbol
+- [x] Only index 0 shows selection symbol
 - [ ] Broken styles
 
 ### Gauge

@@ -142,8 +142,21 @@ impl<'a> Text<'a> {
             }
         }
     }
+    //TODO: Find out why list needed this.
+    pub fn height(&self) -> usize {
+        1
+    }
     pub fn width(&self) -> usize {
         self.text.width()
+    }
+}
+
+impl<'a> Into<Text<'a>> for &'static str {
+    fn into(self) -> Text<'a> {
+        Text {
+            text: std::borrow::Cow::from(self),
+            style: Style::default(),
+        }
     }
 }
 

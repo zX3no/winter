@@ -23,7 +23,7 @@ impl ListState {
 
 pub fn list<'a>(
     block: Option<Block<'a>>,
-    items: &'a [Lines<'a>],
+    items: Lines<'a>,
 
     style: Style,
     start_corner: Corner,
@@ -39,6 +39,31 @@ pub fn list<'a>(
         highlight_style,
         highlight_symbol,
     }
+}
+
+//Fixes a lifetime issue with items
+pub fn list_fn<'a, F>(
+    block: Option<Block<'a>>,
+    items: Lines<'a>,
+    style: Style,
+    start_corner: Corner,
+    highlight_style: Style,
+    highlight_symbol: Option<&'a str>,
+    draw_fn: F,
+) -> List<'a>
+where
+    F: FnOnce(&List<'a>) -> (),
+{
+    let list = List {
+        block,
+        items,
+        style,
+        start_corner,
+        highlight_style,
+        highlight_symbol,
+    };
+    draw_fn(&list);
+    list
 }
 
 pub fn list_state(index: Option<usize>) -> ListState {
@@ -58,7 +83,7 @@ pub fn list_state(index: Option<usize>) -> ListState {
 #[derive(Debug, Clone)]
 pub struct List<'a> {
     block: Option<Block<'a>>,
-    items: &'a [Lines<'a>],
+    items: Lines<'a>,
 
     style: Style,
     start_corner: Corner,
@@ -71,7 +96,7 @@ impl<'a> List<'a> {
     fn get_items_bounds(&self, selection: usize, terminal_height: usize) -> (usize, usize) {
         let mut real_end = 0;
         let mut height = 0;
-        for item in self.items {
+        for item in self.items.lines {
             if height + item.height() > terminal_height {
                 break;
             }
@@ -79,7 +104,7 @@ impl<'a> List<'a> {
             real_end += 1;
         }
 
-        let selection = selection.min(self.items.len() - 1);
+        let selection = selection.min(self.items.lines.len() - 1);
 
         let half = if height == 0 { 0 } else { (height - 1) / 2 };
 
@@ -93,8 +118,8 @@ impl<'a> List<'a> {
             selection + 1 + half
         };
 
-        if end > self.items.len() {
-            (self.items.len() - height, self.items.len())
+        if end > self.items.lines.len() {
+            (self.items.lines.len() - height, self.items.lines.len())
         } else {
             (start, end)
         }
@@ -109,13 +134,10 @@ impl<'a> List<'a> {
             area
         };
 
-        if list_area.width < 1 || list_area.height < 1 {
+        if list_area.width < 1 || list_area.height < 1 || self.items.lines.is_empty() {
             return;
         }
 
-        if self.items.is_empty() {
-            return;
-        }
         let list_height = list_area.height as usize;
 
         let (start, end) = self.get_items_bounds(state.selection, list_height);
@@ -124,7 +146,14 @@ impl<'a> List<'a> {
         let blank_symbol = " ".repeat(highlight_symbol.len());
         let mut current_height = 0;
 
-        for (i, item) in self.items.iter().enumerate().skip(start).take(end - start) {
+        for (i, item) in self
+            .items
+            .lines
+            .iter()
+            .enumerate()
+            .skip(start)
+            .take(end - start)
+        {
             let (x, y) = if self.start_corner == Corner::BottomLeft {
                 current_height += item.height() as u16;
                 (list_area.left(), list_area.bottom() - current_height)
@@ -144,45 +173,32 @@ impl<'a> List<'a> {
             // let item_style = self.style.patch(item.style);
             // buf.set_style(area, item_style);
 
-            //check if the current index is selected
-            let is_selected = if state.selected {
-                state.selection == i
+            let is_selected = if state.selected && state.selection == i {
+                true
             } else {
                 false
             };
 
-            for (j, line) in item.lines.iter().enumerate() {
-                // if the item is selected, we need to display the hightlight symbol:
-                // - either for the first line of the item only,
-                // - or for each line of the item if the appropriate option is set
-                let symbol = if is_selected && (j == 0) {
-                    highlight_symbol
-                } else {
-                    &blank_symbol
-                };
+            let symbol = if is_selected {
+                highlight_symbol
+            } else {
+                &blank_symbol
+            };
 
-                let (elem_x, max_element_width) = if state.selected {
-                    let (elem_x, _) = buf.set_stringn(
-                        x,
-                        y + j as u16,
-                        symbol,
-                        list_area.width as usize,
-                        line.style,
-                        //TODO: item_style,
-                    );
-                    (elem_x, (list_area.width - (elem_x - x)))
-                } else {
-                    (x, list_area.width)
-                };
-                // buf.set_spans(elem_x, y + j as u16, line, max_element_width);
-                buf.set_stringn(
-                    elem_x,
-                    y + j as u16,
-                    &line.text,
-                    max_element_width as usize,
-                    line.style,
-                );
-            }
+            let (elem_x, max_element_width) = if state.selected {
+                let (elem_x, _) =
+                    buf.set_stringn(x, y, symbol, list_area.width as usize, item.style);
+                (elem_x, (list_area.width - (elem_x - x)))
+            } else {
+                (x, list_area.width)
+            };
+            buf.set_stringn(
+                elem_x,
+                y + 0 as u16,
+                &item.text,
+                max_element_width as usize,
+                item.style,
+            );
 
             //sets the style of the selection
             if state.selected {

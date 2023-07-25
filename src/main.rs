@@ -56,29 +56,35 @@ fn main() {
 
             {
                 let temp = &[
-                    text!("hi"),
-                    text!("test"),
-                    text!("test2"),
-                    text!("test"),
-                    text!("test"),
-                    text!("test"),
-                    text!("test"),
-                    text!("test"),
-                    text!("test"),
+                    "hi".into(),
+                    "test".into(),
+                    "test".into(),
+                    "test".into(),
+                    "test".into(),
+                    "test".into(),
+                    "test".into(),
+                    "test".into(),
                 ];
                 let lines = lines!(temp);
-                let slice = &[lines];
-                let list = list(None, slice, style(), Corner::TopLeft, style(), Some(">"));
-                //TODO: Doesn't select correct item?
-                let mut state = list_state(Some(1));
+
+                let mut state = list_state(Some(5));
+
                 //TODO: Doesn't draw at all?
-                list.draw(chunks[0], buf, &mut state)
+                let list = list_fn(
+                    Some(block(None, Borders::ALL, BorderType::Rounded, fg(Red))),
+                    lines,
+                    style(),
+                    Corner::TopLeft,
+                    style(),
+                    Some(">"),
+                    |list| list.draw(chunks[0], buf, &mut state),
+                );
             }
 
             let title = text!("うずまき", fg(Blue).bg(White));
             let block = block(Some(title), Borders::ALL, BorderType::Rounded, fg(Red));
             let lines = lines!(temp, block);
-            lines.draw_wrapping(chunks[0], buf);
+            // lines.draw_wrapping(chunks[0], buf);
 
             let guage = guage(None, 0.25, None, bg(Blue), style());
             guage.draw(chunks[1], buf);
