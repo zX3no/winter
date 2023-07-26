@@ -38,8 +38,8 @@ fn main() {
         'draw: {
             let buf = &mut buffers[current];
 
-            let test = lines!("hi", "hi");
-            let test = lines_s!("hi", style(), "hi", style());
+            let test = lines!("hi", "hi", String::from("test"));
+            let test = lines_s!("hi", style(), "hi", style(), String::from("hi"), style());
             let str = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed vitae nisi et mi sollicitudin vulputate. Vestibulum et hendrerit mauris. Nam euismod, nulla sit amet bibendum consequat, arcu sapien hendrerit odio, ut venenatis elit urna et risus. Vivamus laoreet volutpat urna, at interdum massa eleifend a. Fusce ut congue lectus. Aenean quis cursus arcu. Sed fermentum, enim vitae fermentum ultrices, orci risus blandit sem, nec egestas tortor odio id dui. Sed quis quam eu mauris hendrerit aliquam. Sed malesuada iaculis neque, id porttitor velit vulputate nec. Duis ac dapibus mi, nec gravida mauris. Ut id";
             let temp = lines![str, str, "う ず ま き"];
 
@@ -80,17 +80,7 @@ fn main() {
                     Constraint::Percentage(33),
                     Constraint::Percentage(33),
                 ];
-                let table = table(
-                    Some(block),
-                    style(),
-                    &con,
-                    1,
-                    style(),
-                    Some("> "),
-                    None,
-                    temp,
-                    false,
-                );
+                let table = table(None, Some(block), &con, Some("> "), temp, style(), style());
                 table.draw(chunks[1], buf, &mut state);
             }
 

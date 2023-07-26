@@ -51,26 +51,26 @@ pub fn table_temp<'a>(rows: &'a [Row<'a>]) -> Table {
 }
 
 pub fn table<'a>(
-    block: Option<Block<'a>>,
-    style: Style,
-    widths: &'a [Constraint],
-    column_spacing: u16,
-    highlight_style: Style,
-    highlight_symbol: Option<&'a str>,
     header: Option<Row<'a>>,
+    block: Option<Block<'a>>,
+    widths: &'a [Constraint],
+
+    highlight_symbol: Option<&'a str>,
     rows: &'a [Row<'a>],
-    separator: bool,
+
+    style: Style,
+    highlight_style: Style,
 ) -> Table<'a> {
     Table {
         block,
         style,
         widths,
-        column_spacing,
+        column_spacing: 1,
         highlight_style,
         highlight_symbol,
         header,
         rows,
-        separator,
+        separator: false,
     }
 }
 

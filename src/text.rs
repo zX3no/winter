@@ -20,7 +20,6 @@ use unicode_width::UnicodeWidthStr;
 
 ///Keep in mind wide characters must be formatted with spaces. FIXME: This is not needed in block titles.
 /// `う ず ま き` instead of `うずまき`
-
 #[derive(Debug, Clone)]
 pub struct Lines<'a> {
     pub lines: &'a [Text<'a>],
@@ -133,7 +132,7 @@ macro_rules! lines {
             lines: &[
                 $(
                     crate::Text {
-                        inner: Cow::Borrowed($text),
+                        inner: Cow::from($text),
                         style: Style::default(),
                     }
                 ),*
@@ -154,7 +153,7 @@ macro_rules! lines_s{
             lines: &[
                 $(
                     crate::Text {
-                        inner: Cow::Borrowed($text),
+                        inner: Cow::from($text),
                         style: $style,
                     }
                 ),*
