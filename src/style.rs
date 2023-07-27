@@ -1,6 +1,6 @@
 use bitflags::bitflags;
 
-#[derive(Debug, Clone, PartialEq, Eq, Copy)]
+#[derive(Debug, Clone, PartialEq, Eq, Copy, Default)]
 pub enum Color {
     Black,
     Red,
@@ -20,6 +20,7 @@ pub enum Color {
     BrightCyan,
     BrightWhite,
 
+    #[default]
     Reset,
 }
 
@@ -74,7 +75,7 @@ impl Color {
 
 //TODO: Fix modifiers and make them work.
 bitflags! {
-    #[derive(Debug, Clone, PartialEq, Eq, Copy)]
+    #[derive(Debug, Clone, PartialEq, Eq, Copy, Default)]
     pub struct Modifier: u16 {
         const BOLD              = 0b0000_0000_0001;
         const DIM               = 0b0000_0000_0010;
@@ -121,27 +122,8 @@ pub mod test {
     pub const CROSSED_OUT: u16 = 0b0001_0000_0000;
 }
 
-pub fn style() -> Style {
-    Style::default()
-}
-
-pub fn fg(fg: Color) -> Style {
-    Style {
-        fg,
-        bg: Color::Reset,
-        modifier: Modifier::empty(),
-    }
-}
-
-pub fn bg(bg: Color) -> Style {
-    Style {
-        fg: Color::Reset,
-        bg,
-        modifier: Modifier::empty(),
-    }
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Copy)]
+//TODO: Should this be Copy?
+#[derive(Debug, Clone, PartialEq, Eq, Default, Copy)]
 pub struct Style {
     pub fg: Color,
     pub bg: Color,
@@ -159,7 +141,7 @@ impl Style {
     }
 }
 
-macro_rules! modifier_functions_helper {
+macro_rules! modifier_helper {
     ($($modifier:ident => $value:ident),*) => {
         $(
             pub fn $modifier() -> Style {
@@ -173,9 +155,9 @@ macro_rules! modifier_functions_helper {
     };
 }
 
-macro_rules! modifier_functions {
+macro_rules! modifier {
     ($($modifier:ident => $value:ident),*) => {
-        modifier_functions_helper!($($modifier => $value),*);
+        modifier_helper!($($modifier => $value),*);
         impl Style {
             $(
                 pub fn $modifier(mut self) -> Self {
@@ -187,7 +169,7 @@ macro_rules! modifier_functions {
     };
 }
 
-modifier_functions! {
+modifier! {
     bold => BOLD,
     dim => DIM,
     italic => ITALIC,
@@ -199,12 +181,22 @@ modifier_functions! {
     crossed_out => CROSSED_OUT
 }
 
-impl Default for Style {
-    fn default() -> Style {
-        Style {
-            fg: Color::Reset,
-            bg: Color::Reset,
-            modifier: Modifier::empty(),
-        }
+pub fn style() -> Style {
+    Style::default()
+}
+
+pub fn fg(fg: Color) -> Style {
+    Style {
+        fg,
+        bg: Color::Reset,
+        modifier: Modifier::empty(),
+    }
+}
+
+pub fn bg(bg: Color) -> Style {
+    Style {
+        fg: Color::Reset,
+        bg,
+        modifier: Modifier::empty(),
     }
 }

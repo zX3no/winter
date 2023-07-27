@@ -4,9 +4,7 @@ use std::{
     io::{stdout, Write},
     time::Instant,
 };
-use winter::buffer::{Buffer, Cell};
-use winter::layout::Rect;
-use winter::{block::*, *};
+use winter::*;
 
 fn main() {
     let mut terminal = Terminal::new();
@@ -23,6 +21,8 @@ fn main() {
         // disable_mouse_caputure();
         leave_alternate_screen(&mut stdout);
         show_cursor(&mut stdout);
+        stdout.flush().unwrap();
+
         orig_hook(panic_info);
         std::process::exit(1);
     }));

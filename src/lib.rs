@@ -1,4 +1,4 @@
-#![allow(soft_unstable)]
+///![](https://learn.microsoft.com/en-us/windows/console/console-virtual-terminal-sequences)
 use std::{
     io::{stdout, Stdout, Write},
     mem::zeroed,
@@ -6,17 +6,23 @@ use std::{
 };
 use winapi::{
     ctypes::c_void,
+    shared::minwindef::DWORD,
     um::{
-        consoleapi::SetConsoleMode,
+        consoleapi::{GetConsoleMode, ReadConsoleInputW, SetConsoleMode},
+        handleapi::INVALID_HANDLE_VALUE,
         processenv::GetStdHandle,
-        wincon::{GetConsoleScreenBufferInfo, CONSOLE_SCREEN_BUFFER_INFO},
+        winbase::STD_INPUT_HANDLE,
+        wincon::{
+            GetConsoleScreenBufferInfo, CONSOLE_SCREEN_BUFFER_INFO, ENABLE_ECHO_INPUT,
+            ENABLE_EXTENDED_FLAGS, ENABLE_LINE_INPUT, ENABLE_MOUSE_INPUT,
+            ENABLE_VIRTUAL_TERMINAL_INPUT, ENABLE_WINDOW_INPUT,
+        },
+        wincontypes::{INPUT_RECORD, KEY_EVENT, MOUSE_EVENT},
     },
 };
 
-#[allow(unused)]
-pub use unicode_width::{UnicodeWidthChar, UnicodeWidthStr};
-
 //Widgets
+pub use block::*;
 pub use block::*;
 pub use guage::*;
 pub use list::*;
@@ -29,18 +35,14 @@ pub mod list;
 pub mod table;
 pub mod text;
 
+pub use buffer::{Buffer, Cell};
 pub use layout::*;
-pub use style::Color::*;
-pub use style::*;
+pub use style::{Color::*, *};
 
 pub mod buffer;
 pub mod layout;
 pub mod style;
 pub mod symbols;
-
-const STD_HANDLE: u32 = -11i32 as u32;
-const ENABLE_VIRTUAL_INPUT_PROCESSING: u32 = 0x0004;
-const ENABLE_MOUSE_INPUT: u32 = 0x0010;
 
 pub struct Info {
     pub buffer_size: (u16, u16),
@@ -57,7 +59,7 @@ pub struct Terminal {
 impl Terminal {
     pub fn new() -> Self {
         Self {
-            handle: unsafe { GetStdHandle(STD_HANDLE) },
+            handle: unsafe { GetStdHandle(STD_INPUT_HANDLE) },
             stdout: stdout(),
             mode: 0,
         }
@@ -106,11 +108,11 @@ impl Terminal {
 
     //TODO: Not sure if these are working correctly.
     pub fn enable_raw_mode(&mut self) {
-        self.mode = self.mode | ENABLE_VIRTUAL_INPUT_PROCESSING;
+        self.mode = self.mode | ENABLE_VIRTUAL_TERMINAL_INPUT;
         self.set_mode(self.mode);
     }
     pub fn disable_raw_mode(&mut self) {
-        self.mode = self.mode & ENABLE_VIRTUAL_INPUT_PROCESSING;
+        self.mode = self.mode & ENABLE_VIRTUAL_TERMINAL_INPUT;
         self.set_mode(self.mode);
     }
     pub fn enable_mouse_input(&mut self) {
@@ -121,9 +123,15 @@ impl Terminal {
         self.mode = self.mode & ENABLE_MOUSE_INPUT;
         self.set_mode(self.mode);
     }
+    pub fn enable_window_input(&mut self) {
+        self.mode = self.mode | ENABLE_WINDOW_INPUT;
+        self.set_mode(self.mode);
+    }
+    pub fn disable_window_input(&mut self) {
+        self.mode = self.mode & ENABLE_WINDOW_INPUT;
+        self.set_mode(self.mode);
+    }
 
-    ///
-    ///
     /// This wraps
     /// [`SetConsoleMode`](https://learn.microsoft.com/en-us/windows/console/setconsolemode).
     pub fn set_mode(&self, mode: u32) {
@@ -134,9 +142,75 @@ impl Terminal {
             }
         }
     }
-}
 
-//[](https://learn.microsoft.com/en-us/windows/console/console-virtual-terminal-sequences)
+    //TODO: This does not work.
+    pub fn reset_mode() {
+        let terminal = Terminal::new();
+        terminal.set_mode(0);
+    }
+
+    pub unsafe fn test() {
+        let handle = unsafe { GetStdHandle(STD_INPUT_HANDLE) };
+
+        if handle == INVALID_HANDLE_VALUE {
+            println!("Failed to get the input handle");
+            return;
+        }
+
+        // Set the console input mode to raw input
+        let mut mode: u32 = 0;
+        if GetConsoleMode(handle, &mut mode) == 0 {
+            println!("Failed to get console mode");
+            return;
+        }
+
+        mode &= !ENABLE_EXTENDED_FLAGS; // Disable extended flags
+        mode &= !(ENABLE_LINE_INPUT | ENABLE_ECHO_INPUT); // Disable line and echo input
+        mode |= ENABLE_WINDOW_INPUT; // Enable window input
+
+        if SetConsoleMode(handle, mode) == 0 {
+            println!("Failed to set console mode");
+            return;
+        }
+
+        let mut events: [INPUT_RECORD; 128] = std::mem::zeroed();
+        let mut events_read: DWORD = 0;
+
+        loop {
+            let success = ReadConsoleInputW(
+                handle,
+                events.as_mut_ptr(),
+                events.len() as DWORD,
+                &mut events_read,
+            );
+
+            if success == 0 {
+                println!("Failed to read console input");
+                return;
+            }
+
+            for i in 0..events_read as usize {
+                match events[i].EventType {
+                    KEY_EVENT => {
+                        let key_event = events[i].Event.KeyEvent();
+                        if key_event.bKeyDown == 1 {
+                            println!("Key pressed: {}", key_event.wVirtualKeyCode);
+                        }
+                    }
+                    MOUSE_EVENT => {
+                        let mouse_event = events[i].Event.MouseEvent();
+                        match mouse_event.dwEventFlags {
+                            0 => println!("Left mouse button pressed"),
+                            1 => println!("Right mouse button pressed"),
+                            _ => (),
+                        }
+                    }
+                    _ => (),
+                }
+            }
+        }
+    }
+}
 
 ///Clear the entire screen, using `cmd /c cls`.
 pub fn clear_all() {

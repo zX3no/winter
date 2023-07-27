@@ -1,8 +1,6 @@
-use std::borrow::Cow;
-
-use unicode_width::UnicodeWidthStr;
-
 use crate::{block::Block, buffer::Buffer, layout::Rect, *};
+use std::borrow::Cow;
+use unicode_width::UnicodeWidthStr;
 
 ///Use "" as a blank label. Not my fault the trait system is shit.
 pub fn guage<'a>(

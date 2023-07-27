@@ -15,4 +15,7 @@ winapi = { version = "0.3.9", features = [
     "fileapi",
     "processenv",
     "consoleapi",
+    "winuser",
+    "winbase",
+    "handleapi",
 ] }
