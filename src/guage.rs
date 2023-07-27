@@ -2,15 +2,16 @@ use std::borrow::Cow;
 
 use unicode_width::UnicodeWidthStr;
 
-use crate::{block::Block, buffer::Buffer, layout::Rect, style, Style};
+use crate::{block::Block, buffer::Buffer, layout::Rect, *};
 
 ///Use "" as a blank label. Not my fault the trait system is shit.
 pub fn guage<'a>(
     block: Option<Block<'a>>,
     ratio: f64,
     label: impl Into<Cow<'a, str>>,
-    style: Style,
-    gauge_style: Style,
+    label_style: Style,
+    left_style: Style,
+    right_style: Style,
 ) -> Gauge<'a> {
     let l = label.into();
     let label = if l.is_empty() { None } else { Some(l) };
@@ -18,8 +19,9 @@ pub fn guage<'a>(
         block,
         ratio,
         label,
-        style,
-        gauge_style,
+        label_style,
+        left_style,
+        right_style,
     }
 }
 
@@ -28,13 +30,14 @@ pub struct Gauge<'a> {
     pub block: Option<Block<'a>>,
     pub ratio: f64,
     pub label: Option<Cow<'a, str>>,
-    pub style: Style,
-    pub gauge_style: Style,
+    pub label_style: Style,
+    pub left_style: Style,
+    pub right_style: Style,
 }
 
 impl<'a> Gauge<'a> {
     pub fn draw(&self, area: Rect, buf: &mut Buffer) {
-        buf.set_style(area, self.style);
+        buf.set_style(area, self.right_style);
 
         let area = if let Some(block) = &self.block {
             block.draw(area, buf);
@@ -42,8 +45,6 @@ impl<'a> Gauge<'a> {
         } else {
             area
         };
-
-        buf.set_style(area, self.gauge_style);
 
         if area.height < 1 {
             return;
@@ -69,8 +70,8 @@ impl<'a> Gauge<'a> {
                 buf.get_mut(x, y)
                     .unwrap()
                     .set_symbol(" ")
-                    .set_fg(self.style.fg)
-                    .set_bg(self.style.bg);
+                    .set_fg(self.left_style.fg)
+                    .set_bg(self.left_style.bg);
             }
         }
         // set the span
@@ -79,8 +80,7 @@ impl<'a> Gauge<'a> {
             label_row,
             &label,
             clamped_label_width as usize,
-            style(),
-            // label.style,
+            self.label_style,
         );
     }
 }

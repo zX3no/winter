@@ -164,6 +164,23 @@ macro_rules! lines_s{
     };
 }
 
+//TODO: Things like this `text!(format!("{pct}%"))` seem dumb.
+#[macro_export]
+macro_rules! text {
+    ($text:expr) => {
+        Text {
+            inner: $text.into(),
+            style: Style::default(),
+        }
+    };
+    ($text:expr, $style:expr) => {
+        Text {
+            inner: $text.into(),
+            style: $style,
+        }
+    };
+}
+
 #[derive(Debug, Clone)]
 pub struct Text<'a> {
     pub inner: Cow<'a, str>,

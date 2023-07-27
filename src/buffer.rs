@@ -1,7 +1,61 @@
-use crate::{layout::Rect, move_to, Color, Modifier, Style};
+use crate::{layout::Rect, *};
 use std::{cmp::min, io::Write};
 use unicode_segmentation::UnicodeSegmentation;
 use unicode_width::UnicodeWidthStr;
+
+pub fn draw_modifier<W: Write>(w: &mut W, from: Modifier, to: Modifier) {
+    let removed = from - to;
+    if removed.contains(Modifier::INVERT) {
+        write!(w, "{}", NO_INVERT).unwrap();
+    }
+    if removed.contains(Modifier::BOLD) {
+        write!(w, "{}", NO_BOLD_OR_DIM).unwrap();
+        if to.contains(Modifier::DIM) {
+            write!(w, "{}", DIM).unwrap();
+        }
+    }
+    if removed.contains(Modifier::ITALIC) {
+        write!(w, "{}", NO_ITALIC).unwrap();
+    }
+    if removed.contains(Modifier::UNDERLINED) {
+        write!(w, "{}", NO_UNDERLINE).unwrap();
+    }
+    if removed.contains(Modifier::DIM) {
+        write!(w, "{}", NO_BOLD_OR_DIM).unwrap();
+    }
+    if removed.contains(Modifier::CROSSED_OUT) {
+        write!(w, "{}", NO_STRIKETHROUGH).unwrap();
+    }
+    if removed.contains(Modifier::SLOW_BLINK) || removed.contains(Modifier::FAST_BLINK) {
+        write!(w, "{}", NO_BLINKING).unwrap();
+    }
+
+    let added = to - from;
+    if added.contains(Modifier::INVERT) {
+        write!(w, "{}", INVERT).unwrap();
+    }
+    if added.contains(Modifier::BOLD) {
+        write!(w, "{}", BOLD).unwrap();
+    }
+    if added.contains(Modifier::ITALIC) {
+        write!(w, "{}", ITALIC).unwrap();
+    }
+    if added.contains(Modifier::UNDERLINED) {
+        write!(w, "{}", UNDERLINE).unwrap();
+    }
+    if added.contains(Modifier::DIM) {
+        write!(w, "{}", DIM).unwrap();
+    }
+    if added.contains(Modifier::CROSSED_OUT) {
+        write!(w, "{}", STRIKETHROUGH).unwrap();
+    }
+    if added.contains(Modifier::SLOW_BLINK) {
+        write!(w, "{}", SLOW_BLINKING).unwrap();
+    }
+    if added.contains(Modifier::FAST_BLINK) {
+        write!(w, "{}", FAST_BLINKING).unwrap();
+    }
+}
 
 //Move out of function and into main loop.
 //That way variables are not reinitialized.
@@ -25,11 +79,7 @@ pub fn draw<W: Write>(w: &mut W, diff: Vec<(u16, u16, &Cell)>) {
         last_pos = Some((x, y));
 
         if cell.modifier != modifier {
-            // let diff = ModifierDiff {
-            //     from: modifier,
-            //     to: cell.modifier,
-            // };
-            // diff.queue(&mut self.buffer)?;
+            draw_modifier(w, modifier, cell.modifier);
             modifier = cell.modifier;
         }
         if cell.fg != fg {

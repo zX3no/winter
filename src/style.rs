@@ -80,12 +80,45 @@ bitflags! {
         const DIM               = 0b0000_0000_0010;
         const ITALIC            = 0b0000_0000_0100;
         const UNDERLINED        = 0b0000_0000_1000;
-        const SLOW_BLINK        = 0b0000_0001_0000;
-        const RAPID_BLINK       = 0b0000_0010_0000;
-        const REVERSED          = 0b0000_0100_0000;
+        const FAST_BLINK        = 0b0000_0001_0000;
+        const SLOW_BLINK        = 0b0000_0010_0000;
+        const INVERT            = 0b0000_0100_0000;
         const HIDDEN            = 0b0000_1000_0000;
         const CROSSED_OUT       = 0b0001_0000_0000;
     }
+}
+
+pub const BOLD: &'static str = "\x1b[1m";
+pub const DIM: &'static str = "\x1b[2m";
+pub const ITALIC: &'static str = "\x1b[3m";
+pub const UNDERLINE: &'static str = "\x1b[4m";
+pub const FAST_BLINKING: &'static str = "\x1b[5m;1m";
+pub const SLOW_BLINKING: &'static str = "\x1b[5m;2m";
+pub const INVERT: &'static str = "\x1b[7m";
+pub const HIDDEN: &'static str = "\x1b[8m";
+pub const STRIKETHROUGH: &'static str = "\x1b[9m";
+
+// pub const NO_BOLD: &'static str = "\x1b[21m";
+pub const NO_BOLD_OR_DIM: &'static str = "\x1b[22m";
+pub const NO_ITALIC: &'static str = "\x1b[23m";
+pub const NO_UNDERLINE: &'static str = "\x1b[24m";
+//TODO: Test fast and slow blinking does "\x1b[25m;2" work?
+//Or does this do both?
+pub const NO_BLINKING: &'static str = "\x1b[25m";
+pub const NO_INVERT: &'static str = "\x1b[27m";
+pub const NO_HIDDEN: &'static str = "\x1b[28m";
+pub const NO_STRIKETHROUGH: &'static str = "\x1b[29m";
+
+pub mod test {
+    pub const BOLD: u16 = 0b0000_0000_0001;
+    pub const DIM: u16 = 0b0000_0000_0010;
+    pub const ITALIC: u16 = 0b0000_0000_0100;
+    pub const UNDERLINED: u16 = 0b0000_0000_1000;
+    pub const SLOW_BLINK: u16 = 0b0000_0001_0000;
+    pub const RAPID_BLINK: u16 = 0b0000_0010_0000;
+    pub const REVERSED: u16 = 0b0000_0100_0000;
+    pub const HIDDEN: u16 = 0b0000_1000_0000;
+    pub const CROSSED_OUT: u16 = 0b0001_0000_0000;
 }
 
 pub fn style() -> Style {
@@ -108,10 +141,6 @@ pub fn bg(bg: Color) -> Style {
     }
 }
 
-pub fn modifier(_modifier: Modifier) -> Style {
-    todo!()
-}
-
 #[derive(Debug, Clone, PartialEq, Eq, Copy)]
 pub struct Style {
     pub fg: Color,
@@ -128,6 +157,46 @@ impl Style {
         self.bg = bg;
         self
     }
+}
+
+macro_rules! modifier_functions_helper {
+    ($($modifier:ident => $value:ident),*) => {
+        $(
+            pub fn $modifier() -> Style {
+                Style {
+                    fg: Color::Reset,
+                    bg: Color::Reset,
+                    modifier: Modifier::$value,
+                }
+            }
+        )*
+    };
+}
+
+macro_rules! modifier_functions {
+    ($($modifier:ident => $value:ident),*) => {
+        modifier_functions_helper!($($modifier => $value),*);
+        impl Style {
+            $(
+                pub fn $modifier(mut self) -> Self {
+                    self.modifier.insert(Modifier::$value);
+                    self
+                }
+            )*
+        }
+    };
+}
+
+modifier_functions! {
+    bold => BOLD,
+    dim => DIM,
+    italic => ITALIC,
+    underlined => UNDERLINED,
+    fast_blink => FAST_BLINK,
+    slow_blink => SLOW_BLINK,
+    invert => INVERT,
+    hidden => HIDDEN,
+    crossed_out => CROSSED_OUT
 }
 
 impl Default for Style {

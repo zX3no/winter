@@ -47,7 +47,7 @@ fn main() {
             // break 'draw;
 
             let chunks = layout(
-                Direction::Vertical,
+                Direction::Horizontal,
                 (0, 0),
                 [
                     Constraint::Percentage(33),
@@ -58,7 +58,7 @@ fn main() {
             );
 
             {
-                let guage = guage(None, 0.25, "", bg(Blue), style());
+                let guage = guage(None, 0.75, "", bold().underlined(), bg(Blue), bg(Red));
                 guage.draw(chunks[0], buf);
             }
 
@@ -69,7 +69,7 @@ fn main() {
                 let lines = lines!["hi", "test", "????"];
                 let row = row(
                     vec![lines.clone(), lines.clone(), lines.clone(), lines.clone()],
-                    fg(Blue).bg(Blue),
+                    style().bold().italic(),
                     0,
                 );
                 let temp = &[row.clone(), row.clone(), row.clone()];
