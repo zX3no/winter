@@ -41,31 +41,6 @@ pub fn list<'a>(
     }
 }
 
-//Fixes a lifetime issue with items
-pub fn list_fn<'a, F>(
-    block: Option<Block<'a>>,
-    items: Lines<'a>,
-    style: Style,
-    start_corner: Corner,
-    highlight_style: Style,
-    highlight_symbol: Option<&'a str>,
-    draw_fn: F,
-) -> List<'a>
-where
-    F: FnOnce(&List<'a>) -> (),
-{
-    let list = List {
-        block,
-        items,
-        style,
-        start_corner,
-        highlight_style,
-        highlight_symbol,
-    };
-    draw_fn(&list);
-    list
-}
-
 pub fn list_state(index: Option<usize>) -> ListState {
     if let Some(i) = index {
         ListState {

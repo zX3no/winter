@@ -1,4 +1,4 @@
-use crate::{buffer::Buffer, layout, lines, Block, Constraint, Direction, Lines, Rect, Style};
+use crate::{buffer::Buffer, *};
 use std::borrow::Cow;
 
 pub fn table_state(index: Option<usize>) -> TableState {
@@ -10,21 +10,30 @@ pub struct TableState {
     pub selected: Option<usize>,
 }
 
-pub fn row<'a>(cells: Vec<Lines<'a>>, style: Style, bottom_margin: u16) -> Row<'a> {
-    Row {
-        cells,
-        //TODO: Why is exist?
-        height: 1,
-        style,
-        bottom_margin,
-    }
+#[macro_export]
+macro_rules! row {
+    ($row:expr) => {
+        row!($row, Style::default(), 0)
+    };
+    ($row:expr, $style:expr) => {
+        row!($row, $style, 0)
+    };
+    ($row:expr, $style:expr, $bottom_margin:expr) => {
+        Row {
+            row: $row,
+            //TODO: Why is exist?
+            height: 1,
+            style: $style,
+            bottom_margin: $bottom_margin,
+        }
+    };
 }
 
 #[derive(Debug, Clone)]
 pub struct Row<'a> {
     //Originally this was `cells: Vec<Cell<'a>>`
     //Which is Vec<Text> -> Vec<Vec<Spans>> -> Vec<VecVec<<Span>>>
-    pub cells: Vec<Lines<'a>>,
+    pub row: &'a [Lines<'a>],
     pub height: u16,
     pub style: Style,
     pub bottom_margin: u16,
@@ -84,6 +93,7 @@ pub struct Table<'a> {
     pub highlight_symbol: Option<&'a str>,
     pub header: Option<Row<'a>>,
     pub rows: &'a [Row<'a>],
+    //Puts a line underneath the table header.
     pub separator: bool,
 }
 
@@ -155,6 +165,27 @@ impl<'a> Table<'a> {
         }
     }
 
+    ///Used for finding which row to click on.
+    /// ```rs
+    ///let row_bounds = Some(t.get_row_bounds(ui_index, t.get_row_height(chunks[1])));
+    ///
+    /////Mouse support for the queue.
+    ///if let Some((start, _)) = row_bounds {
+    ///    //Check if you clicked on the header.
+    ///    if y >= header_height {
+    ///        let index = (y - header_height) as usize + start;
+
+    ///        //Make sure you didn't click on the seek bar
+    ///        //and that the song index exists.
+    ///        if index < player.songs.len()
+    ///            && ((size.height < 15 && y < size.height.saturating_sub(1))
+    ///                || y < size.height.saturating_sub(3))
+    ///        {
+    ///            queue.ui.select(Some(index));
+    ///        }
+    ///    }
+    ///}
+    /// ```
     pub fn get_row_height(&self, area: Rect) -> u16 {
         let table_area = match &self.block {
             Some(b) => b.inner(area),
@@ -187,7 +218,6 @@ impl<'a> Table<'a> {
         let mut current_height = 0;
         let mut rows_height = table_area.height;
 
-        //TODO: Add an underline
         // Draw header
         if let Some(ref header) = self.header {
             let max_header_height = table_area.height.min(header.total_height());
@@ -204,7 +234,7 @@ impl<'a> Table<'a> {
             if has_selection {
                 col += (highlight_symbol.len() as u16).min(table_area.width);
             }
-            for (width, cell) in columns_widths.iter().zip(header.cells.iter()) {
+            for (width, cell) in columns_widths.iter().zip(header.row.iter()) {
                 draw_cell(
                     buf,
                     cell,
@@ -245,42 +275,46 @@ impl<'a> Table<'a> {
 
         //TODO: Fix the table moving to the left when selected.
         for (i, table_row) in self.rows.iter().enumerate().skip(start).take(end - start) {
-            let (row, col) = (table_area.top() + current_height, table_area.left());
+            let (x, y) = (table_area.left(), table_area.top() + current_height);
             current_height += table_row.total_height();
+
             let table_row_area = Rect {
-                x: col,
-                y: row,
+                x,
+                y,
                 width: table_area.width,
                 height: table_row.height,
             };
             buf.set_style(table_row_area, table_row.style);
+
             let is_selected = state.selected.map_or(false, |s| s == i);
-            let table_row_start_col = if has_selection {
+
+            let mut x = if has_selection {
                 let symbol = if is_selected {
                     highlight_symbol
                 } else {
                     &blank_symbol
                 };
                 let (col, _) =
-                    buf.set_stringn(col, row, symbol, table_area.width as usize, table_row.style);
+                    buf.set_stringn(x, y, symbol, table_area.width as usize, table_row.style);
                 col
             } else {
-                col
+                x
             };
-            let mut col = table_row_start_col;
-            for (width, cell) in columns_widths.iter().zip(table_row.cells.iter()) {
+
+            for (width, row) in columns_widths.iter().zip(table_row.row.iter()) {
                 draw_cell(
                     buf,
-                    cell,
+                    row,
                     Rect {
-                        x: col,
-                        y: row,
+                        x,
+                        y,
                         width: *width,
                         height: table_row.height,
                     },
                 );
-                col += *width + self.column_spacing;
+                x += *width + self.column_spacing;
             }
+
             if is_selected {
                 buf.set_style(table_row_area, self.highlight_style);
             }
@@ -288,21 +322,21 @@ impl<'a> Table<'a> {
     }
 }
 
-fn draw_cell(buf: &mut Buffer, cell: &Lines, area: Rect) {
-    if let Some(style) = cell.style {
+fn draw_cell(buf: &mut Buffer, row: &Lines, area: Rect) {
+    if let Some(style) = row.style {
         buf.set_style(area, style);
     }
 
-    for (i, line) in cell.lines.iter().enumerate() {
-        if i as u16 >= area.height {
-            break;
-        }
+    let mut width = 0;
+    for line in row.lines.iter() {
         buf.set_stringn(
-            area.x,
-            area.y + i as u16,
+            area.x + width as u16,
+            area.y,
             line,
             area.width as usize,
             line.style,
         );
+
+        width += line.width();
     }
 }

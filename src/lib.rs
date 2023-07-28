@@ -11,7 +11,7 @@ use winapi::{
         consoleapi::{GetConsoleMode, ReadConsoleInputW, SetConsoleMode},
         handleapi::INVALID_HANDLE_VALUE,
         processenv::GetStdHandle,
-        winbase::STD_INPUT_HANDLE,
+        winbase::{STD_INPUT_HANDLE, STD_OUTPUT_HANDLE},
         wincon::{
             GetConsoleScreenBufferInfo, CONSOLE_SCREEN_BUFFER_INFO, ENABLE_ECHO_INPUT,
             ENABLE_EXTENDED_FLAGS, ENABLE_LINE_INPUT, ENABLE_MOUSE_INPUT, ENABLE_PROCESSED_INPUT,
@@ -54,7 +54,8 @@ pub struct Info {
 }
 
 pub struct Terminal {
-    pub handle: *mut c_void,
+    pub output: *mut c_void,
+    pub input: *mut c_void,
     pub stdout: Stdout,
     pub mode: u32,
 }
@@ -62,7 +63,8 @@ pub struct Terminal {
 impl Terminal {
     pub fn new() -> Self {
         Self {
-            handle: unsafe { GetStdHandle(STD_INPUT_HANDLE) },
+            output: unsafe { GetStdHandle(STD_OUTPUT_HANDLE) },
+            input: unsafe { GetStdHandle(STD_INPUT_HANDLE) },
             stdout: stdout(),
             mode: 0,
         }
@@ -71,10 +73,11 @@ impl Terminal {
     ///Get the terminal area that is usable.
     pub fn area(&self) -> (u16, u16) {
         unsafe {
+            // let handle = GetStdHandle(-11i32 as u32);
             let mut info: CONSOLE_SCREEN_BUFFER_INFO = zeroed();
-            let result = GetConsoleScreenBufferInfo(self.handle, &mut info);
+            let result = GetConsoleScreenBufferInfo(self.output, &mut info);
             if result != 1 {
-                panic!("Could not get window size.");
+                panic!("Could not get window size. result: {}", result);
             }
             (
                 (info.srWindow.Right - info.srWindow.Left) as u16,
@@ -91,9 +94,9 @@ impl Terminal {
     pub fn info(&self) -> Info {
         unsafe {
             let mut info: CONSOLE_SCREEN_BUFFER_INFO = zeroed();
-            let result = GetConsoleScreenBufferInfo(self.handle, &mut info);
+            let result = GetConsoleScreenBufferInfo(self.output, &mut info);
             if result != 1 {
-                panic!("Could not get window size.");
+                panic!("Could not get window size. result: {}", result);
             }
             Info {
                 buffer_size: (info.dwSize.X as u16, info.dwSize.Y as u16),
@@ -139,7 +142,7 @@ impl Terminal {
     /// [`SetConsoleMode`](https://learn.microsoft.com/en-us/windows/console/setconsolemode).
     pub fn set_mode(&self, mode: u32) {
         unsafe {
-            let result = SetConsoleMode(self.handle, mode);
+            let result = SetConsoleMode(self.output, mode);
             if result != 1 {
                 panic!("Failed to set console mode {:?}", mode);
             }
@@ -155,6 +158,7 @@ impl Terminal {
     //TODO: Should this poll with mpsc? seems like a decent idea.
     //Although I kind of hate multi-threading things like this.
     pub unsafe fn test() {
+        //Note: This is an input handle not output.
         let handle = unsafe { GetStdHandle(STD_INPUT_HANDLE) };
 
         if handle == INVALID_HANDLE_VALUE {

@@ -7,9 +7,10 @@ use std::{
 use winter::*;
 
 fn main() {
+    // unsafe { Terminal::test() };
+    // return;
+
     let mut terminal = Terminal::new();
-    unsafe { Terminal::test() };
-    return;
     let (width, height) = terminal.area();
     let mut viewport = Rect::new(0, 0, width, height);
     let mut buffers: [Buffer; 2] = [Buffer::empty(viewport), Buffer::empty(viewport)];
@@ -60,44 +61,60 @@ fn main() {
             );
 
             {
-                let guage = guage(None, 0.75, "", bold().underlined(), bg(Blue), bg(Red));
-                guage.draw(chunks[0], buf);
+                // let guage = guage(None, 0.75, "", bold().underlined(), bg(Blue), bg(Red));
+                // guage.draw(chunks[0], buf);
             }
 
             {
                 let block = block(None, Borders::ALL, BorderType::Rounded, style());
-                //TODO: Only the first part of text shows up?
-                //TODO: Styles seem quite broken.
-                let lines = lines!["hi", "test", "????"];
-                let row = row(
-                    vec![lines.clone(), lines.clone(), lines.clone(), lines.clone()],
-                    style().bold().italic(),
-                    0,
-                );
-                let temp = &[row.clone(), row.clone(), row.clone()];
-                let mut state = table_state(Some(2));
-                let con = [
-                    Constraint::Length(2),
-                    Constraint::Percentage(33),
-                    Constraint::Percentage(33),
-                    Constraint::Percentage(33),
+
+                let row = row![
+                    &[
+                        //FIXME: Style is not being applied here.
+                        lines_s!("first item first row", style(), " fortnite", fg(Red)),
+                        lines!("second item first row"),
+                    ],
+                    bold()
                 ];
-                let table = table(None, Some(block), &con, Some("> "), temp, style(), style());
-                table.draw(chunks[1], buf, &mut state);
+                let row2 = row![
+                    &[
+                        lines!("first item second row"),
+                        lines!("second item second row"),
+                    ],
+                    //FIXME: Style is not being applied here.
+                    fg(Blue)
+                ];
+                let rows = &[row, row2];
+
+                let con = [Constraint::Percentage(50), Constraint::Percentage(50)];
+
+                let table = table(
+                    None,
+                    Some(block),
+                    &con,
+                    Some("> "),
+                    rows,
+                    style(),
+                    //FIXME: This removes the bold style that was on before?
+                    italic(),
+                );
+                let mut state = table_state(Some(0));
+                // table.draw(chunks[1], buf, &mut state);
+                table.draw(viewport, buf, &mut state);
             }
 
             {
                 let lines = lines!["hi", "test", "test", "test", "test", "test", "test", "test"];
                 let mut state = list_state(Some(5));
-                let list = list_fn(
+                let list = list(
                     Some(block(None, Borders::ALL, BorderType::Rounded, fg(Red))),
                     lines,
                     style(),
                     Corner::TopLeft,
                     style(),
                     Some("> "),
-                    |list| list.draw(chunks[2], buf, &mut state),
                 );
+                // list.draw(chunks[2], buf, &mut state);
             }
         }
 
