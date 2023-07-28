@@ -14,10 +14,13 @@ use winapi::{
         winbase::STD_INPUT_HANDLE,
         wincon::{
             GetConsoleScreenBufferInfo, CONSOLE_SCREEN_BUFFER_INFO, ENABLE_ECHO_INPUT,
-            ENABLE_EXTENDED_FLAGS, ENABLE_LINE_INPUT, ENABLE_MOUSE_INPUT,
+            ENABLE_EXTENDED_FLAGS, ENABLE_LINE_INPUT, ENABLE_MOUSE_INPUT, ENABLE_PROCESSED_INPUT,
             ENABLE_VIRTUAL_TERMINAL_INPUT, ENABLE_WINDOW_INPUT,
         },
-        wincontypes::{INPUT_RECORD, KEY_EVENT, MOUSE_EVENT},
+        wincontypes::{
+            FROM_LEFT_1ST_BUTTON_PRESSED, INPUT_RECORD, KEY_EVENT, MOUSE_EVENT,
+            RIGHTMOST_BUTTON_PRESSED,
+        },
     },
 };
 
@@ -149,6 +152,8 @@ impl Terminal {
         terminal.set_mode(0);
     }
 
+    //TODO: Should this poll with mpsc? seems like a decent idea.
+    //Although I kind of hate multi-threading things like this.
     pub unsafe fn test() {
         let handle = unsafe { GetStdHandle(STD_INPUT_HANDLE) };
 
@@ -166,27 +171,27 @@ impl Terminal {
 
         mode &= !ENABLE_EXTENDED_FLAGS; // Disable extended flags
         mode &= !(ENABLE_LINE_INPUT | ENABLE_ECHO_INPUT); // Disable line and echo input
-        mode |= ENABLE_WINDOW_INPUT; // Enable window input
+
+        mode |= ENABLE_MOUSE_INPUT;
+        mode |= ENABLE_WINDOW_INPUT;
+        mode |= ENABLE_PROCESSED_INPUT;
 
         if SetConsoleMode(handle, mode) == 0 {
-            println!("Failed to set console mode");
-            return;
+            panic!("Failed to set console mode");
         }
 
         let mut events: [INPUT_RECORD; 128] = std::mem::zeroed();
         let mut events_read: DWORD = 0;
 
         loop {
-            let success = ReadConsoleInputW(
+            if ReadConsoleInputW(
                 handle,
                 events.as_mut_ptr(),
                 events.len() as DWORD,
                 &mut events_read,
-            );
-
-            if success == 0 {
-                println!("Failed to read console input");
-                return;
+            ) == 0
+            {
+                panic!("Failed to read console input");
             }
 
             for i in 0..events_read as usize {
@@ -199,10 +204,14 @@ impl Terminal {
                     }
                     MOUSE_EVENT => {
                         let mouse_event = events[i].Event.MouseEvent();
-                        match mouse_event.dwEventFlags {
-                            0 => println!("Left mouse button pressed"),
-                            1 => println!("Right mouse button pressed"),
-                            _ => (),
+                        let event_flags = mouse_event.dwEventFlags;
+
+                        if event_flags & FROM_LEFT_1ST_BUTTON_PRESSED != 0 {
+                            println!("Left mouse button pressed");
+                        }
+
+                        if event_flags & RIGHTMOST_BUTTON_PRESSED != 0 {
+                            println!("Right mouse button pressed");
                         }
                     }
                     _ => (),

@@ -8,6 +8,8 @@ use winter::*;
 
 fn main() {
     let mut terminal = Terminal::new();
+    unsafe { Terminal::test() };
+    return;
     let (width, height) = terminal.area();
     let mut viewport = Rect::new(0, 0, width, height);
     let mut buffers: [Buffer; 2] = [Buffer::empty(viewport), Buffer::empty(viewport)];
