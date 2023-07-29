@@ -1,8 +1,4 @@
-use crate::{
-    buffer::Buffer,
-    layout::{Corner, Rect},
-    *,
-};
+use crate::{buffer::Buffer, layout::Rect, *};
 
 #[derive(Debug, Clone, Default)]
 pub struct ListState {
@@ -27,15 +23,13 @@ pub fn list<'a>(
 
     highlight_symbol: Option<&'a str>,
     highlight_style: Style,
-
-    start_corner: Corner,
 ) -> List<'a> {
     List {
         block,
         items,
         highlight_symbol,
         highlight_style,
-        start_corner,
+        start_from_bottom: false,
     }
 }
 
@@ -59,7 +53,7 @@ pub struct List<'a> {
     items: Lines<'a>,
     highlight_symbol: Option<&'a str>,
     highlight_style: Style,
-    start_corner: Corner,
+    start_from_bottom: bool,
 }
 
 impl<'a> List<'a> {
@@ -120,7 +114,7 @@ impl<'a> List<'a> {
             //Was `item.height()`
             let height: u16 = 1;
 
-            let (x, y) = if self.start_corner == Corner::BottomLeft {
+            let (x, y) = if self.start_from_bottom {
                 current_height += height;
                 (list_area.left(), list_area.bottom() - current_height)
             } else {

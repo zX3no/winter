@@ -109,16 +109,10 @@ fn main() {
                 let lines = lines!["hi", "test", "test", "test", "test", "test", "test", "test"];
                 let mut state = list_state(Some(5));
                 let list = list(
-                    Some(block(
-                        None,
-                        Borders::ALL,
-                        BorderType::Rounded,
-                        fg(Red).italic(),
-                    )),
+                    Some(block(None, Borders::ALL, BorderType::Rounded, fg(Red))),
                     lines,
                     Some("> "),
-                    bold().italic(),
-                    Corner::TopLeft,
+                    fg(Blue).bg(Red),
                 );
                 // list.draw(chunks[2], buf, &mut state);
                 list.draw(viewport, buf, &mut state);

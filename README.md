@@ -4,7 +4,7 @@
 - [ ] Raw mode
 - [ ] Input support
 - [ ] Simplify main loop
-- [ ] Reset all styles on exit
+- [x] Reset all styles on exit
 
 ### Widgets:
 - [x] Table
@@ -30,7 +30,7 @@
 
 ### List
 - [x] Only index 0 shows selection symbol
-- [ ] Fix styles
+- [x] Fix styles
 
 ### Table
 - [ ] Only first line is displayed

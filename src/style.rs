@@ -21,6 +21,7 @@ pub enum Color {
     BrightWhite,
 
     #[default]
+    ///Keep in mind the Reset color for foreground is White.
     Reset,
 }
 
@@ -75,7 +76,6 @@ impl Color {
     }
 }
 
-//TODO: Fix modifiers and make them work.
 bitflags! {
     #[derive(Debug, Clone, PartialEq, Eq, Copy, Default)]
     pub struct Modifier: u16 {
