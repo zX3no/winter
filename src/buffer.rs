@@ -124,10 +124,18 @@ impl Buffer {
         Ok(&mut self.content[i])
     }
     /// Print multiple lines
+    // pub fn set_lines<'a>(&mut self, x: u16, y: u16, lines: &Lines<'a>) {
+    //     let mut width = 0;
+    //     for line in lines.iter() {
+    //         self.set_stringn(x + width as u16, y, line, line.width(), line.style);
+
+    //         width += line.width();
+    //     }
+    // }
     pub fn set_lines<'a>(&mut self, x: u16, y: u16, lines: &Lines<'a>, width: u16) -> (u16, u16) {
         let mut remaining_width = width;
         let mut x = x;
-        for line in lines.lines {
+        for line in lines.iter() {
             if remaining_width == 0 {
                 break;
             }

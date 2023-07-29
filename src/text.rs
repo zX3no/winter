@@ -18,6 +18,9 @@ use unicode_width::UnicodeWidthStr;
 //Otherwise Lines::height() will not work correctly.
 //I think this is what graphemes are used for.
 
+//TODO: Do we ever actually use lines.style?
+//None of the macros use it. So I guess it's just None all the time.
+
 ///Keep in mind wide characters must be formatted with spaces. FIXME: This is not needed in block titles.
 /// `う ず ま き` instead of `うずまき`
 #[derive(Debug, Clone)]
@@ -107,18 +110,6 @@ impl<'a> Deref for Lines<'a> {
 
     fn deref(&self) -> &Self::Target {
         &self.lines
-    }
-}
-
-pub fn lines<'a>(
-    lines: &'a [Text<'a>],
-    block: Option<Block<'a>>,
-    style: Option<Style>,
-) -> Lines<'a> {
-    Lines {
-        lines,
-        block,
-        style,
     }
 }
 

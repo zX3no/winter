@@ -42,3 +42,46 @@
 ### Gauge
 - [ ] Fix styles
 
+----
+
+Okay so there's a table made up of rows, columns and a style.
+Each row is made up `n_1` columns.
+Each columns is made up of `n_2` lines and a style.
+Each line is made up of `n_3` text and a style.
+Each text item is made up of a string and a style.
+
+Currently text styles overwrite all other styles.
+Should you be able to set inherited styles for lines, rows and tables.
+
+```rs
+    let rows = &[
+        //Row 1
+        row![
+            &[
+                //Row 1 Column 1
+                lines_s!(
+                    "first item first row",
+                    fg(Cyan),
+                    " <-- there is a space here",
+                    fg(Blue).underlined()
+                ),
+                //Row 1 Column 2
+                lines!(
+                    "second item",
+                    " first row"
+                ),
+            ],
+            style() //FIXME: Style is not being applied here.
+        ],
+        //Row 2
+        row![
+            &[
+                //Row 2 Column 1
+                lines_s!("first item second row", fg(Yellow)),
+                //Row 2 Column 2
+                lines!("second item second row"),
+            ],
+            fg(Yellow) //FIXME: Style is not being applied here.
+        ],
+    ];
+```

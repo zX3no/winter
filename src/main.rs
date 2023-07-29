@@ -72,37 +72,37 @@ fn main() {
                 let block = block(None, Borders::ALL, BorderType::Rounded, style());
                 let con = [Constraint::Percentage(50), Constraint::Percentage(50)];
                 let rows = &[
+                    //Row 1
                     row![
                         &[
-                            //FIXME: Style is not being applied here.
-                            lines_s!("first item first row", style(), " fortnite", fg(Red)),
-                            lines!("second item first row"),
+                            //Row 1 Column 1
+                            lines_s!(
+                                "first item first row",
+                                fg(Cyan),
+                                " <-- there is a space here",
+                                fg(Blue).underlined()
+                            ),
+                            //Row 1 Column 2
+                            lines!("second item", " first row"),
                         ],
-                        bold()
+                        style() //FIXME: Style is not being applied here.
                     ],
+                    //Row 2
                     row![
                         &[
-                            lines!("first item second row"),
+                            //Row 2 Column 1
+                            lines_s!("first item second row", fg(Yellow)),
+                            //Row 2 Column 2
                             lines!("second item second row"),
                         ],
-                        //FIXME: Style is not being applied here.
-                        fg(Blue)
+                        fg(Yellow) //FIXME: Style is not being applied here.
                     ],
                 ];
 
-                let table = table(
-                    None,
-                    Some(block),
-                    &con,
-                    Some("> "),
-                    rows,
-                    style(),
-                    //FIXME: This removes the bold style that was on before?
-                    italic(),
-                );
+                let table = table(None, Some(block), &con, rows, style(), Some("> "), fg(Blue));
                 let mut state = table_state(Some(0));
                 // table.draw(chunks[1], buf, &mut state);
-                // table.draw(viewport, buf, &mut state);
+                table.draw(viewport, buf, &mut state);
             }
 
             {
@@ -115,7 +115,7 @@ fn main() {
                     fg(Blue).bg(Red),
                 );
                 // list.draw(chunks[2], buf, &mut state);
-                list.draw(viewport, buf, &mut state);
+                // list.draw(viewport, buf, &mut state);
             }
         }
 
@@ -141,7 +141,8 @@ fn main() {
             buffers[1 - current].reset();
         }
 
-        std::thread::park();
+        return;
+        // std::thread::park();
         // std::thread::sleep(std::time::Duration::from_millis(16));
     }
 

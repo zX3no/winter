@@ -12,18 +12,18 @@ pub struct TableState {
 
 #[macro_export]
 macro_rules! row {
-    ($row:expr) => {
-        row!($row, Style::default(), 0)
+    ($columns:expr) => {
+        row!($row, None, 0)
     };
-    ($row:expr, $style:expr) => {
-        row!($row, $style, 0)
+    ($columns:expr, $style:expr) => {
+        row!($columns, $style, 0)
     };
-    ($row:expr, $style:expr, $bottom_margin:expr) => {
+    ($columns:expr, $style:expr, $bottom_margin:expr) => {
         Row {
-            row: $row,
+            columns: $columns,
             //TODO: Why is exist?
             height: 1,
-            style: $style,
+            style: Some($style),
             bottom_margin: $bottom_margin,
         }
     };
@@ -33,9 +33,9 @@ macro_rules! row {
 pub struct Row<'a> {
     //Originally this was `cells: Vec<Cell<'a>>`
     //Which is Vec<Text> -> Vec<Vec<Spans>> -> Vec<VecVec<<Span>>>
-    pub row: &'a [Lines<'a>],
+    pub columns: &'a [Lines<'a>],
+    pub style: Option<Style>,
     pub height: u16,
-    pub style: Style,
     pub bottom_margin: u16,
 }
 
@@ -64,37 +64,42 @@ pub fn table<'a>(
     block: Option<Block<'a>>,
     widths: &'a [Constraint],
 
-    highlight_symbol: Option<&'a str>,
     rows: &'a [Row<'a>],
-
     style: Style,
+
+    highlight_symbol: Option<&'a str>,
+    //TODO: REMOVE ME
     highlight_style: Style,
 ) -> Table<'a> {
     Table {
-        block,
-        style,
-        widths,
-        column_spacing: 1,
-        highlight_style,
-        highlight_symbol,
         header,
+        block,
+        widths,
         rows,
+        style,
+        highlight_symbol,
+        highlight_style,
         separator: false,
+        //TODO: Why is this 1 and not 0?
+        column_spacing: 1,
     }
 }
 
 #[derive(Debug, Clone)]
 pub struct Table<'a> {
-    pub block: Option<Block<'a>>,
-    pub style: Style,
-    pub widths: &'a [Constraint],
-    pub column_spacing: u16,
-    pub highlight_style: Style,
-    pub highlight_symbol: Option<&'a str>,
     pub header: Option<Row<'a>>,
+    pub block: Option<Block<'a>>,
+    pub widths: &'a [Constraint],
+
     pub rows: &'a [Row<'a>],
+    pub style: Style,
+
+    pub highlight_symbol: Option<&'a str>,
+    pub highlight_style: Style,
+
     //Puts a line underneath the table header.
     pub separator: bool,
+    pub column_spacing: u16,
 }
 
 impl<'a> Table<'a> {
@@ -203,7 +208,7 @@ impl<'a> Table<'a> {
         if area.area() == 0 {
             return;
         }
-        buf.set_style(area, self.style);
+        // buf.set_style(area, self.style);
         let table_area = if let Some(block) = &self.block {
             block.draw(area, buf);
             block.inner(area)
@@ -221,6 +226,7 @@ impl<'a> Table<'a> {
         // Draw header
         if let Some(ref header) = self.header {
             let max_header_height = table_area.height.min(header.total_height());
+            let style = header.style.unwrap_or_default();
             buf.set_style(
                 Rect {
                     x: table_area.left(),
@@ -228,39 +234,27 @@ impl<'a> Table<'a> {
                     width: table_area.width,
                     height: table_area.height.min(header.height),
                 },
-                header.style,
+                style,
             );
             let mut col = table_area.left();
             if has_selection {
                 col += (highlight_symbol.len() as u16).min(table_area.width);
             }
-            for (width, cell) in columns_widths.iter().zip(header.row.iter()) {
-                draw_cell(
-                    buf,
-                    cell,
-                    Rect {
-                        x: col,
-                        y: table_area.top(),
-                        width: *width,
-                        height: max_header_height,
-                    },
-                );
-
+            for (width, cell) in columns_widths.iter().zip(header.columns.iter()) {
+                if let Some(style) = cell.style {
+                    buf.set_style(area, style);
+                }
+                buf.set_lines(col, table_area.top(), &cell, *width);
                 col += *width + self.column_spacing;
             }
             if self.separator {
                 let max: u16 = columns_widths.iter().sum();
                 for i in table_area.left() + 3..max + table_area.left() + 4 {
-                    draw_cell(
-                        buf,
-                        &lines!("─"),
-                        Rect {
-                            x: i,
-                            y: table_area.top() + 1,
-                            width: 1,
-                            height: 1,
-                        },
-                    );
+                    let row = lines!("─");
+                    if let Some(style) = row.style {
+                        buf.set_style(area, style);
+                    }
+                    buf.set_lines(i, table_area.top() + 1, &row, 1);
                 }
             }
             current_height += max_header_height;
@@ -274,69 +268,74 @@ impl<'a> Table<'a> {
         let (start, end) = self.get_row_bounds(state.selected, rows_height);
 
         //TODO: Fix the table moving to the left when selected.
-        for (i, table_row) in self.rows.iter().enumerate().skip(start).take(end - start) {
+        //I don't think list has this problem?
+        for (i, row) in self.rows.iter().enumerate().skip(start).take(end - start) {
             let (x, y) = (table_area.left(), table_area.top() + current_height);
-            current_height += table_row.total_height();
+            current_height += row.total_height();
 
-            let table_row_area = Rect {
-                x,
-                y,
-                width: table_area.width,
-                height: table_row.height,
-            };
-            buf.set_style(table_row_area, table_row.style);
+            // let table_row_area = Rect {
+            //     x,
+            //     y,
+            //     width: table_area.width,
+            //     height: row.height,
+            // };
+            // buf.set_style(table_row_area, row.style);
+            let row_style = row.style.unwrap_or_default();
 
-            let is_selected = state.selected.map_or(false, |s| s == i);
+            let selected = state.selected.map_or(false, |s| s == i);
 
             let mut x = if has_selection {
-                let symbol = if is_selected {
+                let symbol = if selected {
                     highlight_symbol
                 } else {
                     &blank_symbol
                 };
-                let (col, _) =
-                    buf.set_stringn(x, y, symbol, table_area.width as usize, table_row.style);
+                //TODO: Maybe replace with symbol_style or something?
+                let (col, _) = buf.set_stringn(x, y, symbol, table_area.width as usize, row_style);
                 col
             } else {
                 x
             };
 
-            for (width, row) in columns_widths.iter().zip(table_row.row.iter()) {
-                draw_cell(
-                    buf,
-                    row,
-                    Rect {
-                        x,
-                        y,
-                        width: *width,
-                        height: table_row.height,
-                    },
-                );
-                x += *width + self.column_spacing;
+            for (width, column) in columns_widths.iter().zip(row.columns.iter()) {
+                let area = Rect {
+                    x,
+                    y,
+                    width: *width,
+                    height: row.height,
+                };
+
+                // if let Some(style) = lines.style {
+                // row_style = row_style.patch(style);
+                // }
+
+                // if let Some(style) = sub_row.style {
+                //     if selected {
+                //         buf.set_style(area, style.patch(self.highlight_style));
+                //     } else {
+                //         buf.set_style(area, style);
+                //     }
+                // } else if selected {
+                //     buf.set_style(area, self.highlight_style)
+                // };
+                // buf.set_style(area, row_style);
+
+                //FIXME: Set lines resets all the styles.
+                //This is because in tui-rs fg and bg are both optional.
+                //Should we change back or remove row styles?
+                buf.set_lines(x, y, column, *width);
+                x += width + self.column_spacing;
             }
 
-            if is_selected {
-                buf.set_style(table_row_area, self.highlight_style);
-            }
+            //TODO: This shold be removed.
+            //The queue in gonk has a fake selection row so
+            //it can have styles on the different parts of text.
+            //An overall style like this is just not very useful.
+            //If this is default it will undo the line style.
+
+            // if is_selected {
+            //     buf.set_style(table_row_area, self.highlight_style);
+            // }
         }
-    }
-}
-
-fn draw_cell(buf: &mut Buffer, row: &Lines, area: Rect) {
-    if let Some(style) = row.style {
-        buf.set_style(area, style);
-    }
-
-    let mut width = 0;
-    for line in row.lines.iter() {
-        buf.set_stringn(
-            area.x + width as u16,
-            area.y,
-            line,
-            area.width as usize,
-            line.style,
-        );
-
-        width += line.width();
     }
 }
