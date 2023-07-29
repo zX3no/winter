@@ -45,7 +45,9 @@ impl Color {
             Color::BrightCyan => "\x1B[96m",
             Color::BrightWhite => "\x1B[97m",
 
-            Color::Reset => "\x1B[0m",
+            //TODO: This resets modifiers too!
+            // Color::Reset => "\x1B[0m",
+            Color::Reset => "\x1B[37m",
         }
     }
     pub fn bg_code(self) -> &'static str {
@@ -89,6 +91,8 @@ bitflags! {
     }
 }
 
+pub const RESET: &'static str = "\x1b[0m";
+
 pub const BOLD: &'static str = "\x1b[1m";
 pub const DIM: &'static str = "\x1b[2m";
 pub const ITALIC: &'static str = "\x1b[3m";
@@ -123,7 +127,7 @@ pub mod test {
 }
 
 //TODO: Should this be Copy?
-#[derive(Debug, Clone, PartialEq, Eq, Default, Copy)]
+#[derive(Debug, Clone, PartialEq, Eq, Copy, Default)]
 pub struct Style {
     pub fg: Color,
     pub bg: Color,
@@ -137,6 +141,12 @@ impl Style {
     }
     pub fn bg(mut self, bg: Color) -> Self {
         self.bg = bg;
+        self
+    }
+    pub fn patch(mut self, other: Style) -> Style {
+        self.fg = other.fg;
+        self.bg = other.bg;
+        self.modifier |= other.modifier;
         self
     }
 }

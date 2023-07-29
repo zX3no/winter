@@ -1,7 +1,7 @@
 use crate::{
     buffer::Buffer,
     layout::{Corner, Rect},
-    Block, Lines, Style,
+    *,
 };
 
 #[derive(Debug, Clone, Default)]
@@ -25,19 +25,17 @@ pub fn list<'a>(
     block: Option<Block<'a>>,
     items: Lines<'a>,
 
-    style: Style,
-    start_corner: Corner,
-
-    highlight_style: Style,
     highlight_symbol: Option<&'a str>,
+    highlight_style: Style,
+
+    start_corner: Corner,
 ) -> List<'a> {
     List {
         block,
         items,
-        style,
-        start_corner,
-        highlight_style,
         highlight_symbol,
+        highlight_style,
+        start_corner,
     }
 }
 
@@ -59,12 +57,9 @@ pub fn list_state(index: Option<usize>) -> ListState {
 pub struct List<'a> {
     block: Option<Block<'a>>,
     items: Lines<'a>,
-
-    style: Style,
-    start_corner: Corner,
-
-    highlight_style: Style,
     highlight_symbol: Option<&'a str>,
+    highlight_style: Style,
+    start_corner: Corner,
 }
 
 impl<'a> List<'a> {
@@ -102,8 +97,6 @@ impl<'a> List<'a> {
         }
     }
     pub fn draw(&self, area: Rect, buf: &mut Buffer, state: &mut ListState) {
-        buf.set_style(area, self.style);
-
         let list_area = if let Some(block) = &self.block {
             block.draw(area, buf);
             block.inner(area)
@@ -123,14 +116,7 @@ impl<'a> List<'a> {
         let blank_symbol = " ".repeat(highlight_symbol.len());
         let mut current_height = 0;
 
-        for (i, line) in self
-            .items
-            .lines
-            .iter()
-            .enumerate()
-            .skip(start)
-            .take(end - start)
-        {
+        for (i, item) in self.items.iter().enumerate().skip(start).take(end - start) {
             //Was `item.height()`
             let height: u16 = 1;
 
@@ -150,9 +136,6 @@ impl<'a> List<'a> {
                 height,
             };
 
-            // let item_style = self.style.patch(item.style);
-            // buf.set_style(area, item_style);
-
             let is_selected = if state.selected && state.selection == i {
                 true
             } else {
@@ -165,23 +148,27 @@ impl<'a> List<'a> {
                 &blank_symbol
             };
 
+            //Set the selection symbol.
             let (elem_x, max_element_width) = if state.selected {
                 let (elem_x, _) =
-                    buf.set_stringn(x, y, symbol, list_area.width as usize, line.style);
+                    buf.set_stringn(x, y, symbol, list_area.width as usize, item.style);
                 (elem_x, (list_area.width - (elem_x - x)))
             } else {
                 (x, list_area.width)
             };
+
+            //Set the item text.
             buf.set_stringn(
                 elem_x,
                 y + 0 as u16,
-                &*line,
+                item,
                 max_element_width as usize,
-                line.style,
+                item.style,
             );
 
-            //sets the style of the selection
-            if state.selected {
+            //TODO: Maybe skip the symbol area and just style the list item?
+            //Could have a symbol_style and a selection_style?
+            if is_selected {
                 buf.set_style(area, self.highlight_style);
             }
         }

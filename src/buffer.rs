@@ -94,6 +94,10 @@ pub fn draw<W: Write>(w: &mut W, diff: Vec<(u16, u16, &Cell)>) {
         write!(w, "{}", cell.symbol).unwrap();
     }
 
+    //Always write reset as the last symbol.
+    //That way styles never stay when the program is closed.
+    write!(w, "{}", RESET).unwrap();
+
     w.flush().unwrap();
 }
 
@@ -118,6 +122,21 @@ impl Buffer {
     pub fn get_mut(&mut self, x: u16, y: u16) -> Result<&mut Cell, String> {
         let i = self.index_of(x, y)?;
         Ok(&mut self.content[i])
+    }
+    /// Print multiple lines
+    pub fn set_lines<'a>(&mut self, x: u16, y: u16, lines: &Lines<'a>, width: u16) -> (u16, u16) {
+        let mut remaining_width = width;
+        let mut x = x;
+        for line in lines.lines {
+            if remaining_width == 0 {
+                break;
+            }
+            let pos = self.set_stringn(x, y, line, remaining_width as usize, line.style);
+            let w = pos.0.saturating_sub(x);
+            x = pos.0;
+            remaining_width = remaining_width.saturating_sub(w);
+        }
+        (x, y)
     }
     /// Print at most the first n characters of a string if enough space is available
     /// until the end of the line

@@ -4,6 +4,7 @@
 - [ ] Raw mode
 - [ ] Input support
 - [ ] Simplify main loop
+- [ ] Reset all styles on exit
 
 ### Widgets:
 - [x] Table

@@ -7,9 +7,6 @@ use std::{
 use winter::*;
 
 fn main() {
-    // unsafe { Terminal::test() };
-    // return;
-
     let mut terminal = Terminal::new();
     let (width, height) = terminal.area();
     let mut viewport = Rect::new(0, 0, width, height);
@@ -61,32 +58,37 @@ fn main() {
             );
 
             {
+                let lines = lines_s!("hi", bold().italic());
+                // lines.draw(viewport, buf);
+            }
+
+            {
                 // let guage = guage(None, 0.75, "", bold().underlined(), bg(Blue), bg(Red));
                 // guage.draw(chunks[0], buf);
+                // guage.draw(viewport, buf);
             }
 
             {
                 let block = block(None, Borders::ALL, BorderType::Rounded, style());
-
-                let row = row![
-                    &[
-                        //FIXME: Style is not being applied here.
-                        lines_s!("first item first row", style(), " fortnite", fg(Red)),
-                        lines!("second item first row"),
-                    ],
-                    bold()
-                ];
-                let row2 = row![
-                    &[
-                        lines!("first item second row"),
-                        lines!("second item second row"),
-                    ],
-                    //FIXME: Style is not being applied here.
-                    fg(Blue)
-                ];
-                let rows = &[row, row2];
-
                 let con = [Constraint::Percentage(50), Constraint::Percentage(50)];
+                let rows = &[
+                    row![
+                        &[
+                            //FIXME: Style is not being applied here.
+                            lines_s!("first item first row", style(), " fortnite", fg(Red)),
+                            lines!("second item first row"),
+                        ],
+                        bold()
+                    ],
+                    row![
+                        &[
+                            lines!("first item second row"),
+                            lines!("second item second row"),
+                        ],
+                        //FIXME: Style is not being applied here.
+                        fg(Blue)
+                    ],
+                ];
 
                 let table = table(
                     None,
@@ -100,21 +102,26 @@ fn main() {
                 );
                 let mut state = table_state(Some(0));
                 // table.draw(chunks[1], buf, &mut state);
-                table.draw(viewport, buf, &mut state);
+                // table.draw(viewport, buf, &mut state);
             }
 
             {
                 let lines = lines!["hi", "test", "test", "test", "test", "test", "test", "test"];
                 let mut state = list_state(Some(5));
                 let list = list(
-                    Some(block(None, Borders::ALL, BorderType::Rounded, fg(Red))),
+                    Some(block(
+                        None,
+                        Borders::ALL,
+                        BorderType::Rounded,
+                        fg(Red).italic(),
+                    )),
                     lines,
-                    style(),
-                    Corner::TopLeft,
-                    style(),
                     Some("> "),
+                    bold().italic(),
+                    Corner::TopLeft,
                 );
                 // list.draw(chunks[2], buf, &mut state);
+                list.draw(viewport, buf, &mut state);
             }
         }
 
