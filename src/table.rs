@@ -11,20 +11,24 @@ pub struct TableState {
 }
 
 #[macro_export]
-macro_rules! row {
-    ($columns:expr) => {
-        row!($row, None, 0)
-    };
-    ($columns:expr, $style:expr) => {
-        row!($columns, $style, 0)
-    };
-    ($columns:expr, $style:expr, $bottom_margin:expr) => {
+///It's just a row with a 1px bottom margin.
+macro_rules! header {
+    ($lines:expr) => {
         Row {
-            columns: $columns,
-            //TODO: Why is exist?
+            columns: $lines,
             height: 1,
-            style: Some($style),
-            bottom_margin: $bottom_margin,
+            bottom_margin: 1,
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! row {
+    ($lines:expr) => {
+        Row {
+            columns: $lines,
+            height: 1,
+            bottom_margin: 0,
         }
     };
 }
@@ -34,7 +38,7 @@ pub struct Row<'a> {
     //Originally this was `cells: Vec<Cell<'a>>`
     //Which is Vec<Text> -> Vec<Vec<Spans>> -> Vec<VecVec<<Span>>>
     pub columns: &'a [Lines<'a>],
-    pub style: Option<Style>,
+    //TODO: Why is exist?
     pub height: u16,
     pub bottom_margin: u16,
 }
@@ -48,7 +52,6 @@ impl<'a> Row<'a> {
 pub fn table_temp<'a>(rows: &'a [Row<'a>]) -> Table {
     Table {
         block: None,
-        style: Style::default(),
         widths: &[],
         column_spacing: 1,
         highlight_style: Style::default(),
@@ -65,10 +68,8 @@ pub fn table<'a>(
     widths: &'a [Constraint],
 
     rows: &'a [Row<'a>],
-    style: Style,
 
     highlight_symbol: Option<&'a str>,
-    //TODO: REMOVE ME
     highlight_style: Style,
 ) -> Table<'a> {
     Table {
@@ -76,12 +77,10 @@ pub fn table<'a>(
         block,
         widths,
         rows,
-        style,
         highlight_symbol,
         highlight_style,
         separator: false,
-        //TODO: Why is this 1 and not 0?
-        column_spacing: 1,
+        column_spacing: 0,
     }
 }
 
@@ -92,13 +91,14 @@ pub struct Table<'a> {
     pub widths: &'a [Constraint],
 
     pub rows: &'a [Row<'a>],
-    pub style: Style,
 
     pub highlight_symbol: Option<&'a str>,
+    //TODO: REMOVE ME and replace with highlight_line or something?
     pub highlight_style: Style,
 
     //Puts a line underneath the table header.
     pub separator: bool,
+    //Moves the columns apart.
     pub column_spacing: u16,
 }
 
@@ -226,25 +226,15 @@ impl<'a> Table<'a> {
         // Draw header
         if let Some(ref header) = self.header {
             let max_header_height = table_area.height.min(header.total_height());
-            let style = header.style.unwrap_or_default();
-            buf.set_style(
-                Rect {
-                    x: table_area.left(),
-                    y: table_area.top(),
-                    width: table_area.width,
-                    height: table_area.height.min(header.height),
-                },
-                style,
-            );
             let mut col = table_area.left();
             if has_selection {
                 col += (highlight_symbol.len() as u16).min(table_area.width);
             }
-            for (width, cell) in columns_widths.iter().zip(header.columns.iter()) {
-                if let Some(style) = cell.style {
+            for (width, column) in columns_widths.iter().zip(header.columns.iter()) {
+                if let Some(style) = column.style {
                     buf.set_style(area, style);
                 }
-                buf.set_lines(col, table_area.top(), &cell, *width);
+                buf.set_lines(col, table_area.top(), &column, *width);
                 col += *width + self.column_spacing;
             }
             if self.separator {
@@ -273,15 +263,6 @@ impl<'a> Table<'a> {
             let (x, y) = (table_area.left(), table_area.top() + current_height);
             current_height += row.total_height();
 
-            // let table_row_area = Rect {
-            //     x,
-            //     y,
-            //     width: table_area.width,
-            //     height: row.height,
-            // };
-            // buf.set_style(table_row_area, row.style);
-            let row_style = row.style.unwrap_or_default();
-
             let selected = state.selected.map_or(false, |s| s == i);
 
             let mut x = if has_selection {
@@ -290,52 +271,18 @@ impl<'a> Table<'a> {
                 } else {
                     &blank_symbol
                 };
-                //TODO: Maybe replace with symbol_style or something?
-                let (col, _) = buf.set_stringn(x, y, symbol, table_area.width as usize, row_style);
+
+                //TODO: Maybe replace style() with symbol_style or something?
+                let (col, _) = buf.set_stringn(x, y, symbol, table_area.width as usize, style());
                 col
             } else {
                 x
             };
 
             for (width, column) in columns_widths.iter().zip(row.columns.iter()) {
-                let area = Rect {
-                    x,
-                    y,
-                    width: *width,
-                    height: row.height,
-                };
-
-                // if let Some(style) = lines.style {
-                // row_style = row_style.patch(style);
-                // }
-
-                // if let Some(style) = sub_row.style {
-                //     if selected {
-                //         buf.set_style(area, style.patch(self.highlight_style));
-                //     } else {
-                //         buf.set_style(area, style);
-                //     }
-                // } else if selected {
-                //     buf.set_style(area, self.highlight_style)
-                // };
-                // buf.set_style(area, row_style);
-
-                //FIXME: Set lines resets all the styles.
-                //This is because in tui-rs fg and bg are both optional.
-                //Should we change back or remove row styles?
                 buf.set_lines(x, y, column, *width);
                 x += width + self.column_spacing;
             }
-
-            //TODO: This shold be removed.
-            //The queue in gonk has a fake selection row so
-            //it can have styles on the different parts of text.
-            //An overall style like this is just not very useful.
-            //If this is default it will undo the line style.
-
-            // if is_selected {
-            //     buf.set_style(table_row_area, self.highlight_style);
-            // }
         }
     }
 }

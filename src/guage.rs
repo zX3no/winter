@@ -2,17 +2,14 @@ use crate::{block::Block, buffer::Buffer, layout::Rect, *};
 use std::borrow::Cow;
 use unicode_width::UnicodeWidthStr;
 
-///Use "" as a blank label. Not my fault the trait system is shit.
 pub fn guage<'a>(
     block: Option<Block<'a>>,
     ratio: f64,
-    label: impl Into<Cow<'a, str>>,
+    label: Option<Cow<'a, str>>,
     label_style: Style,
     left_style: Style,
     right_style: Style,
 ) -> Gauge<'a> {
-    let l = label.into();
-    let label = if l.is_empty() { None } else { Some(l) };
     Gauge {
         block,
         ratio,

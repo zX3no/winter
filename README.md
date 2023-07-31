@@ -16,13 +16,13 @@
 - [x] Layout
 
 ### Lines
-- [ ] Simplify the way text and lines work.
-- [ ] Fix styles
+- [x] Simplify the way text and lines work.
+- [x] Fix styles
 
 ### Text
 - [ ] Text alignment: Left, Center, Right
 - [ ] Correctly handle multi-width characters
-- [ ] Fix modifiers
+- [x] Fix modifiers
 
 ### Block
 - [ ] Offset titles using constraints
@@ -34,13 +34,13 @@
 
 ### Table
 - [ ] Only first line is displayed
-- [ ] Fix styles
+- [x] Fix styles
 
 ### Layout
 - [x] Cleanup
 
 ### Gauge
-- [ ] Fix styles
+- [x] Fix styles
 
 ----
 

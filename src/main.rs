@@ -63,7 +63,7 @@ fn main() {
             }
 
             {
-                // let guage = guage(None, 0.75, "", bold().underlined(), bg(Blue), bg(Red));
+                let guage = guage(None, 0.75, None, bold(), bg(Blue), bg(Red));
                 // guage.draw(chunks[0], buf);
                 // guage.draw(viewport, buf);
             }
@@ -71,36 +71,38 @@ fn main() {
             {
                 let block = block(None, Borders::ALL, BorderType::Rounded, style());
                 let con = [Constraint::Percentage(50), Constraint::Percentage(50)];
+                let text = String::from("first item first row");
                 let rows = &[
                     //Row 1
-                    row![
-                        &[
-                            //Row 1 Column 1
-                            lines_s!(
-                                "first item first row",
-                                fg(Cyan),
-                                " <-- there is a space here",
-                                fg(Blue).underlined()
-                            ),
-                            //Row 1 Column 2
-                            lines!("second item", " first row"),
-                        ],
-                        style() //FIXME: Style is not being applied here.
-                    ],
+                    row![&[
+                        //Row 1 Column 1
+                        lines_s!(
+                            text,
+                            // "first item first row",
+                            fg(Cyan),
+                            " <-- there is a space here",
+                            fg(Blue).underlined()
+                        ),
+                        //Row 1 Column 2
+                        lines!("second item", " first row")
+                    ]],
                     //Row 2
-                    row![
-                        &[
-                            //Row 2 Column 1
-                            lines_s!("first item second row", fg(Yellow)),
-                            //Row 2 Column 2
-                            lines!("second item second row"),
-                        ],
-                        fg(Yellow) //FIXME: Style is not being applied here.
-                    ],
+                    row![&[
+                        //Row 2 Column 1
+                        lines_s!("first item second row", fg(Yellow)),
+                        //Row 2 Column 2
+                        lines!("second item second row")
+                    ]],
                 ];
+                let lines = &[lines_s!("First", bold()), lines_s!("Second", bold())];
+                let header = Some(header![lines]);
 
-                let table = table(None, Some(block), &con, rows, style(), Some("> "), fg(Blue));
+                let table = table(header, Some(block), &con, rows, Some("> "), fg(Blue));
+
+                //TODO: Maybe state should hold a row, style and index.
+                //That way you can set exacly what you want when selected.
                 let mut state = table_state(Some(0));
+
                 // table.draw(chunks[1], buf, &mut state);
                 table.draw(viewport, buf, &mut state);
             }
