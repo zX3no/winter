@@ -26,7 +26,7 @@ pub enum Color {
 }
 
 impl Color {
-    pub fn fg_code(self) -> &'static str {
+    pub const fn fg_code(self) -> &'static str {
         match self {
             Color::Black => "\x1B[30m",
             Color::Red => "\x1B[31m",
@@ -51,7 +51,7 @@ impl Color {
             Color::Reset => "\x1B[37m",
         }
     }
-    pub fn bg_code(self) -> &'static str {
+    pub const fn bg_code(self) -> &'static str {
         match self {
             Color::Black => "\x1B[40m",
             Color::Red => "\x1B[41m",
@@ -191,11 +191,15 @@ modifier! {
     crossed_out => CROSSED_OUT
 }
 
-pub fn style() -> Style {
-    Style::default()
+pub const fn style() -> Style {
+    Style {
+        fg: Color::Reset,
+        bg: Color::Reset,
+        modifier: Modifier::empty(),
+    }
 }
 
-pub fn fg(fg: Color) -> Style {
+pub const fn fg(fg: Color) -> Style {
     Style {
         fg,
         bg: Color::Reset,
@@ -203,7 +207,7 @@ pub fn fg(fg: Color) -> Style {
     }
 }
 
-pub fn bg(bg: Color) -> Style {
+pub const fn bg(bg: Color) -> Style {
     Style {
         fg: Color::Reset,
         bg,

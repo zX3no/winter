@@ -49,26 +49,11 @@ impl<'a> Row<'a> {
     }
 }
 
-pub fn table_temp<'a>(rows: &'a [Row<'a>]) -> Table {
-    Table {
-        block: None,
-        widths: &[],
-        column_spacing: 1,
-        highlight_style: Style::default(),
-        highlight_symbol: None,
-        header: None,
-        rows,
-        separator: false,
-    }
-}
-
-pub fn table<'a>(
+pub const fn table<'a>(
     header: Option<Row<'a>>,
     block: Option<Block<'a>>,
     widths: &'a [Constraint],
-
     rows: &'a [Row<'a>],
-
     highlight_symbol: Option<&'a str>,
     highlight_style: Style,
 ) -> Table<'a> {
@@ -89,13 +74,10 @@ pub struct Table<'a> {
     pub header: Option<Row<'a>>,
     pub block: Option<Block<'a>>,
     pub widths: &'a [Constraint],
-
     pub rows: &'a [Row<'a>],
-
     pub highlight_symbol: Option<&'a str>,
     //TODO: REMOVE ME and replace with highlight_line or something?
     pub highlight_style: Style,
-
     //Puts a line underneath the table header.
     pub separator: bool,
     //Moves the columns apart.

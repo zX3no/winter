@@ -29,7 +29,7 @@ pub enum BorderType {
 }
 
 impl BorderType {
-    pub fn line_symbols(border_type: BorderType) -> line::Set {
+    pub const fn line_symbols(border_type: BorderType) -> line::Set {
         match border_type {
             BorderType::Plain => line::NORMAL,
             BorderType::Rounded => line::ROUNDED,
@@ -73,7 +73,7 @@ macro_rules! block {
 
 //TODO: Title has bad ergonomics. Some("title".into())
 //Maybe title should be Option<Text<'a>> that way it has it's own style too?
-pub fn block<'a>(
+pub const fn block<'a>(
     title: Option<Text<'a>>,
     title_margin: u16,
     borders: Borders,
