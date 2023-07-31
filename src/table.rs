@@ -239,11 +239,7 @@ impl<'a> Table<'a> {
             if self.separator {
                 let max: u16 = columns_widths.iter().sum();
                 for i in table_area.left() + 3..max + table_area.left() + 4 {
-                    let row = lines!("─");
-                    if let Some(style) = row.style {
-                        buf.set_style(area, style);
-                    }
-                    buf.set_lines(i, table_area.top() + 1, &row, 1);
+                    buf.set_lines(i, table_area.top() + 1, &lines!("─"), 1);
                 }
             }
             current_height += max_header_height;

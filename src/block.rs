@@ -1,6 +1,5 @@
-use crate::{buffer::Buffer, layout::Rect, style, symbols::*, Style};
+use crate::{buffer::Buffer, layout::Rect, symbols::*, Style, Text};
 use bitflags::bitflags;
-use std::borrow::Cow;
 
 bitflags! {
     /// Bitflags that can be composed to set the visible borders essentially on the block widget.
@@ -40,17 +39,6 @@ impl BorderType {
     }
 }
 
-#[derive(Debug, Clone)]
-pub struct Block<'a> {
-    pub title: Option<Cow<'a, str>>,
-
-    // pub title_alignment: Alignment,
-    pub borders: Borders,
-    pub border_type: BorderType,
-
-    pub style: Style,
-}
-
 #[macro_export]
 ///Example:
 ///```rs
@@ -86,17 +74,32 @@ macro_rules! block {
 //TODO: Title has bad ergonomics. Some("title".into())
 //Maybe title should be Option<Text<'a>> that way it has it's own style too?
 pub fn block<'a>(
-    title: Option<Cow<'a, str>>,
+    title: Option<Text<'a>>,
+    title_margin: u16,
     borders: Borders,
     border_type: BorderType,
     style: Style,
 ) -> Block<'a> {
     Block {
         title,
+        title_margin,
         borders,
         border_type,
         style,
     }
+}
+
+//TODO: Title alignment?
+#[derive(Debug, Clone)]
+pub struct Block<'a> {
+    pub title: Option<Text<'a>>,
+    pub title_margin: u16,
+
+    // pub title_alignment: Alignment,
+    pub borders: Borders,
+    pub border_type: BorderType,
+
+    pub style: Style,
 }
 
 impl<'a> Block<'a> {
@@ -123,7 +126,6 @@ impl<'a> Block<'a> {
         if area.area() == 0 {
             return;
         }
-        // buf.set_style(area, self.style);
         let symbols = BorderType::line_symbols(self.border_type);
 
         // Sides
@@ -217,17 +219,15 @@ impl<'a> Block<'a> {
             // };
             let title_dx = left_border_dx;
 
-            let title_x = area.left() + title_dx;
+            let title_x = area.left() + title_dx + self.title_margin;
             let title_y = area.top();
 
-            //TODO: Title style and title offset.
             buf.set_stringn(
                 title_x,
                 title_y,
                 &title,
                 title_area_width as usize,
-                style(),
-                // title.style,
+                title.style,
             );
         }
     }

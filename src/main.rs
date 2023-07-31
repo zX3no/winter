@@ -22,10 +22,9 @@ pub fn browser(area: Rect, buf: &mut Buffer) {
     let b = lines!["Album 1", "Album 2", "Album 3"];
     let c = lines!["Song 1", "Song 2", "Song 3"];
 
-    //TOOD: Allow moving titles in lists. The `-` here is dumb.
-    let artists = browser_list("─Aritst", a, false);
-    let albums = browser_list("─Album", b, false);
-    let songs = browser_list("─Song", c, true);
+    let artists = browser_list("Aritst", a, false);
+    let albums = browser_list("Album", b, false);
+    let songs = browser_list("Song", c, true);
 
     artists.draw(chunks[0], buf, &mut list_state(Some(0)));
     albums.draw(chunks[1], buf, &mut list_state(Some(0)));
@@ -33,13 +32,16 @@ pub fn browser(area: Rect, buf: &mut Buffer) {
 }
 
 fn browser_list<'a>(title: &'static str, content: Lines<'a>, use_symbol: bool) -> List<'a> {
+    //TODO: Some(title!(title, bold(), 1))
+    //This might be a little dumb ^.
     let block = block(
-        Some(title.into()),
+        Some(text!(title, bold())),
+        1,
         Borders::ALL,
         BorderType::Rounded,
         style(),
     );
-    let symbol = if use_symbol { ">" } else { "" };
+    let symbol = if use_symbol { ">" } else { " " };
     list(Some(block), content, Some(symbol), style())
 }
 
@@ -107,7 +109,7 @@ fn main() {
             }
 
             {
-                let block = block(None, Borders::ALL, BorderType::Rounded, style());
+                let block = block(None, 0, Borders::ALL, BorderType::Rounded, style());
                 let con = [Constraint::Percentage(50), Constraint::Percentage(50)];
                 let text = String::from("first item first row");
                 let rows = &[
@@ -149,7 +151,7 @@ fn main() {
                 let lines = lines!["hi", "test", "test", "test", "test", "test", "test", "test"];
                 let mut state = list_state(Some(5));
                 let list = list(
-                    Some(block(None, Borders::ALL, BorderType::Rounded, fg(Red))),
+                    Some(block(None, 0, Borders::ALL, BorderType::Rounded, fg(Red))),
                     lines,
                     Some("> "),
                     fg(Blue).bg(Red),

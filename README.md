@@ -25,7 +25,7 @@
 - [x] Fix modifiers
 
 ### Block
-- [ ] Offset titles using constraints
+- [x] Offset titles
 - [x] Text inside of blocks
 
 ### List
@@ -33,7 +33,7 @@
 - [x] Fix styles
 
 ### Table
-- [ ] Only first line is displayed
+- [x] Only first line is displayed
 - [x] Fix styles
 
 ### Layout
