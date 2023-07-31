@@ -116,16 +116,15 @@ impl<'a> Table<'a> {
         if !self.widths.is_empty() {
             constraints.pop();
         }
-        let mut chunks = layout(
-            Direction::Horizontal,
-            (0, 0),
-            constraints,
+        let mut chunks = layout!(
             Rect {
                 x: 0,
                 y: 0,
                 width: max_width,
                 height: 1,
             },
+            Direction::Horizontal,
+            constraints
         );
         if has_selection {
             chunks.remove(0);

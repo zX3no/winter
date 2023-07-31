@@ -83,6 +83,8 @@ macro_rules! block {
 //It allows gets people in the habbit of using style()
 //instead of omitting it.
 
+//TODO: Title has bad ergonomics. Some("title".into())
+//Maybe title should be Option<Text<'a>> that way it has it's own style too?
 pub fn block<'a>(
     title: Option<Cow<'a, str>>,
     borders: Borders,

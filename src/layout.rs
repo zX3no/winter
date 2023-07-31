@@ -51,29 +51,63 @@ pub enum Alignment {
     Right,
 }
 
-pub fn layout<C: Into<Vec<Constraint>>>(
-    direction: Direction,
-    margin: (u16, u16),
-    constraints: C,
-    area: Rect,
-) -> Vec<Rect> {
-    let layout = Layout {
-        direction,
-        margin,
-        constraints: constraints.into(),
-        //TODO: This could be added back as an argument.
-        expand_to_fill: true,
+#[macro_export]
+macro_rules! layout {
+    ($area:expr, $direction:expr, $constraints:expr) => {
+        {
+            let layout = Layout {
+                direction: $direction,
+                margin: (0, 0),
+                constraints: $constraints.into(),
+                //TODO: This could be added back as an argument.
+                expand_to_fill: true,
+            };
+            crate::layout::LAYOUT_CACHE.with(|c| {
+                c.borrow_mut()
+                    .entry(($area, layout.clone()))
+                    .or_insert_with(|| crate::layout::split($area, &layout))
+                    .clone()
+            })
+        }
     };
-    LAYOUT_CACHE.with(|c| {
-        c.borrow_mut()
-            .entry((area, layout.clone()))
-            .or_insert_with(|| split(area, &layout))
-            .clone()
-    })
+    ($area:expr, $direction:expr, $($constraints:expr),*) => {
+        {
+            let layout = Layout {
+                direction: $direction,
+                margin: (0, 0),
+                constraints: [$($constraints),*].into(),
+                //TODO: This could be added back as an argument.
+                expand_to_fill: true,
+            };
+            crate::layout::LAYOUT_CACHE.with(|c| {
+                c.borrow_mut()
+                    .entry(($area, layout.clone()))
+                    .or_insert_with(|| crate::layout::split($area, &layout))
+                    .clone()
+            })
+        }
+    };
+    ($area:expr, $direction:expr, $margin:expr, $($constraints:expr),*) => {
+        {
+            let layout = Layout {
+                direction: $direction,
+                margin: $margin,
+                constraints: [$($constraints),*].into(),
+                //TODO: This could be added back as an argument.
+                expand_to_fill: true,
+            };
+            crate::layout::LAYOUT_CACHE.with(|c| {
+                c.borrow_mut()
+                    .entry(($area, layout.clone()))
+                    .or_insert_with(|| crate::layout::split($area, &layout))
+                    .clone()
+            })
+        }
+    };
 }
 
 thread_local! {
-    static LAYOUT_CACHE: RefCell<HashMap<(Rect, Layout), Vec<Rect>>> = RefCell::new(HashMap::new());
+    pub static LAYOUT_CACHE: RefCell<HashMap<(Rect, Layout), Vec<Rect>>> = RefCell::new(HashMap::new());
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -87,7 +121,7 @@ pub struct Layout {
     pub expand_to_fill: bool,
 }
 
-fn split(area: Rect, layout: &Layout) -> Vec<Rect> {
+pub fn split(area: Rect, layout: &Layout) -> Vec<Rect> {
     let mut solver = Solver::new();
     let mut vars: HashMap<Variable, (usize, usize)> = HashMap::new();
     let elements = layout
@@ -367,15 +401,12 @@ mod tests {
             height: 10,
         };
 
-        let chunks = layout(
-            Direction::Vertical,
-            (0, 0),
-            [
-                Constraint::Percentage(10),
-                Constraint::Max(5),
-                Constraint::Min(1),
-            ],
+        let chunks = layout!(
             target,
+            Direction::Vertical,
+            Constraint::Percentage(10),
+            Constraint::Max(5),
+            Constraint::Min(1)
         );
 
         assert_eq!(target.height, chunks.iter().map(|r| r.height).sum::<u16>());
