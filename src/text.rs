@@ -113,8 +113,9 @@ impl<'a> Deref for Lines<'a> {
     }
 }
 
+/// Use `lines_s` for styled text.
 ///```rs
-/// lines!["Text", "Text", "Text", "Text",]
+/// lines!["Text", "Text", "Text", "Text"]
 /// ```
 #[macro_export]
 macro_rules! lines {
@@ -134,6 +135,7 @@ macro_rules! lines {
     };
 }
 
+/// Use `lines` for un-styled text.
 ///```rs
 /// lines_s!["Text", fg(Blue), "Text", fg(Red)]
 /// ```

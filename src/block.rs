@@ -39,32 +39,6 @@ impl BorderType {
     }
 }
 
-#[macro_export]
-///Example:
-///```rs
-/// block!(text, Borders::ALL, BorderType::Rounded, fg(Red));
-///
-/// block!(Borders::ALL, BorderType::Rounded, style());
-/// ```
-macro_rules! block {
-    ($title:expr, $borders:expr, $border_type:expr, $style:expr) => {
-        Block {
-            title: Some($title),
-            borders: $borders,
-            border_type: $border_type,
-            style: $style,
-        }
-    };
-    ($borders:expr, $border_type:expr, $style:expr) => {
-        Block {
-            title: None,
-            borders: $borders,
-            border_type: $border_type,
-            style: $style,
-        }
-    };
-}
-
 //TODO: This is probably better than a macro.
 //Macros aren't powerfull enough to allow omitting all fields.
 //This is simple and consistant.
@@ -94,11 +68,9 @@ pub const fn block<'a>(
 pub struct Block<'a> {
     pub title: Option<Text<'a>>,
     pub title_margin: u16,
-
     // pub title_alignment: Alignment,
     pub borders: Borders,
     pub border_type: BorderType,
-
     pub style: Style,
 }
 
@@ -218,7 +190,6 @@ impl<'a> Block<'a> {
             //         .saturating_sub(right_border_dx),
             // };
             let title_dx = left_border_dx;
-
             let title_x = area.left() + title_dx + self.title_margin;
             let title_y = area.top();
 

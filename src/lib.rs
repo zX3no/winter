@@ -1,17 +1,20 @@
 ///![](https://learn.microsoft.com/en-us/windows/console/console-virtual-terminal-sequences)
 use std::{
-    io::{stdout, Stdout, Write},
-    mem::zeroed,
-    process::Command,
+    ffi::OsString, io::Write, mem::zeroed, os::windows::prelude::OsStringExt, process::Command,
+    ptr::null_mut,
 };
 use winapi::{
     ctypes::c_void,
     shared::minwindef::DWORD,
     um::{
         consoleapi::{GetConsoleMode, ReadConsoleInputW, SetConsoleMode},
+        errhandlingapi::GetLastError,
         handleapi::INVALID_HANDLE_VALUE,
         processenv::GetStdHandle,
-        winbase::{STD_INPUT_HANDLE, STD_OUTPUT_HANDLE},
+        winbase::{
+            FormatMessageW, LocalFree, FORMAT_MESSAGE_ALLOCATE_BUFFER, FORMAT_MESSAGE_FROM_SYSTEM,
+            FORMAT_MESSAGE_IGNORE_INSERTS, STD_INPUT_HANDLE, STD_OUTPUT_HANDLE,
+        },
         wincon::{
             GetConsoleScreenBufferInfo, CONSOLE_SCREEN_BUFFER_INFO, ENABLE_ECHO_INPUT,
             ENABLE_EXTENDED_FLAGS, ENABLE_LINE_INPUT, ENABLE_MOUSE_INPUT, ENABLE_PROCESSED_INPUT,
@@ -53,20 +56,83 @@ pub struct Info {
     pub cursor_position: (u16, u16),
 }
 
+fn get_last_error_message(error_code: DWORD) -> String {
+    let mut buffer: *mut winapi::ctypes::c_void = null_mut();
+
+    unsafe {
+        let size = FormatMessageW(
+            FORMAT_MESSAGE_ALLOCATE_BUFFER
+                | FORMAT_MESSAGE_FROM_SYSTEM
+                | FORMAT_MESSAGE_IGNORE_INSERTS,
+            null_mut(),
+            error_code,
+            0,
+            &mut buffer as *mut _ as *mut u16,
+            0,
+            null_mut(),
+        );
+        if size == 0 {
+            panic!("Failed to get error message.");
+        }
+
+        let error_message = OsString::from_wide(std::slice::from_raw_parts(
+            buffer as *const u16,
+            size as usize,
+        ))
+        .to_string_lossy()
+        .trim()
+        .to_string();
+
+        LocalFree(buffer);
+        error_message
+    }
+}
+
+pub fn handles() -> (*mut c_void, *mut c_void) {
+    unsafe {
+        (
+            GetStdHandle(STD_OUTPUT_HANDLE),
+            GetStdHandle(STD_INPUT_HANDLE),
+        )
+    }
+}
+
+pub fn area(output_handle: *mut c_void) -> (u16, u16) {
+    unsafe {
+        // let handle = GetStdHandle(-11i32 as u32);
+        let mut info: CONSOLE_SCREEN_BUFFER_INFO = zeroed();
+        let result = GetConsoleScreenBufferInfo(output_handle, &mut info);
+        if result != 1 {
+            panic!("Could not get window size. result: {}", result);
+        }
+        (
+            (info.srWindow.Right - info.srWindow.Left) as u16,
+            (info.srWindow.Bottom - info.srWindow.Top) as u16,
+        )
+    }
+}
+
+//TODO: This struct serves zero purpose.
+//You should delete this now.
 pub struct Terminal {
     pub output: *mut c_void,
     pub input: *mut c_void,
-    pub stdout: Stdout,
     pub mode: u32,
 }
 
 impl Terminal {
     pub fn new() -> Self {
-        Self {
-            output: unsafe { GetStdHandle(STD_OUTPUT_HANDLE) },
-            input: unsafe { GetStdHandle(STD_INPUT_HANDLE) },
-            stdout: stdout(),
-            mode: 0,
+        unsafe {
+            let input = GetStdHandle(STD_INPUT_HANDLE);
+            let mut mode: u32 = 0;
+            if GetConsoleMode(input, &mut mode) == 0 {
+                panic!("Failed to get console mode");
+            }
+            Self {
+                output: GetStdHandle(STD_OUTPUT_HANDLE),
+                input: GetStdHandle(STD_INPUT_HANDLE),
+                mode,
+            }
         }
     }
 
@@ -86,7 +152,6 @@ impl Terminal {
         }
     }
 
-    //TODO: Cleanup into term.size() or something this API sucks.
     /// Get the screen buffer information like terminal size, cursor position, buffer size.
     ///
     /// This wraps
@@ -114,27 +179,27 @@ impl Terminal {
 
     //TODO: Not sure if these are working correctly.
     pub fn enable_raw_mode(&mut self) {
-        self.mode = self.mode | ENABLE_VIRTUAL_TERMINAL_INPUT;
+        self.mode |= ENABLE_VIRTUAL_TERMINAL_INPUT;
         self.set_mode(self.mode);
     }
     pub fn disable_raw_mode(&mut self) {
-        self.mode = self.mode & ENABLE_VIRTUAL_TERMINAL_INPUT;
+        self.mode &= ENABLE_VIRTUAL_TERMINAL_INPUT;
         self.set_mode(self.mode);
     }
     pub fn enable_mouse_input(&mut self) {
-        self.mode = self.mode | ENABLE_MOUSE_INPUT;
+        self.mode |= ENABLE_MOUSE_INPUT;
         self.set_mode(self.mode);
     }
     pub fn disable_mouse_input(&mut self) {
-        self.mode = self.mode & ENABLE_MOUSE_INPUT;
+        self.mode &= ENABLE_MOUSE_INPUT;
         self.set_mode(self.mode);
     }
     pub fn enable_window_input(&mut self) {
-        self.mode = self.mode | ENABLE_WINDOW_INPUT;
+        self.mode |= ENABLE_WINDOW_INPUT;
         self.set_mode(self.mode);
     }
     pub fn disable_window_input(&mut self) {
-        self.mode = self.mode & ENABLE_WINDOW_INPUT;
+        self.mode &= ENABLE_WINDOW_INPUT;
         self.set_mode(self.mode);
     }
 
@@ -144,7 +209,9 @@ impl Terminal {
         unsafe {
             let result = SetConsoleMode(self.output, mode);
             if result != 1 {
-                panic!("Failed to set console mode {:?}", mode);
+                let error_code = GetLastError();
+                let err = get_last_error_message(error_code);
+                panic!("Failed to set console mode to {}: {}", mode, err);
             }
         }
     }
@@ -162,15 +229,13 @@ impl Terminal {
         let handle = unsafe { GetStdHandle(STD_INPUT_HANDLE) };
 
         if handle == INVALID_HANDLE_VALUE {
-            println!("Failed to get the input handle");
-            return;
+            panic!("Failed to get the input handle");
         }
 
         // Set the console input mode to raw input
         let mut mode: u32 = 0;
         if GetConsoleMode(handle, &mut mode) == 0 {
-            println!("Failed to get console mode");
-            return;
+            panic!("Failed to get console mode");
         }
 
         mode &= !ENABLE_EXTENDED_FLAGS; // Disable extended flags
