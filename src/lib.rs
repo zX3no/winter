@@ -1,20 +1,31 @@
 ///![](https://learn.microsoft.com/en-us/windows/console/console-virtual-terminal-sequences)
 use std::{
-    ffi::OsString, io::Write, mem::zeroed, os::windows::prelude::OsStringExt, process::Command,
+    collections::VecDeque,
+    ffi::OsString,
+    io::Write,
+    mem::zeroed,
+    os::windows::prelude::OsStringExt,
+    process::Command,
     ptr::null_mut,
+    sync::Mutex,
+    time::{Duration, Instant},
 };
 use winapi::{
     ctypes::c_void,
-    shared::minwindef::DWORD,
+    shared::{minwindef::DWORD, winerror::WAIT_TIMEOUT},
     um::{
-        consoleapi::{GetConsoleMode, ReadConsoleInputW, SetConsoleMode},
+        consoleapi::{
+            GetConsoleMode, GetNumberOfConsoleInputEvents, ReadConsoleInputW, SetConsoleMode,
+        },
         errhandlingapi::GetLastError,
         fileapi::{CreateFileW, OPEN_EXISTING},
         handleapi::INVALID_HANDLE_VALUE,
         processenv::GetStdHandle,
+        synchapi::{WaitForMultipleObjects, WaitForSingleObject},
         winbase::{
             FormatMessageW, LocalFree, FORMAT_MESSAGE_ALLOCATE_BUFFER, FORMAT_MESSAGE_FROM_SYSTEM,
-            FORMAT_MESSAGE_IGNORE_INSERTS, STD_INPUT_HANDLE, STD_OUTPUT_HANDLE,
+            FORMAT_MESSAGE_IGNORE_INSERTS, INFINITE, STD_INPUT_HANDLE, STD_OUTPUT_HANDLE,
+            WAIT_ABANDONED_0, WAIT_FAILED, WAIT_OBJECT_0,
         },
         wincon::{
             GetConsoleScreenBufferInfo, CONSOLE_SCREEN_BUFFER_INFO, ENABLE_ECHO_INPUT,
@@ -113,9 +124,8 @@ pub fn set_mode(handle: *mut c_void, mode: u32) {
     unsafe {
         let result = SetConsoleMode(handle, mode);
         if result != 1 {
-            let error_code = GetLastError();
-            let err = get_last_error_message(error_code);
-            panic!("Failed to set console mode to {}: {}", mode, err);
+            let os_error = std::io::Error::last_os_error();
+            panic!("Failed to set console mode to {}: {os_error:#}", mode);
         }
     }
 }
@@ -130,37 +140,37 @@ pub fn get_mode(handle: *mut c_void) -> u32 {
     }
 }
 
-fn get_last_error_message(error_code: DWORD) -> String {
-    let mut buffer: *mut winapi::ctypes::c_void = null_mut();
+// fn get_last_error_message(error_code: DWORD) -> String {
+//     let mut buffer: *mut winapi::ctypes::c_void = null_mut();
 
-    unsafe {
-        let size = FormatMessageW(
-            FORMAT_MESSAGE_ALLOCATE_BUFFER
-                | FORMAT_MESSAGE_FROM_SYSTEM
-                | FORMAT_MESSAGE_IGNORE_INSERTS,
-            null_mut(),
-            error_code,
-            0,
-            &mut buffer as *mut _ as *mut u16,
-            0,
-            null_mut(),
-        );
-        if size == 0 {
-            panic!("Failed to get error message.");
-        }
+//     unsafe {
+//         let size = FormatMessageW(
+//             FORMAT_MESSAGE_ALLOCATE_BUFFER
+//                 | FORMAT_MESSAGE_FROM_SYSTEM
+//                 | FORMAT_MESSAGE_IGNORE_INSERTS,
+//             null_mut(),
+//             error_code,
+//             0,
+//             &mut buffer as *mut _ as *mut u16,
+//             0,
+//             null_mut(),
+//         );
+//         if size == 0 {
+//             panic!("Failed to get error message.");
+//         }
 
-        let error_message = OsString::from_wide(std::slice::from_raw_parts(
-            buffer as *const u16,
-            size as usize,
-        ))
-        .to_string_lossy()
-        .trim()
-        .to_string();
+//         let error_message = OsString::from_wide(std::slice::from_raw_parts(
+//             buffer as *const u16,
+//             size as usize,
+//         ))
+//         .to_string_lossy()
+//         .trim()
+//         .to_string();
 
-        LocalFree(buffer);
-        error_message
-    }
-}
+//         LocalFree(buffer);
+//         error_message
+//     }
+// }
 
 pub fn handles() -> (*mut c_void, *mut c_void) {
     unsafe {
@@ -268,7 +278,9 @@ impl Terminal {
     //TODO: Should this poll with mpsc? seems like a decent idea.
     //Although I kind of hate multi-threading things like this.
     //I'm thinking something like poll() with a Once loop with
-    //a message channel.
+    //a message channel. Wait for an event. If one becomes available return immediately.
+    //
+    //https://github.com/crossterm-rs/crossterm/blob/master/src/event/sys/windows/parse.rs
     pub unsafe fn test() {
         //Note: This is an input handle not output.
         let handle = unsafe { GetStdHandle(STD_INPUT_HANDLE) };
@@ -375,6 +387,165 @@ impl Terminal {
             }
         }
     }
+}
+
+pub static EVENT_READER: Mutex<VecDeque<Event>> = Mutex::new(VecDeque::new());
+
+#[derive(Debug)]
+pub enum Code {}
+
+#[derive(Debug)]
+pub enum Event {
+    Mouse(Code),
+    Key(Code),
+    Resize(u16, u16),
+}
+
+///Blocking
+pub fn read_single_input_event(handle: *mut c_void) -> INPUT_RECORD {
+    let mut record: INPUT_RECORD = unsafe { zeroed() };
+
+    // Convert an INPUT_RECORD to an &mut [INPUT_RECORD] of length 1
+    let buf = std::slice::from_mut(&mut record);
+    let num_read = read_input(handle, buf);
+
+    // The windows API promises that ReadConsoleInput returns at least
+    // 1 element
+    debug_assert!(num_read == 1);
+
+    record
+}
+
+fn read_input(handle: *mut c_void, buf: &mut [INPUT_RECORD]) -> u32 {
+    let mut num_records = 0;
+    debug_assert!(buf.len() < std::u32::MAX as usize);
+
+    unsafe {
+        let result =
+            ReadConsoleInputW(handle, buf.as_mut_ptr(), buf.len() as u32, &mut num_records);
+        if result == 0 {
+            panic!("Failed to read input");
+        }
+        num_records
+    }
+}
+
+pub unsafe fn convert_event(event: INPUT_RECORD) -> Option<Event> {
+    match event.EventType {
+        KEY_EVENT => {
+            let key_event = event.Event.KeyEvent();
+            if key_event.bKeyDown == 1 {
+                println!("Key pressed: {}", key_event.wVirtualKeyCode);
+            }
+        }
+        MOUSE_EVENT => {
+            //Keep in mind mouse_event.dwControlKeyState for control clicks.
+            let mouse_event = event.Event.MouseEvent();
+            let event_flags = mouse_event.dwEventFlags;
+
+            match event_flags {
+                0 => {
+                    if mouse_event.dwButtonState == FROM_LEFT_1ST_BUTTON_PRESSED {
+                        println!("Left mouse button pressed");
+                    }
+                    if mouse_event.dwButtonState == RIGHTMOST_BUTTON_PRESSED {
+                        println!("Right mouse button pressed");
+                    }
+                    if mouse_event.dwButtonState == FROM_LEFT_2ND_BUTTON_PRESSED {
+                        println!("Middle mouse button pressed");
+                    }
+                }
+                DOUBLE_CLICK => {
+                    if mouse_event.dwButtonState == FROM_LEFT_1ST_BUTTON_PRESSED {
+                        println!("Left mouse button double clicked");
+                    }
+                    if mouse_event.dwButtonState == RIGHTMOST_BUTTON_PRESSED {
+                        println!("Right mouse button double clicked");
+                    }
+                    if mouse_event.dwButtonState == FROM_LEFT_2ND_BUTTON_PRESSED {
+                        println!("Middle mouse button double clicked");
+                    }
+                }
+                MOUSE_WHEELED => {
+                    if mouse_event.dwButtonState == 0x800000 {
+                        println!("Mouse wheeled up");
+                    }
+                    if mouse_event.dwButtonState == 0xff800000 {
+                        println!("Mouse wheeled down");
+                    }
+                }
+                // MOUSE_HWHEELED => {}
+                // MOUSE_MOVED => {}
+                _ => {}
+            }
+        }
+        WINDOW_BUFFER_SIZE_EVENT => {
+            let size = event.Event.WindowBufferSizeEvent().dwSize;
+            println!("{} {}", size.X, size.Y);
+        }
+        _ => (),
+    };
+    None
+}
+
+//TODO: Does this ever return None?
+pub fn poll_event(timeout: Option<Duration>) -> bool {
+    let dw_millis = match timeout {
+        Some(duration) => duration.as_millis() as u32,
+        None => INFINITE,
+    };
+
+    let console_handle = current_in_handle();
+    let output = unsafe { WaitForSingleObject(console_handle, dw_millis) };
+
+    match output {
+        WAIT_OBJECT_0 => {
+            // input handle triggered
+            true
+        }
+        WAIT_TIMEOUT | WAIT_ABANDONED_0 => {
+            // timeout elapsed
+            false
+        }
+        WAIT_FAILED => panic!("{:#}", std::io::Error::last_os_error()),
+        _ => panic!("WaitForMultipleObjects returned unexpected result."),
+    }
+}
+
+///Read terminal events.
+///```rs
+///loop {
+///    if let Some(event) = read(Duration::from_millis(3)) {
+///        dbg!(event);
+///    }
+///}
+/// ```
+pub fn read(timeout: Duration) -> Option<Event> {
+    let now = Instant::now();
+
+    let handle = current_in_handle();
+    loop {
+        let leftover = timeout.saturating_sub(now.elapsed());
+        let n = number_of_console_input_events(handle);
+        if poll_event(Some(leftover)) && n != 0 {
+            let event = read_single_input_event(handle);
+            return unsafe { convert_event(event) };
+        }
+
+        //Timeout elapsed
+        if now.elapsed().as_millis() >= timeout.as_millis() {
+            return None;
+        }
+    }
+}
+
+pub fn number_of_console_input_events(handle: *mut c_void) -> u32 {
+    let mut buf_len: DWORD = 0;
+    let result = unsafe { GetNumberOfConsoleInputEvents(handle, &mut buf_len) };
+    if result == 0 {
+        panic!("Could not get number of console input events.");
+    }
+    buf_len
 }
 
 ///Clear the entire screen, using `cmd /c cls`.

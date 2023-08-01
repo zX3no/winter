@@ -2,7 +2,7 @@
 use std::{
     borrow::Cow,
     io::{stdout, Write},
-    time::Instant,
+    time::{Duration, Instant},
 };
 use winter::*;
 
@@ -150,9 +150,14 @@ fn main() {
     // enter_alternate_screen(&mut stdout);
     // clear(&mut stdout);
 
-    enable_raw_mode();
-    enable_mouse_capture();
-    return unsafe { Terminal::test() };
+    // enable_raw_mode();
+    // enable_mouse_capture();
+
+    loop {
+        if let Some(event) = read(Duration::from_millis(3)) {
+            dbg!(event);
+        }
+    }
 
     loop {
         //Draw the widgets into the front buffer.
