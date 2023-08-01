@@ -1,9 +1,10 @@
 ## winter
 
 ### Terminal:
-- [ ] Raw mode
-- [ ] Input support
-- [ ] Simplify main loop
+- [x] Raw mode
+- [x] Input support
+- [x] Simplify main loop
+- [ ] Simplify main loop even more
 - [x] Reset all styles on exit
 
 ### Widgets:
@@ -44,44 +45,43 @@
 
 ----
 
-Okay so there's a table made up of rows, columns and a style.
-Each row is made up `n_1` columns.
-Each columns is made up of `n_2` lines and a style.
-Each line is made up of `n_3` text and a style.
-Each text item is made up of a string and a style.
-
-Currently text styles overwrite all other styles.
-Should you be able to set inherited styles for lines, rows and tables.
+### Example
 
 ```rs
-    let rows = &[
-        //Row 1
-        row![
-            &[
-                //Row 1 Column 1
-                lines_s!(
-                    "first item first row",
-                    fg(Cyan),
-                    " <-- there is a space here",
-                    fg(Blue).underlined()
-                ),
-                //Row 1 Column 2
-                lines!(
-                    "second item",
-                    " first row"
-                ),
-            ],
-            style() //FIXME: Style is not being applied here.
-        ],
-        //Row 2
-        row![
-            &[
-                //Row 2 Column 1
-                lines_s!("first item second row", fg(Yellow)),
-                //Row 2 Column 2
-                lines!("second item second row"),
-            ],
-            fg(Yellow) //FIXME: Style is not being applied here.
-        ],
-    ];
+pub fn browser(area: Rect, buf: &mut Buffer) {
+    let size = area.width / 3;
+    let rem = area.width % 3;
+
+    let chunks = layout!(
+        area,
+        Direction::Horizontal,
+        Constraint::Length(size),
+        Constraint::Length(size),
+        Constraint::Length(size + rem)
+    );
+
+    let a = lines!["Artist 1", "Artist 2", "Artist 3"];
+    let b = lines!["Album 1", "Album 2", "Album 3"];
+    let c = lines!["Song 1", "Song 2", "Song 3"];
+
+    fn browser_list<'a>(title: &'static str, content: Lines<'a>, use_symbol: bool) -> List<'a> {
+        let block = block(
+            Some(text!(title, bold())),
+            1,
+            Borders::ALL,
+            BorderType::Rounded,
+            style(),
+        );
+        let symbol = if use_symbol { ">" } else { " " };
+        list(Some(block), content, Some(symbol), style())
+    }
+
+    let artists = browser_list("Aritst", a, false);
+    let albums = browser_list("Album", b, false);
+    let songs = browser_list("Song", c, true);
+
+    artists.draw(chunks[0], buf, &mut list_state(Some(0)));
+    albums.draw(chunks[1], buf, &mut list_state(Some(0)));
+    songs.draw(chunks[2], buf, &mut list_state(Some(0)));
+}
 ```
