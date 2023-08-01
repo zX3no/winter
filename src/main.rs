@@ -145,17 +145,21 @@ fn main() {
         std::process::exit(1);
     }));
 
-    //TODO: Enable raw mode.
     let mut stdout = stdout();
-    hide_cursor(&mut stdout);
-    enter_alternate_screen(&mut stdout);
-    clear(&mut stdout);
+    // hide_cursor(&mut stdout);
+    // enter_alternate_screen(&mut stdout);
+    // clear(&mut stdout);
+
+    enable_raw_mode();
+    enable_mouse_capture();
+    return unsafe { Terminal::test() };
 
     loop {
         //Draw the widgets into the front buffer.
-
-        // draw(viewport, &mut buffers[current]);
-        browser(viewport, &mut buffers[current]);
+        {
+            // draw(viewport, &mut buffers[current]);
+            browser(viewport, &mut buffers[current]);
+        }
 
         //Calculate difference and draw to the terminal.
         let previous_buffer = &buffers[1 - current];
@@ -182,6 +186,6 @@ fn main() {
             clear(&mut stdout);
         }
 
-        return;
+        break;
     }
 }
