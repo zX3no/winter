@@ -123,7 +123,6 @@ fn draw(area: Rect, buf: &mut Buffer) {
 }
 
 fn main() {
-    let mut terminal = Terminal::new();
     let (output_handle, input_handle) = handles();
     let (width, height) = area(output_handle);
 
@@ -134,27 +133,27 @@ fn main() {
     //Prevents panic messages from being hidden.
     let orig_hook = std::panic::take_hook();
     std::panic::set_hook(Box::new(move |panic_info| {
-        let mut stdout = stdout();
+        // let mut stdout = stdout();
         // disable_raw_mode();
         // disable_mouse_caputure();
-        leave_alternate_screen(&mut stdout);
-        show_cursor(&mut stdout);
-        stdout.flush().unwrap();
+        // leave_alternate_screen(&mut stdout);
+        // show_cursor(&mut stdout);
+        // stdout.flush().unwrap();
 
         orig_hook(panic_info);
         std::process::exit(1);
     }));
 
     let mut stdout = stdout();
-    // hide_cursor(&mut stdout);
-    // enter_alternate_screen(&mut stdout);
-    // clear(&mut stdout);
+    hide_cursor(&mut stdout);
+    enter_alternate_screen(&mut stdout);
+    clear(&mut stdout);
 
     // enable_raw_mode();
     // enable_mouse_capture();
-
+    // enable_resize_events();
     loop {
-        if let Some(event) = read(Duration::from_millis(3)) {
+        if let Some(event) = poll(Duration::from_millis(3)) {
             dbg!(event);
         }
     }
@@ -164,6 +163,13 @@ fn main() {
         {
             // draw(viewport, &mut buffers[current]);
             browser(viewport, &mut buffers[current]);
+        }
+
+        //Handle events
+        {
+            if let Some(event) = poll(Duration::from_millis(3)) {
+                dbg!(event);
+            }
         }
 
         //Calculate difference and draw to the terminal.
@@ -191,6 +197,10 @@ fn main() {
             clear(&mut stdout);
         }
 
-        break;
+        // break;
     }
+
+    // leave_alternate_screen(&mut stdout);
+    show_cursor(&mut stdout);
+    stdout.flush().unwrap();
 }

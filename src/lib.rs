@@ -1,14 +1,18 @@
+//TODO: Remove
+#![allow(unused)]
 ///![](https://learn.microsoft.com/en-us/windows/console/console-virtual-terminal-sequences)
 use std::{
     collections::VecDeque,
-    ffi::OsString,
     io::Write,
     mem::zeroed,
-    os::windows::prelude::OsStringExt,
     process::Command,
     ptr::null_mut,
     sync::Mutex,
     time::{Duration, Instant},
+};
+use winapi::um::{
+    winnt::CHAR,
+    winuser::{ToUnicode, VK_TAB},
 };
 use winapi::{
     ctypes::c_void,
@@ -17,30 +21,36 @@ use winapi::{
         consoleapi::{
             GetConsoleMode, GetNumberOfConsoleInputEvents, ReadConsoleInputW, SetConsoleMode,
         },
-        errhandlingapi::GetLastError,
         fileapi::{CreateFileW, OPEN_EXISTING},
         handleapi::INVALID_HANDLE_VALUE,
         processenv::GetStdHandle,
-        synchapi::{WaitForMultipleObjects, WaitForSingleObject},
+        synchapi::WaitForSingleObject,
         winbase::{
-            FormatMessageW, LocalFree, FORMAT_MESSAGE_ALLOCATE_BUFFER, FORMAT_MESSAGE_FROM_SYSTEM,
-            FORMAT_MESSAGE_IGNORE_INSERTS, INFINITE, STD_INPUT_HANDLE, STD_OUTPUT_HANDLE,
-            WAIT_ABANDONED_0, WAIT_FAILED, WAIT_OBJECT_0,
+            INFINITE, STD_INPUT_HANDLE, STD_OUTPUT_HANDLE, WAIT_ABANDONED_0, WAIT_FAILED,
+            WAIT_OBJECT_0,
         },
         wincon::{
             GetConsoleScreenBufferInfo, CONSOLE_SCREEN_BUFFER_INFO, ENABLE_ECHO_INPUT,
             ENABLE_EXTENDED_FLAGS, ENABLE_LINE_INPUT, ENABLE_MOUSE_INPUT, ENABLE_PROCESSED_INPUT,
-            ENABLE_VIRTUAL_TERMINAL_INPUT, ENABLE_VIRTUAL_TERMINAL_PROCESSING, ENABLE_WINDOW_INPUT,
+            ENABLE_QUICK_EDIT_MODE, ENABLE_VIRTUAL_TERMINAL_INPUT,
+            ENABLE_VIRTUAL_TERMINAL_PROCESSING, ENABLE_WINDOW_INPUT,
         },
         wincontypes::{
-            DOUBLE_CLICK, FROM_LEFT_1ST_BUTTON_PRESSED, FROM_LEFT_2ND_BUTTON_PRESSED,
-            FROM_LEFT_3RD_BUTTON_PRESSED, FROM_LEFT_4TH_BUTTON_PRESSED, INPUT_RECORD, KEY_EVENT,
-            MOUSE_EVENT, MOUSE_HWHEELED, MOUSE_MOVED, MOUSE_WHEELED, RIGHTMOST_BUTTON_PRESSED,
+            DOUBLE_CLICK, ENHANCED_KEY, FROM_LEFT_1ST_BUTTON_PRESSED, FROM_LEFT_2ND_BUTTON_PRESSED,
+            INPUT_RECORD, KEY_EVENT, MOUSE_EVENT, MOUSE_WHEELED, RIGHTMOST_BUTTON_PRESSED,
             WINDOW_BUFFER_SIZE_EVENT,
         },
         winnt::{FILE_SHARE_READ, FILE_SHARE_WRITE, GENERIC_READ, GENERIC_WRITE},
     },
 };
+use winapi::{
+    shared::minwindef::BYTE,
+    um::winuser::{
+        VK_BACK, VK_CONTROL, VK_ESCAPE, VK_LCONTROL, VK_LMENU, VK_LSHIFT, VK_MENU, VK_RCONTROL,
+        VK_RETURN, VK_RMENU, VK_RSHIFT, VK_SHIFT, VK_SPACE,
+    },
+};
+use winapi::{shared::ntdef::WCHAR, um::winuser::VK_F1};
 
 //Widgets
 pub use block::*;
@@ -71,6 +81,7 @@ pub struct Info {
     pub cursor_position: (u16, u16),
 }
 
+//TODO: What is the difference between this and `GetStdHandle(STD_INPUT_HANDLE)`
 pub fn current_in_handle() -> *mut c_void {
     let utf16: Vec<u16> = "CONIN$\0".encode_utf16().collect();
     let utf16_ptr: *const u16 = utf16.as_ptr();
@@ -89,12 +100,16 @@ pub fn current_in_handle() -> *mut c_void {
 }
 
 const NOT_RAW_MODE_MASK: DWORD = ENABLE_LINE_INPUT | ENABLE_ECHO_INPUT | ENABLE_PROCESSED_INPUT;
-const ENABLE_MOUSE_MODE: u32 = 0x0010 | 0x0080 | 0x0008;
 
+//TODO: This enables raw mode
+///Also breaks CTRL+C
 pub fn enable_mouse_capture() {
     let handle = current_in_handle();
-    // let orignal_mode = get_mode(handle);
-    set_mode(handle, ENABLE_MOUSE_MODE);
+    set_mode(
+        handle,
+        //Also turns off text selection.
+        ENABLE_MOUSE_INPUT | ENABLE_EXTENDED_FLAGS,
+    );
 }
 
 //TODO: Re-write this. Just testing how crossterm does it.
@@ -118,6 +133,27 @@ pub fn is_raw_mode() -> bool {
     dw_mode & NOT_RAW_MODE_MASK == 0
 }
 
+//TODO: Figure out what flags are actually useful and move into a function.
+//Something like enable_terminal_events() or something.
+pub fn enable_resize_events() {
+    let handle = unsafe { GetStdHandle(STD_INPUT_HANDLE) };
+
+    if handle == INVALID_HANDLE_VALUE {
+        panic!("Failed to get the input handle");
+    }
+
+    let mut mode = get_mode(handle);
+
+    // mode &= !ENABLE_EXTENDED_FLAGS;
+    // mode &= !(ENABLE_LINE_INPUT | ENABLE_ECHO_INPUT);
+
+    // mode |= ENABLE_MOUSE_MODE;
+
+    //Enables resize events.
+    mode |= ENABLE_WINDOW_INPUT;
+    set_mode(handle, mode);
+}
+
 /// This wraps
 /// [`SetConsoleMode`](https://learn.microsoft.com/en-us/windows/console/setconsolemode).
 pub fn set_mode(handle: *mut c_void, mode: u32) {
@@ -139,38 +175,6 @@ pub fn get_mode(handle: *mut c_void) -> u32 {
         mode
     }
 }
-
-// fn get_last_error_message(error_code: DWORD) -> String {
-//     let mut buffer: *mut winapi::ctypes::c_void = null_mut();
-
-//     unsafe {
-//         let size = FormatMessageW(
-//             FORMAT_MESSAGE_ALLOCATE_BUFFER
-//                 | FORMAT_MESSAGE_FROM_SYSTEM
-//                 | FORMAT_MESSAGE_IGNORE_INSERTS,
-//             null_mut(),
-//             error_code,
-//             0,
-//             &mut buffer as *mut _ as *mut u16,
-//             0,
-//             null_mut(),
-//         );
-//         if size == 0 {
-//             panic!("Failed to get error message.");
-//         }
-
-//         let error_message = OsString::from_wide(std::slice::from_raw_parts(
-//             buffer as *const u16,
-//             size as usize,
-//         ))
-//         .to_string_lossy()
-//         .trim()
-//         .to_string();
-
-//         LocalFree(buffer);
-//         error_message
-//     }
-// }
 
 pub fn handles() -> (*mut c_void, *mut c_void) {
     unsafe {
@@ -200,204 +204,68 @@ pub fn area(output_handle: *mut c_void) -> (u16, u16) {
     }
 }
 
-//TODO: This struct serves zero purpose.
-//You should delete this now.
-pub struct Terminal {
-    pub output: *mut c_void,
-    pub input: *mut c_void,
-    pub output_mode: u32,
-    pub input_mode: u32,
-}
-
-impl Terminal {
-    pub fn new() -> Self {
-        unsafe {
-            let output = GetStdHandle(STD_OUTPUT_HANDLE);
-            let input = GetStdHandle(STD_INPUT_HANDLE);
-
-            let mut output_mode: u32 = 0;
-            if GetConsoleMode(output, &mut output_mode) == 0 {
-                panic!("Failed to get console mode");
-            }
-
-            let mut input_mode: u32 = 0;
-            if GetConsoleMode(input, &mut input_mode) == 0 {
-                panic!("Failed to get console mode");
-            }
-
-            Self {
-                output,
-                input,
-                output_mode,
-                input_mode,
-            }
+/// Get the screen buffer information like terminal size, cursor position, buffer size.
+///
+/// This wraps
+/// [`GetConsoleScreenBufferInfo`](https://docs.microsoft.com/en-us/windows/console/getconsolescreenbufferinfo).
+pub fn info(handle: *mut c_void) -> Info {
+    unsafe {
+        let mut info: CONSOLE_SCREEN_BUFFER_INFO = zeroed();
+        let result = GetConsoleScreenBufferInfo(handle, &mut info);
+        if result != 1 {
+            panic!("Could not get window size. result: {}", result);
         }
-    }
-
-    ///Get the terminal area that is usable.
-    pub fn area(&self) -> (u16, u16) {
-        unsafe {
-            // let handle = GetStdHandle(-11i32 as u32);
-            let mut info: CONSOLE_SCREEN_BUFFER_INFO = zeroed();
-            let result = GetConsoleScreenBufferInfo(self.output, &mut info);
-            if result != 1 {
-                panic!("Could not get window size. result: {}", result);
-            }
-            (
+        Info {
+            buffer_size: (info.dwSize.X as u16, info.dwSize.Y as u16),
+            window_size: (
                 (info.srWindow.Right - info.srWindow.Left) as u16,
                 (info.srWindow.Bottom - info.srWindow.Top) as u16,
-            )
-        }
-    }
-
-    /// Get the screen buffer information like terminal size, cursor position, buffer size.
-    ///
-    /// This wraps
-    /// [`GetConsoleScreenBufferInfo`](https://docs.microsoft.com/en-us/windows/console/getconsolescreenbufferinfo).
-    pub fn info(&self) -> Info {
-        unsafe {
-            let mut info: CONSOLE_SCREEN_BUFFER_INFO = zeroed();
-            let result = GetConsoleScreenBufferInfo(self.output, &mut info);
-            if result != 1 {
-                panic!("Could not get window size. result: {}", result);
-            }
-            Info {
-                buffer_size: (info.dwSize.X as u16, info.dwSize.Y as u16),
-                window_size: (
-                    (info.srWindow.Right - info.srWindow.Left) as u16,
-                    (info.srWindow.Bottom - info.srWindow.Top) as u16,
-                ),
-                cursor_position: (
-                    info.dwCursorPosition.X as u16,
-                    info.dwCursorPosition.Y as u16,
-                ),
-            }
-        }
-    }
-
-    //TODO: Should this poll with mpsc? seems like a decent idea.
-    //Although I kind of hate multi-threading things like this.
-    //I'm thinking something like poll() with a Once loop with
-    //a message channel. Wait for an event. If one becomes available return immediately.
-    //
-    //https://github.com/crossterm-rs/crossterm/blob/master/src/event/sys/windows/parse.rs
-    pub unsafe fn test() {
-        //Note: This is an input handle not output.
-        let handle = unsafe { GetStdHandle(STD_INPUT_HANDLE) };
-
-        if handle == INVALID_HANDLE_VALUE {
-            panic!("Failed to get the input handle");
-        }
-
-        // Set the console input mode to raw input
-        let mut mode: u32 = 0;
-        if GetConsoleMode(handle, &mut mode) == 0 {
-            panic!("Failed to get console mode");
-        }
-
-        // mode &= !ENABLE_EXTENDED_FLAGS;
-        // mode &= !(ENABLE_LINE_INPUT | ENABLE_ECHO_INPUT);
-
-        // mode |= ENABLE_MOUSE_MODE;
-
-        //Enables resize events.
-        mode |= ENABLE_WINDOW_INPUT;
-
-        //Setting this flag directs user input into
-        //Virtual Terminal Sequences that can be retrieved
-        //through ReadFile or ReadConsole functions.
-        // mode |= ENABLE_VIRTUAL_TERMINAL_INPUT;
-
-        //This causes issues with raw mode.
-        // mode |= ENABLE_PROCESSED_INPUT;
-
-        if SetConsoleMode(handle, mode) == 0 {
-            panic!("Failed to set console mode");
-        }
-
-        let mut events: [INPUT_RECORD; 128] = std::mem::zeroed();
-        let mut events_read: DWORD = 0;
-
-        loop {
-            if ReadConsoleInputW(
-                handle,
-                events.as_mut_ptr(),
-                events.len() as DWORD,
-                &mut events_read,
-            ) == 0
-            {
-                panic!("Failed to read console input");
-            }
-
-            for i in 0..events_read as usize {
-                match events[i].EventType {
-                    KEY_EVENT => {
-                        let key_event = events[i].Event.KeyEvent();
-                        if key_event.bKeyDown == 1 {
-                            println!("Key pressed: {}", key_event.wVirtualKeyCode);
-                        }
-                    }
-                    MOUSE_EVENT => {
-                        //Keep in mind mouse_event.dwControlKeyState for control clicks.
-                        let mouse_event = events[i].Event.MouseEvent();
-                        let event_flags = mouse_event.dwEventFlags;
-
-                        match event_flags {
-                            0 => {
-                                if mouse_event.dwButtonState == FROM_LEFT_1ST_BUTTON_PRESSED {
-                                    println!("Left mouse button pressed");
-                                }
-                                if mouse_event.dwButtonState == RIGHTMOST_BUTTON_PRESSED {
-                                    println!("Right mouse button pressed");
-                                }
-                                if mouse_event.dwButtonState == FROM_LEFT_2ND_BUTTON_PRESSED {
-                                    println!("Middle mouse button pressed");
-                                }
-                            }
-                            DOUBLE_CLICK => {
-                                if mouse_event.dwButtonState == FROM_LEFT_1ST_BUTTON_PRESSED {
-                                    println!("Left mouse button double clicked");
-                                }
-                                if mouse_event.dwButtonState == RIGHTMOST_BUTTON_PRESSED {
-                                    println!("Right mouse button double clicked");
-                                }
-                                if mouse_event.dwButtonState == FROM_LEFT_2ND_BUTTON_PRESSED {
-                                    println!("Middle mouse button double clicked");
-                                }
-                            }
-                            MOUSE_WHEELED => {
-                                if mouse_event.dwButtonState == 0x800000 {
-                                    println!("Mouse wheeled up");
-                                }
-                                if mouse_event.dwButtonState == 0xff800000 {
-                                    println!("Mouse wheeled down");
-                                }
-                            }
-                            // MOUSE_HWHEELED => {}
-                            // MOUSE_MOVED => {}
-                            _ => {}
-                        }
-                    }
-                    WINDOW_BUFFER_SIZE_EVENT => {
-                        let size = events[i].Event.WindowBufferSizeEvent().dwSize;
-                        println!("{} {}", size.X, size.Y);
-                    }
-                    _ => (),
-                }
-            }
+            ),
+            cursor_position: (
+                info.dwCursorPosition.X as u16,
+                info.dwCursorPosition.Y as u16,
+            ),
         }
     }
 }
 
-pub static EVENT_READER: Mutex<VecDeque<Event>> = Mutex::new(VecDeque::new());
-
-#[derive(Debug)]
-pub enum Code {}
-
+///TODO: What is a good way to do events.
+///I don't like Event::Mouse(Mouse::Left).
+///Why not just Event::LeftMouse ?
+///That way you can do:
+///```rs
+/// if event == Event::LeftMouse {
+///     println!("Pressed left mouse button!");
+/// }
+///```
+/// Also how are we going to handle double clicks?
+/// They might be nice to have...or not.
 #[derive(Debug)]
 pub enum Event {
-    Mouse(Code),
-    Key(Code),
+    //Mouse
+    LeftMouse,
+    RightMouse,
+    MiddleMouse,
+    ScrollUp,
+    ScrollDown,
+
+    //Key
+    Char(char),
+    Function(u8),
+    Space,
+    Enter,
+    Backspace,
+    Escape,
+    Control,
+    Shift,
+    Alt,
+    Tab,
+    Up,
+    Down,
+    Left,
+    Right,
+
+    //Other
     Resize(u16, u16),
 }
 
@@ -405,29 +273,20 @@ pub enum Event {
 pub fn read_single_input_event(handle: *mut c_void) -> INPUT_RECORD {
     let mut record: INPUT_RECORD = unsafe { zeroed() };
 
-    // Convert an INPUT_RECORD to an &mut [INPUT_RECORD] of length 1
+    //Convert an INPUT_RECORD to an &mut [INPUT_RECORD] of length 1
     let buf = std::slice::from_mut(&mut record);
-    let num_read = read_input(handle, buf);
-
-    // The windows API promises that ReadConsoleInput returns at least
-    // 1 element
-    debug_assert!(num_read == 1);
-
-    record
-}
-
-fn read_input(handle: *mut c_void, buf: &mut [INPUT_RECORD]) -> u32 {
     let mut num_records = 0;
     debug_assert!(buf.len() < std::u32::MAX as usize);
-
-    unsafe {
-        let result =
-            ReadConsoleInputW(handle, buf.as_mut_ptr(), buf.len() as u32, &mut num_records);
-        if result == 0 {
-            panic!("Failed to read input");
-        }
-        num_records
+    let result =
+        unsafe { ReadConsoleInputW(handle, buf.as_mut_ptr(), buf.len() as u32, &mut num_records) };
+    if result == 0 {
+        panic!("Failed to read input");
     }
+
+    //The windows API promises that ReadConsoleInput returns at least 1 element.
+    debug_assert!(num_records == 1);
+
+    record
 }
 
 pub unsafe fn convert_event(event: INPUT_RECORD) -> Option<Event> {
@@ -435,7 +294,59 @@ pub unsafe fn convert_event(event: INPUT_RECORD) -> Option<Event> {
         KEY_EVENT => {
             let key_event = event.Event.KeyEvent();
             if key_event.bKeyDown == 1 {
-                println!("Key pressed: {}", key_event.wVirtualKeyCode);
+                let virtual_keycode = key_event.wVirtualKeyCode;
+                let scan_code = key_event.wVirtualScanCode;
+                let is_extended = (key_event.dwControlKeyState & ENHANCED_KEY) != 0;
+                const F24: i32 = VK_F1 + 23;
+
+                match virtual_keycode as i32 {
+                    VK_RETURN => return Some(Event::Enter),
+                    VK_SPACE => return Some(Event::Space),
+                    VK_BACK => return Some(Event::Backspace),
+                    VK_ESCAPE => return Some(Event::Escape),
+                    VK_TAB => return Some(Event::Tab),
+                    VK_SHIFT | VK_LSHIFT | VK_RSHIFT => return Some(Event::Shift),
+                    VK_CONTROL | VK_LCONTROL | VK_RCONTROL => return Some(Event::Control),
+                    VK_MENU | VK_LMENU | VK_RMENU => return Some(Event::Alt),
+                    VK_F1..=F24 => {
+                        return Some(Event::Function((virtual_keycode - VK_F1 as u16 + 1) as u8))
+                    }
+                    // Handle alphanumeric keys (A-Z, 0-9).
+                    0x30..=0x39 | 0x41..=0x5A => {
+                        // Buffer to hold the Unicode characters.
+                        let mut buffer: [WCHAR; 5] = [0; 5];
+
+                        //This would return a multi-character key if this wasn't blank.
+                        let mut keyboard_state: [BYTE; 256] = [0; 256];
+
+                        let result = ToUnicode(
+                            virtual_keycode as u32,
+                            scan_code as u32,
+                            keyboard_state.as_ptr(),
+                            buffer.as_mut_ptr(),
+                            buffer.len() as i32,
+                            0,
+                        );
+                        match result {
+                            // The key is a dead key or is a key that has no translation.
+                            // This is usually used for keys that modify other characters, like accent keys.
+                            -1 => todo!("Dead key or no translation."),
+                            // The key is a dead key and a buffer is not provided, or the key is not a dead key but is a key that does not produce a character.
+                            0 => todo!("No character produced."),
+                            // The key is a single character key.
+                            1 => return Some(Event::Char(buffer[0] as u8 as char)),
+                            _ => {
+                                // The key is a multi-character key, e.g., a CTRL+key combination.
+                                let result_chars: Vec<WCHAR> =
+                                    buffer.iter().take(result as usize).copied().collect();
+                                let result_str: String =
+                                    result_chars.iter().map(|&c| c as u8 as char).collect();
+                                todo!("Multi-character produced: {}", result_str);
+                            }
+                        }
+                    }
+                    _ => (),
+                }
             }
         }
         MOUSE_EVENT => {
@@ -444,34 +355,19 @@ pub unsafe fn convert_event(event: INPUT_RECORD) -> Option<Event> {
             let event_flags = mouse_event.dwEventFlags;
 
             match event_flags {
-                0 => {
-                    if mouse_event.dwButtonState == FROM_LEFT_1ST_BUTTON_PRESSED {
-                        println!("Left mouse button pressed");
-                    }
-                    if mouse_event.dwButtonState == RIGHTMOST_BUTTON_PRESSED {
-                        println!("Right mouse button pressed");
-                    }
-                    if mouse_event.dwButtonState == FROM_LEFT_2ND_BUTTON_PRESSED {
-                        println!("Middle mouse button pressed");
-                    }
-                }
-                DOUBLE_CLICK => {
-                    if mouse_event.dwButtonState == FROM_LEFT_1ST_BUTTON_PRESSED {
-                        println!("Left mouse button double clicked");
-                    }
-                    if mouse_event.dwButtonState == RIGHTMOST_BUTTON_PRESSED {
-                        println!("Right mouse button double clicked");
-                    }
-                    if mouse_event.dwButtonState == FROM_LEFT_2ND_BUTTON_PRESSED {
-                        println!("Middle mouse button double clicked");
-                    }
-                }
+                //TODO: Double click event?
+                0 | DOUBLE_CLICK => match mouse_event.dwButtonState {
+                    FROM_LEFT_1ST_BUTTON_PRESSED => return Some(Event::LeftMouse),
+                    RIGHTMOST_BUTTON_PRESSED => return Some(Event::RightMouse),
+                    FROM_LEFT_2ND_BUTTON_PRESSED => return Some(Event::MiddleMouse),
+                    _ => (),
+                },
                 MOUSE_WHEELED => {
                     if mouse_event.dwButtonState == 0x800000 {
-                        println!("Mouse wheeled up");
+                        return Some(Event::ScrollUp);
                     }
                     if mouse_event.dwButtonState == 0xff800000 {
-                        println!("Mouse wheeled down");
+                        return Some(Event::ScrollDown);
                     }
                 }
                 // MOUSE_HWHEELED => {}
@@ -515,15 +411,15 @@ pub fn poll_event(timeout: Option<Duration>) -> bool {
 ///Read terminal events.
 ///```rs
 ///loop {
-///    if let Some(event) = read(Duration::from_millis(3)) {
+///    if let Some(event) = poll(Duration::from_millis(3)) {
 ///        dbg!(event);
 ///    }
 ///}
 /// ```
-pub fn read(timeout: Duration) -> Option<Event> {
+pub fn poll(timeout: Duration) -> Option<Event> {
     let now = Instant::now();
-
     let handle = current_in_handle();
+
     loop {
         let leftover = timeout.saturating_sub(now.elapsed());
         let n = number_of_console_input_events(handle);
