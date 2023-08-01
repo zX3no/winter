@@ -12,7 +12,10 @@ use std::{
 };
 use winapi::um::{
     winnt::CHAR,
-    winuser::{ToUnicode, VK_TAB},
+    winuser::{
+        ToUnicode, VK_DOWN, VK_LEFT, VK_OEM_1, VK_OEM_2, VK_OEM_3, VK_OEM_4, VK_OEM_5, VK_OEM_6,
+        VK_OEM_7, VK_OEM_COMMA, VK_OEM_MINUS, VK_OEM_PERIOD, VK_OEM_PLUS, VK_RIGHT, VK_TAB, VK_UP,
+    },
 };
 use winapi::{
     ctypes::c_void,
@@ -264,6 +267,7 @@ pub enum Event {
     Down,
     Left,
     Right,
+    Unknown(u16),
 
     //Other
     Resize(u16, u16),
@@ -300,6 +304,73 @@ pub unsafe fn convert_event(event: INPUT_RECORD) -> Option<Event> {
                 const F24: i32 = VK_F1 + 23;
 
                 match virtual_keycode as i32 {
+                    // VK_OEM_4 => {
+                    //     if shift_pressed {
+                    //         '{'
+                    //     } else {
+                    //         '['
+                    //     }
+                    // }
+                    // VK_OEM_6 => {
+                    //     if shift_pressed {
+                    //         '}'
+                    //     } else {
+                    //         ']'
+                    //     }
+                    // }
+                    // VK_OEM_5 => {
+                    //     if shift_pressed {
+                    //         '|'
+                    //     } else {
+                    //         '\\'
+                    //     }
+                    // }
+                    // VK_OEM_1 => {
+                    //     if shift_pressed {
+                    //         ':'
+                    //     } else {
+                    //         ';'
+                    //     }
+                    // }
+                    // VK_OEM_7 => {
+                    //     if shift_pressed {
+                    //         '\"'
+                    //     } else {
+                    //         '\''
+                    //     }
+                    // }
+                    // VK_OEM_COMMA => {
+                    //     if shift_pressed {
+                    //         '<'
+                    //     } else {
+                    //         ','
+                    //     }
+                    // }
+                    // VK_OEM_PERIOD => {
+                    //     if shift_pressed {
+                    //         '>'
+                    //     } else {
+                    //         '.'
+                    //     }
+                    // }
+                    // VK_OEM_2 => {
+                    //     if shift_pressed {
+                    //         '?'
+                    //     } else {
+                    //         '/'
+                    //     }
+                    // }
+                    // VK_OEM_3 => {
+                    //     if shift_pressed {
+                    //         '~'
+                    //     } else {
+                    //         '`'
+                    //     }
+                    // }
+                    VK_UP => return Some(Event::Up),
+                    VK_DOWN => return Some(Event::Down),
+                    VK_LEFT => return Some(Event::Left),
+                    VK_RIGHT => return Some(Event::Right),
                     VK_RETURN => return Some(Event::Enter),
                     VK_SPACE => return Some(Event::Space),
                     VK_BACK => return Some(Event::Backspace),
@@ -308,6 +379,19 @@ pub unsafe fn convert_event(event: INPUT_RECORD) -> Option<Event> {
                     VK_SHIFT | VK_LSHIFT | VK_RSHIFT => return Some(Event::Shift),
                     VK_CONTROL | VK_LCONTROL | VK_RCONTROL => return Some(Event::Control),
                     VK_MENU | VK_LMENU | VK_RMENU => return Some(Event::Alt),
+                    VK_OEM_PLUS => return Some(Event::Char('+')),
+                    VK_OEM_MINUS => return Some(Event::Char('-')),
+                    //TODO: Tilde is kind of an odd ball.
+                    //Might need to handle this one better.
+                    VK_OEM_3 => return Some(Event::Char('`')),
+                    VK_OEM_4 => return Some(Event::Char('{')),
+                    VK_OEM_6 => return Some(Event::Char('}')),
+                    VK_OEM_5 => return Some(Event::Char('|')),
+                    VK_OEM_1 => return Some(Event::Char(';')),
+                    VK_OEM_7 => return Some(Event::Char('\\')),
+                    VK_OEM_COMMA => return Some(Event::Char(',')),
+                    VK_OEM_PERIOD => return Some(Event::Char('.')),
+                    VK_OEM_2 => return Some(Event::Char('/')),
                     VK_F1..=F24 => {
                         return Some(Event::Function((virtual_keycode - VK_F1 as u16 + 1) as u8))
                     }
@@ -345,7 +429,7 @@ pub unsafe fn convert_event(event: INPUT_RECORD) -> Option<Event> {
                             }
                         }
                     }
-                    _ => (),
+                    _ => return Some(Event::Unknown(virtual_keycode)),
                 }
             }
         }
