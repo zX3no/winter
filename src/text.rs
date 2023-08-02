@@ -11,7 +11,7 @@ use unicode_width::UnicodeWidthStr;
 
 ///Keep in mind wide characters must be formatted with spaces. FIXME: This is not needed in block titles.
 /// `う ず ま き` instead of `うずまき`
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct Lines<'a> {
     pub lines: Box<[Text<'a>]>,
     pub block: Option<Block<'a>>,
@@ -47,7 +47,7 @@ impl<'a> Lines<'a> {
             return;
         };
         //Don't ask.
-        let mut chars = line.chars();
+        let mut chars = line.inner.chars();
 
         let area = if let Some(block) = &self.block {
             block.draw(area, buf);
@@ -70,7 +70,7 @@ impl<'a> Lines<'a> {
                 } else {
                     if let Some(new_line) = lines.next() {
                         line = new_line;
-                        chars = line.chars();
+                        chars = line.inner.chars();
                     } else {
                         return;
                     }
@@ -112,6 +112,9 @@ pub fn lines<'a, B: Into<Box<[Text<'a>]>>>(
 /// ```
 #[macro_export]
 macro_rules! lines {
+    () => {
+        Lines::default()
+    };
     ($($text:expr),*) => {
         Lines {
             lines: Box::new([
@@ -153,8 +156,12 @@ macro_rules! lines_s{
 }
 
 //TODO: Things like this `text!(format!("{pct}%"))` seem dumb.
+//Maybe add format args or something.
 #[macro_export]
 macro_rules! text {
+    () => {
+        Text::default()
+    };
     ($text:expr) => {
         Text {
             inner: $text.into(),
@@ -169,7 +176,7 @@ macro_rules! text {
     };
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct Text<'a> {
     pub inner: std::borrow::Cow<'a, str>,
     pub style: Style,
@@ -187,60 +194,38 @@ impl<'a> AsRef<str> for Text<'a> {
     }
 }
 
-impl<'a> Deref for Text<'a> {
-    type Target = std::borrow::Cow<'a, str>;
-
-    fn deref(&self) -> &Self::Target {
-        &self.inner
-    }
+macro_rules! impl_lines {
+    ($($t:ty),*) => {
+        $(
+            impl<'a> Into<Lines<'a>> for $t {
+                fn into(self) -> Lines<'a> {
+                    Lines {
+                        lines: Box::new([self.into()]),
+                        block: None,
+                        style: None,
+                        alignment: Alignment::Left,
+                    }
+                }
+            }
+        )*
+    };
 }
 
-impl<'a> DerefMut for Text<'a> {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.inner
-    }
+macro_rules! impl_text {
+    ($($t:ty),*) => {
+        impl_lines!($($t),*);
+        $(
+            impl<'a> Into<Text<'a>> for $t {
+                fn into(self) -> Text<'a> {
+                    Text {
+                        inner: std::borrow::Cow::from(self),
+                        style: Style::default(),
+                    }
+                }
+            }
+        )*
+    };
 }
 
-impl<'a> From<Text<'a>> for Lines<'a> {
-    fn from(val: Text<'a>) -> Self {
-        Lines {
-            lines: Box::new([val]),
-            block: None,
-            style: None,
-            alignment: Alignment::Left,
-        }
-    }
-}
-
-//TODO: Macro some of these impls.
-impl<'a> From<&'static str> for Lines<'a> {
-    fn from(val: &'static str) -> Self {
-        Lines {
-            lines: Box::new([Text {
-                inner: std::borrow::Cow::from(val),
-                style: Style::default(),
-            }]),
-            block: None,
-            style: None,
-            alignment: Alignment::Left,
-        }
-    }
-}
-
-impl<'a> From<&'static str> for Text<'a> {
-    fn from(val: &'static str) -> Self {
-        Text {
-            inner: std::borrow::Cow::from(val),
-            style: Style::default(),
-        }
-    }
-}
-
-impl<'a> From<String> for Text<'a> {
-    fn from(val: String) -> Self {
-        Text {
-            inner: std::borrow::Cow::from(val),
-            style: Style::default(),
-        }
-    }
-}
+impl_lines! { Text<'a> }
+impl_text! { String, std::borrow::Cow<'a, str>, &'static str }

@@ -167,6 +167,7 @@ fn draw(area: Rect, buf: &mut Buffer) {
     {
         // settings(area, buf);
     }
+
     {
         // let l = lines!("This is a test of some text");
         // l.draw(area, buf);
@@ -187,6 +188,12 @@ fn draw(area: Rect, buf: &mut Buffer) {
             style()
         ];
         top.align(Center).draw(area, buf);
+    }
+
+    //Empty
+    {
+        let l = lines!();
+        let t = text!();
     }
 }
 
