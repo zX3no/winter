@@ -1,5 +1,4 @@
 use crate::{buffer::Buffer, *};
-use std::borrow::Cow;
 
 pub fn table_state(index: Option<usize>) -> TableState {
     TableState { selected: index }
@@ -208,7 +207,7 @@ impl<'a> Table<'a> {
         rows_height
     }
 
-    pub fn draw(&self, area: Rect, buf: &mut Buffer, state: &mut TableState) {
+    pub fn draw(&self, area: Rect, buf: &mut Buffer, state: &TableState) {
         if area.area() == 0 {
             return;
         }
@@ -238,7 +237,7 @@ impl<'a> Table<'a> {
                 if let Some(style) = column.style {
                     buf.set_style(area, style);
                 }
-                buf.set_lines(col, table_area.top(), &column, *width);
+                buf.set_lines(col, table_area.top(), column, *width);
                 col += *width + self.column_spacing;
             }
             if self.separator {

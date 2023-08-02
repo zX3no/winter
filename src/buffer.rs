@@ -132,14 +132,14 @@ impl Buffer {
     //         width += line.width();
     //     }
     // }
-    pub fn set_lines<'a>(&mut self, x: u16, y: u16, lines: &Lines<'a>, width: u16) -> (u16, u16) {
+    pub fn set_lines(&mut self, x: u16, y: u16, lines: &Lines<'_>, width: u16) -> (u16, u16) {
         let mut remaining_width = width;
         let mut x = x;
         for line in lines.iter() {
             if remaining_width == 0 {
                 break;
             }
-            let style = lines.style.unwrap_or_else(|| line.style);
+            let style = lines.style.unwrap_or(line.style);
             let pos = self.set_stringn(x, y, line, remaining_width as usize, style);
             let w = pos.0.saturating_sub(x);
             x = pos.0;
@@ -234,55 +234,55 @@ impl Buffer {
         updates
     }
     ///Allows for multi-width characters.
-    pub fn diff_wide<'a>(&self, other: &'a Buffer) -> Vec<(u16, u16, &'a Cell)> {
-        let previous_buffer = &self.content;
-        let next_buffer = &other.content;
-        let width = self.area.width;
+    // pub fn diff_wide<'a>(&self, other: &'a Buffer) -> Vec<(u16, u16, &'a Cell)> {
+    //     let previous_buffer = &self.content;
+    //     let next_buffer = &other.content;
+    //     let width = self.area.width;
 
-        let mut updates: Vec<(u16, u16, &Cell)> = vec![];
-        let mut skip_count: usize = 0;
+    //     let mut updates: Vec<(u16, u16, &Cell)> = vec![];
+    //     let mut skip_count: usize = 0;
 
-        for (i, (current, previous)) in next_buffer.iter().zip(previous_buffer.iter()).enumerate() {
-            let x = i as u16 % width;
-            let y = i as u16 / width;
+    //     for (i, (current, previous)) in next_buffer.iter().zip(previous_buffer.iter()).enumerate() {
+    //         let x = i as u16 % width;
+    //         let y = i as u16 / width;
 
-            if skip_count == 0 {
-                if current != previous {
-                    updates.push((x, y, current));
-                }
+    //         if skip_count == 0 {
+    //             if current != previous {
+    //                 updates.push((x, y, current));
+    //             }
 
-                let mut affected_width = current.symbol.width();
-                if affected_width > 1 {
-                    // Check if this multi-width character spans into the next cells.
-                    for j in 1..affected_width {
-                        let next_index = i + j;
-                        if next_index >= next_buffer.len() {
-                            break;
-                        }
+    //             let mut affected_width = current.symbol.width();
+    //             if affected_width > 1 {
+    //                 // Check if this multi-width character spans into the next cells.
+    //                 for j in 1..affected_width {
+    //                     let next_index = i + j;
+    //                     if next_index >= next_buffer.len() {
+    //                         break;
+    //                     }
 
-                        let next_cell = &next_buffer[next_index];
-                        if next_cell.symbol.width() == 0 {
-                            break;
-                        }
+    //                     let next_cell = &next_buffer[next_index];
+    //                     if next_cell.symbol.width() == 0 {
+    //                         break;
+    //                     }
 
-                        // If the next cell is part of the same multi-width character, mark it as skipped.
-                        updates.push((x + j as u16, y, next_cell));
-                        skip_count += 1;
-                        affected_width = std::cmp::max(affected_width, next_cell.symbol.width());
-                    }
-                }
+    //                     // If the next cell is part of the same multi-width character, mark it as skipped.
+    //                     updates.push((x + j as u16, y, next_cell));
+    //                     skip_count += 1;
+    //                     affected_width = std::cmp::max(affected_width, next_cell.symbol.width());
+    //                 }
+    //             }
 
-                // The number of cells to skip due to multi-width character.
-                skip_count = affected_width.saturating_sub(1);
-            } else {
-                // Skip the cell since it's part of a multi-width character.
-                skip_count -= 1;
-            }
-        }
+    //             // The number of cells to skip due to multi-width character.
+    //             skip_count = affected_width.saturating_sub(1);
+    //         } else {
+    //             // Skip the cell since it's part of a multi-width character.
+    //             skip_count -= 1;
+    //         }
+    //     }
 
-        updates
-    }
-    pub fn to_vec<'a>(&'a self) -> Vec<(u16, u16, &'a Cell)> {
+    //     updates
+    // }
+    pub fn to_vec(&self) -> Vec<(u16, u16, &Cell)> {
         self.content
             .iter()
             .enumerate()

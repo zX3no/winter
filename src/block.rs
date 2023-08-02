@@ -47,11 +47,11 @@ impl BorderType {
 
 //TODO: Title has bad ergonomics. Some("title".into())
 //Maybe title should be Option<Text<'a>> that way it has it's own style too?
-pub const fn block<'a>(
-    title: Option<Text<'a>>,
+pub const fn block(
+    title: Option<Text<'_>>,
     borders: Borders,
     border_type: BorderType,
-) -> Block<'a> {
+) -> Block<'_> {
     Block {
         title,
         margin: 0,
@@ -202,7 +202,7 @@ impl<'a> Block<'a> {
             buf.set_stringn(
                 title_x,
                 title_y,
-                &title,
+                title,
                 title_area_width as usize,
                 title.style,
             );

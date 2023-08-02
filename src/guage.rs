@@ -49,7 +49,7 @@ impl<'a> Gauge<'a> {
         // label is put at the center of the gauge_area
         let pct = f64::round(self.ratio * 100.0);
         let text = Cow::from(format!("{pct}%"));
-        let label = self.label.as_ref().unwrap_or_else(|| &text);
+        let label = self.label.as_ref().unwrap_or(&text);
 
         let clamped_label_width = area.width.min(label.width() as u16);
         let label_col = area.left() + (area.width - clamped_label_width) / 2;
@@ -73,7 +73,7 @@ impl<'a> Gauge<'a> {
         buf.set_stringn(
             label_col,
             label_row,
-            &label,
+            label,
             clamped_label_width as usize,
             self.label_style,
         );

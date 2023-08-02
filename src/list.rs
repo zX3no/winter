@@ -89,7 +89,7 @@ impl<'a> List<'a> {
             (start, end)
         }
     }
-    pub fn draw(&self, area: Rect, buf: &mut Buffer, state: &mut ListState) {
+    pub fn draw(&self, area: Rect, buf: &mut Buffer, state: &ListState) {
         let list_area = if let Some(block) = &self.block {
             block.draw(area, buf);
             block.inner(area)
@@ -129,11 +129,7 @@ impl<'a> List<'a> {
                 height,
             };
 
-            let is_selected = if state.selected && state.selection == i {
-                true
-            } else {
-                false
-            };
+            let is_selected = state.selected && state.selection == i;
 
             let symbol = if is_selected {
                 highlight_symbol
@@ -154,7 +150,7 @@ impl<'a> List<'a> {
             if let Some(style) = item.style {
                 buf.set_style(area, style);
             }
-            buf.set_lines(elem_x, y + 0 as u16, item, max_element_width);
+            buf.set_lines(elem_x, y, item, max_element_width);
 
             //TODO: Maybe skip the symbol area and just style the list item?
             //Could have a symbol_style and a selection_style?

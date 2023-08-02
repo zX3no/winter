@@ -1,17 +1,6 @@
 use crate::{block::Block, buffer::Buffer, layout::Rect, *};
-use std::{
-    borrow::Cow,
-    ops::{Deref, DerefMut},
-};
+use std::ops::{Deref, DerefMut};
 use unicode_width::UnicodeWidthStr;
-
-const fn get_line_offset(line_width: u16, text_area_width: u16, alignment: Alignment) -> u16 {
-    match alignment {
-        Alignment::Center => (text_area_width / 2).saturating_sub(line_width / 2),
-        Alignment::Right => text_area_width.saturating_sub(line_width),
-        Alignment::Left => 0,
-    }
-}
 
 //TODO: Split on \n so that each line has it's own item in the array.
 //Otherwise Lines::height() will not work correctly.
@@ -127,7 +116,7 @@ macro_rules! lines {
         Lines {
             lines: Box::new([
                 $(
-                    crate::Text {
+                    $crate::Text {
                         inner: std::borrow::Cow::from($text),
                         style: Style::default(),
                     }
@@ -150,7 +139,7 @@ macro_rules! lines_s{
         Lines {
             lines: Box::new([
                 $(
-                    crate::Text {
+                    $crate::Text {
                         inner: std::borrow::Cow::from($text),
                         style: $style,
                     }
@@ -182,7 +171,7 @@ macro_rules! text {
 
 #[derive(Debug, Clone)]
 pub struct Text<'a> {
-    pub inner: Cow<'a, str>,
+    pub inner: std::borrow::Cow<'a, str>,
     pub style: Style,
 }
 
@@ -199,7 +188,7 @@ impl<'a> AsRef<str> for Text<'a> {
 }
 
 impl<'a> Deref for Text<'a> {
-    type Target = Cow<'a, str>;
+    type Target = std::borrow::Cow<'a, str>;
 
     fn deref(&self) -> &Self::Target {
         &self.inner
@@ -212,10 +201,10 @@ impl<'a> DerefMut for Text<'a> {
     }
 }
 
-impl<'a> Into<Lines<'a>> for Text<'a> {
-    fn into(self) -> Lines<'a> {
+impl<'a> From<Text<'a>> for Lines<'a> {
+    fn from(val: Text<'a>) -> Self {
         Lines {
-            lines: Box::new([self]),
+            lines: Box::new([val]),
             block: None,
             style: None,
             alignment: Alignment::Left,
@@ -224,11 +213,11 @@ impl<'a> Into<Lines<'a>> for Text<'a> {
 }
 
 //TODO: Macro some of these impls.
-impl<'a> Into<Lines<'a>> for &'static str {
-    fn into(self) -> Lines<'a> {
+impl<'a> From<&'static str> for Lines<'a> {
+    fn from(val: &'static str) -> Self {
         Lines {
             lines: Box::new([Text {
-                inner: std::borrow::Cow::from(self),
+                inner: std::borrow::Cow::from(val),
                 style: Style::default(),
             }]),
             block: None,
@@ -238,31 +227,20 @@ impl<'a> Into<Lines<'a>> for &'static str {
     }
 }
 
-impl<'a> Into<Text<'a>> for &'static str {
-    fn into(self) -> Text<'a> {
+impl<'a> From<&'static str> for Text<'a> {
+    fn from(val: &'static str) -> Self {
         Text {
-            inner: std::borrow::Cow::from(self),
+            inner: std::borrow::Cow::from(val),
             style: Style::default(),
         }
     }
 }
 
-impl<'a> Into<Text<'a>> for String {
-    fn into(self) -> Text<'a> {
+impl<'a> From<String> for Text<'a> {
+    fn from(val: String) -> Self {
         Text {
-            inner: std::borrow::Cow::from(self),
+            inner: std::borrow::Cow::from(val),
             style: Style::default(),
         }
     }
-}
-
-// Dummy function to apply style to a string (or just return the style)
-pub fn apply_style_internal<'a>(input: impl Into<StyledText<'a>>) -> StyledText<'a> {
-    input.into()
-}
-
-// StyledText enum to wrap &str and Style
-pub enum StyledText<'a> {
-    Text(&'a str, Style),
-    SingleStyle(Style),
 }

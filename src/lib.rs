@@ -1,5 +1,5 @@
+//![](https://learn.microsoft.com/en-us/windows/console/console-virtual-terminal-sequences)
 #![allow(unused)]
-///![](https://learn.microsoft.com/en-us/windows/console/console-virtual-terminal-sequences)
 use std::{
     fmt::Display,
     io::Write,
@@ -62,9 +62,9 @@ pub mod table;
 pub mod text;
 
 pub use buffer::{Buffer, Cell};
+pub use layout::Alignment::*;
 pub use layout::*;
 pub use style::{Color::*, *};
-pub use layout::Alignment::*;
 
 pub mod buffer;
 pub mod layout;

@@ -91,40 +91,28 @@ bitflags! {
     }
 }
 
-pub const RESET: &'static str = "\x1b[0m";
+pub const RESET: &str = "\x1b[0m";
 
-pub const BOLD: &'static str = "\x1b[1m";
-pub const DIM: &'static str = "\x1b[2m";
-pub const ITALIC: &'static str = "\x1b[3m";
-pub const UNDERLINE: &'static str = "\x1b[4m";
-pub const FAST_BLINKING: &'static str = "\x1b[5m;1m";
-pub const SLOW_BLINKING: &'static str = "\x1b[5m;2m";
-pub const INVERT: &'static str = "\x1b[7m";
-pub const HIDDEN: &'static str = "\x1b[8m";
-pub const STRIKETHROUGH: &'static str = "\x1b[9m";
+pub const BOLD: &str = "\x1b[1m";
+pub const DIM: &str = "\x1b[2m";
+pub const ITALIC: &str = "\x1b[3m";
+pub const UNDERLINE: &str = "\x1b[4m";
+pub const FAST_BLINKING: &str = "\x1b[5m;1m";
+pub const SLOW_BLINKING: &str = "\x1b[5m;2m";
+pub const INVERT: &str = "\x1b[7m";
+pub const HIDDEN: &str = "\x1b[8m";
+pub const STRIKETHROUGH: &str = "\x1b[9m";
 
-// pub const NO_BOLD: &'static str = "\x1b[21m";
-pub const NO_BOLD_OR_DIM: &'static str = "\x1b[22m";
-pub const NO_ITALIC: &'static str = "\x1b[23m";
-pub const NO_UNDERLINE: &'static str = "\x1b[24m";
+// pub const NO_BOLD: & str = "\x1b[21m";
+pub const NO_BOLD_OR_DIM: &str = "\x1b[22m";
+pub const NO_ITALIC: &str = "\x1b[23m";
+pub const NO_UNDERLINE: &str = "\x1b[24m";
 //TODO: Test fast and slow blinking does "\x1b[25m;2" work?
 //Or does this do both?
-pub const NO_BLINKING: &'static str = "\x1b[25m";
-pub const NO_INVERT: &'static str = "\x1b[27m";
-pub const NO_HIDDEN: &'static str = "\x1b[28m";
-pub const NO_STRIKETHROUGH: &'static str = "\x1b[29m";
-
-pub mod test {
-    pub const BOLD: u16 = 0b0000_0000_0001;
-    pub const DIM: u16 = 0b0000_0000_0010;
-    pub const ITALIC: u16 = 0b0000_0000_0100;
-    pub const UNDERLINED: u16 = 0b0000_0000_1000;
-    pub const SLOW_BLINK: u16 = 0b0000_0001_0000;
-    pub const RAPID_BLINK: u16 = 0b0000_0010_0000;
-    pub const REVERSED: u16 = 0b0000_0100_0000;
-    pub const HIDDEN: u16 = 0b0000_1000_0000;
-    pub const CROSSED_OUT: u16 = 0b0001_0000_0000;
-}
+pub const NO_BLINKING: &str = "\x1b[25m";
+pub const NO_INVERT: &str = "\x1b[27m";
+pub const NO_HIDDEN: &str = "\x1b[28m";
+pub const NO_STRIKETHROUGH: &str = "\x1b[29m";
 
 //TODO: Should this be Copy?
 #[derive(Debug, Clone, PartialEq, Eq, Copy, Default)]

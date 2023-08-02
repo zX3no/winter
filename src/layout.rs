@@ -71,10 +71,10 @@ macro_rules! layout {
                 //TODO: This could be added back as an argument.
                 expand_to_fill: true,
             };
-            crate::layout::LAYOUT_CACHE.with(|c| {
+            $crate::layout::LAYOUT_CACHE.with(|c| {
                 c.borrow_mut()
                     .entry(($area, layout.clone()))
-                    .or_insert_with(|| crate::layout::split($area, &layout))
+                    .or_insert_with(|| $crate::layout::split($area, &layout))
                     .clone()
             })
         }
@@ -88,10 +88,10 @@ macro_rules! layout {
                 //TODO: This could be added back as an argument.
                 expand_to_fill: true,
             };
-            crate::layout::LAYOUT_CACHE.with(|c| {
+            $crate::layout::LAYOUT_CACHE.with(|c| {
                 c.borrow_mut()
                     .entry(($area, layout.clone()))
-                    .or_insert_with(|| crate::layout::split($area, &layout))
+                    .or_insert_with(|| $crate::layout::split($area, &layout))
                     .clone()
             })
         }
@@ -105,10 +105,10 @@ macro_rules! layout {
                 //TODO: This could be added back as an argument.
                 expand_to_fill: true,
             };
-            crate::layout::LAYOUT_CACHE.with(|c| {
+            $crate::layout::LAYOUT_CACHE.with(|c| {
                 c.borrow_mut()
                     .entry(($area, layout.clone()))
-                    .or_insert_with(|| crate::layout::split($area, &layout))
+                    .or_insert_with(|| $crate::layout::split($area, &layout))
                     .clone()
             })
         }
