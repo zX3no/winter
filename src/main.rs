@@ -124,7 +124,7 @@ fn draw(area: Rect, buf: &mut Buffer) {
 
 fn main() {
     let (output_handle, input_handle) = handles();
-    let (width, height) = area(output_handle);
+    let (width, height) = info(output_handle).window_size;
 
     let mut viewport = Rect::new(0, 0, width, height);
     let mut buffers: [Buffer; 2] = [Buffer::empty(viewport), Buffer::empty(viewport)];
@@ -195,7 +195,7 @@ fn main() {
 
         //Update the viewport area.
         //TODO: I think there is a resize event that might be better.
-        let (width, height) = area(output_handle);
+        let (width, height) = info(output_handle).window_size;
         viewport = Rect::new(0, 0, width, height);
 
         //Resize

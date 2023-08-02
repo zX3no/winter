@@ -1,28 +1,16 @@
-//TODO: Remove
 #![allow(unused)]
 ///![](https://learn.microsoft.com/en-us/windows/console/console-virtual-terminal-sequences)
 use std::{
-    collections::VecDeque,
     fmt::Display,
     io::Write,
     mem::zeroed,
     process::Command,
     ptr::null_mut,
-    sync::Mutex,
     time::{Duration, Instant},
-};
-use winapi::um::{
-    wincontypes::SHIFT_PRESSED,
-    winnt::CHAR,
-    winuser::{
-        GetKeyState, ToUnicode, VK_DOWN, VK_LEFT, VK_OEM_1, VK_OEM_2, VK_OEM_3, VK_OEM_4, VK_OEM_5,
-        VK_OEM_6, VK_OEM_7, VK_OEM_COMMA, VK_OEM_MINUS, VK_OEM_PERIOD, VK_OEM_PLUS, VK_RIGHT,
-        VK_TAB, VK_UP,
-    },
 };
 use winapi::{
     ctypes::c_void,
-    shared::{minwindef::DWORD, winerror::WAIT_TIMEOUT},
+    shared::{minwindef::BYTE, minwindef::DWORD, ntdef::WCHAR, winerror::WAIT_TIMEOUT},
     um::{
         consoleapi::{
             GetConsoleMode, GetNumberOfConsoleInputEvents, ReadConsoleInputW, SetConsoleMode,
@@ -38,25 +26,26 @@ use winapi::{
         wincon::{
             GetConsoleScreenBufferInfo, CONSOLE_SCREEN_BUFFER_INFO, ENABLE_ECHO_INPUT,
             ENABLE_EXTENDED_FLAGS, ENABLE_LINE_INPUT, ENABLE_MOUSE_INPUT, ENABLE_PROCESSED_INPUT,
-            ENABLE_QUICK_EDIT_MODE, ENABLE_VIRTUAL_TERMINAL_INPUT,
-            ENABLE_VIRTUAL_TERMINAL_PROCESSING, ENABLE_WINDOW_INPUT,
+            ENABLE_WINDOW_INPUT,
         },
+        wincontypes::SHIFT_PRESSED,
         wincontypes::{
-            DOUBLE_CLICK, ENHANCED_KEY, FROM_LEFT_1ST_BUTTON_PRESSED, FROM_LEFT_2ND_BUTTON_PRESSED,
-            INPUT_RECORD, KEY_EVENT, MOUSE_EVENT, MOUSE_WHEELED, RIGHTMOST_BUTTON_PRESSED,
+            DOUBLE_CLICK, FROM_LEFT_1ST_BUTTON_PRESSED, FROM_LEFT_2ND_BUTTON_PRESSED, INPUT_RECORD,
+            KEY_EVENT, MOUSE_EVENT, MOUSE_WHEELED, RIGHTMOST_BUTTON_PRESSED,
             WINDOW_BUFFER_SIZE_EVENT,
         },
         winnt::{FILE_SHARE_READ, FILE_SHARE_WRITE, GENERIC_READ, GENERIC_WRITE},
+        winuser::{
+            ToUnicode, VK_DOWN, VK_LEFT, VK_OEM_1, VK_OEM_2, VK_OEM_3, VK_OEM_4, VK_OEM_5,
+            VK_OEM_6, VK_OEM_7, VK_OEM_COMMA, VK_OEM_MINUS, VK_OEM_PERIOD, VK_OEM_PLUS, VK_RIGHT,
+            VK_TAB, VK_UP,
+        },
+        winuser::{
+            VK_BACK, VK_CONTROL, VK_ESCAPE, VK_F1, VK_LCONTROL, VK_LMENU, VK_LSHIFT, VK_MENU,
+            VK_RCONTROL, VK_RETURN, VK_RMENU, VK_RSHIFT, VK_SHIFT, VK_SPACE,
+        },
     },
 };
-use winapi::{
-    shared::minwindef::BYTE,
-    um::winuser::{
-        VK_BACK, VK_CONTROL, VK_ESCAPE, VK_LCONTROL, VK_LMENU, VK_LSHIFT, VK_MENU, VK_RCONTROL,
-        VK_RETURN, VK_RMENU, VK_RSHIFT, VK_SHIFT, VK_SPACE,
-    },
-};
-use winapi::{shared::ntdef::WCHAR, um::winuser::VK_F1};
 
 //Widgets
 pub use block::*;
@@ -83,8 +72,32 @@ pub mod symbols;
 
 pub struct Info {
     pub buffer_size: (u16, u16),
+    ///Use this one.
     pub window_size: (u16, u16),
     pub cursor_position: (u16, u16),
+}
+
+///TODO: windows starts counting at 0, unix at 1, add one to replicated unix behaviour.
+///I still haven't figured out why my drawing is different than crossterm.
+pub fn info(output: *mut c_void) -> Info {
+    unsafe {
+        let mut info: CONSOLE_SCREEN_BUFFER_INFO = zeroed();
+        let result = GetConsoleScreenBufferInfo(output, &mut info);
+        if result != 1 {
+            panic!("Could not get window size. result: {}", result);
+        }
+        Info {
+            buffer_size: (info.dwSize.X as u16, info.dwSize.Y as u16),
+            window_size: (
+                (info.srWindow.Right - info.srWindow.Left) as u16,
+                (info.srWindow.Bottom - info.srWindow.Top) as u16,
+            ),
+            cursor_position: (
+                info.dwCursorPosition.X as u16,
+                info.dwCursorPosition.Y as u16,
+            ),
+        }
+    }
 }
 
 //TODO: What is the difference between this and `GetStdHandle(STD_INPUT_HANDLE)`
@@ -193,59 +206,7 @@ pub fn handles() -> (*mut c_void, *mut c_void) {
     }
 }
 
-//TODO: windows starts counting at 0, unix at 1, add one to replicated unix behaviour.
-//I still haven't figured out why my drawing is different than crossterm.
-pub fn area(output: *mut c_void) -> (u16, u16) {
-    unsafe {
-        // let handle = GetStdHandle(-11i32 as u32);
-        let mut info: CONSOLE_SCREEN_BUFFER_INFO = zeroed();
-        let result = GetConsoleScreenBufferInfo(output, &mut info);
-        if result != 1 {
-            panic!("Could not get window size. result: {}", result);
-        }
-        (
-            (info.srWindow.Right - info.srWindow.Left) as u16,
-            (info.srWindow.Bottom - info.srWindow.Top) as u16,
-        )
-    }
-}
-
-/// Get the screen buffer information like terminal size, cursor position, buffer size.
-///
-/// This wraps
-/// [`GetConsoleScreenBufferInfo`](https://docs.microsoft.com/en-us/windows/console/getconsolescreenbufferinfo).
-pub fn info(output: *mut c_void) -> Info {
-    unsafe {
-        let mut info: CONSOLE_SCREEN_BUFFER_INFO = zeroed();
-        let result = GetConsoleScreenBufferInfo(output, &mut info);
-        if result != 1 {
-            panic!("Could not get window size. result: {}", result);
-        }
-        Info {
-            buffer_size: (info.dwSize.X as u16, info.dwSize.Y as u16),
-            window_size: (
-                (info.srWindow.Right - info.srWindow.Left) as u16,
-                (info.srWindow.Bottom - info.srWindow.Top) as u16,
-            ),
-            cursor_position: (
-                info.dwCursorPosition.X as u16,
-                info.dwCursorPosition.Y as u16,
-            ),
-        }
-    }
-}
-
-///TODO: What is a good way to do events.
-///I don't like Event::Mouse(Mouse::Left).
-///Why not just Event::LeftMouse ?
-///That way you can do:
-///```rs
-/// if event == Event::LeftMouse {
-///     println!("Pressed left mouse button!");
-/// }
-///```
-/// Also how are we going to handle double clicks?
-/// They might be nice to have...or not.
+// TODO: double clicks? They might be nice to have...or not.
 #[derive(Debug, PartialEq, Eq)]
 pub enum Event {
     //Mouse
@@ -329,7 +290,7 @@ pub unsafe fn convert_event(event: INPUT_RECORD) -> Option<Event> {
                         let mut buffer: [WCHAR; 5] = [0; 5];
 
                         //This would return a multi-character key if this wasn't blank.
-                        let mut keyboard_state: [BYTE; 256] = [0; 256];
+                        let keyboard_state: [BYTE; 256] = [0; 256];
 
                         let result = ToUnicode(
                             vk as u32,
