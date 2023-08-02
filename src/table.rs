@@ -13,9 +13,9 @@ pub struct TableState {
 #[macro_export]
 ///It's just a row with a 1px bottom margin.
 macro_rules! header {
-    ($lines:expr) => {
+    ($($column:expr),*)  => {
         Row {
-            columns: $lines,
+            columns: Box::new([$($column.into()),*]),
             height: 1,
             bottom_margin: 1,
         }
@@ -23,10 +23,35 @@ macro_rules! header {
 }
 
 #[macro_export]
+///Create a row with all it's columns.
+///```rs
+///let rows = &[
+///    //Row 1
+///    row![
+///        //Row 1 Column 1
+///        lines_s!(
+///            text,
+///            // "first item first row",
+///            fg(Cyan),
+///            " <-- there is a space here",
+///            fg(Blue).underlined()
+///        ),
+///        //Row 1 Column 2
+///        lines!("second item", " first row")
+///    ],
+///    //Row 2
+///    row![
+///        //Row 2 Column 1
+///        lines_s!("first item second row", fg(Yellow)),
+///        //Row 2 Column 2
+///        lines!("second item second row")
+///    ],
+///];
+///```
 macro_rules! row {
-    ($lines:expr) => {
+    ($($column:expr),*) => {
         Row {
-            columns: $lines,
+            columns: Box::new([$($column.into()),*]),
             height: 1,
             bottom_margin: 0,
         }
@@ -35,9 +60,7 @@ macro_rules! row {
 
 #[derive(Debug, Clone)]
 pub struct Row<'a> {
-    //Originally this was `cells: Vec<Cell<'a>>`
-    //Which is Vec<Text> -> Vec<Vec<Spans>> -> Vec<VecVec<<Span>>>
-    pub columns: &'a [Lines<'a>],
+    pub columns: Box<[Lines<'a>]>,
     //TODO: Why is exist?
     pub height: u16,
     pub bottom_margin: u16,
@@ -49,11 +72,11 @@ impl<'a> Row<'a> {
     }
 }
 
-pub const fn table<'a>(
+pub fn table<'a, B: Into<Box<[Row<'a>]>>>(
     header: Option<Row<'a>>,
     block: Option<Block<'a>>,
     widths: &'a [Constraint],
-    rows: &'a [Row<'a>],
+    rows: B,
     highlight_symbol: Option<&'a str>,
     highlight_style: Style,
 ) -> Table<'a> {
@@ -61,7 +84,7 @@ pub const fn table<'a>(
         header,
         block,
         widths,
-        rows,
+        rows: rows.into(),
         highlight_symbol,
         highlight_style,
         separator: false,
@@ -74,7 +97,7 @@ pub struct Table<'a> {
     pub header: Option<Row<'a>>,
     pub block: Option<Block<'a>>,
     pub widths: &'a [Constraint],
-    pub rows: &'a [Row<'a>],
+    pub rows: Box<[Row<'a>]>,
     pub highlight_symbol: Option<&'a str>,
     //TODO: REMOVE ME and replace with highlight_line or something?
     pub highlight_style: Style,
@@ -120,7 +143,7 @@ impl<'a> Table<'a> {
         let len = self.rows.len();
         let selection = selected.unwrap_or(0).min(len.saturating_sub(1));
 
-        for item in self.rows {
+        for item in self.rows.iter() {
             if height + item.height as usize > terminal_height as usize {
                 break;
             }

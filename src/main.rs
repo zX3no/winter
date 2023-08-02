@@ -29,14 +29,15 @@ pub fn settings(area: Rect, buf: &mut Buffer) {
     }
 
     let list = list(
-        Some(block(
-            Some("Output Device".into()),
-            1,
-            Borders::ALL,
-            BorderType::Rounded,
-            style(),
-        )),
-        &items,
+        Some(
+            block(
+                Some("Output Device".into()),
+                Borders::ALL,
+                BorderType::Rounded,
+            )
+            .margin(1),
+        ),
+        items,
         None,
         None,
     );
@@ -65,11 +66,10 @@ pub fn browser(area: Rect, buf: &mut Buffer, index: Option<usize>) {
         //This might be a little dumb ^.
         let block = block(
             Some(text!(title, bold())),
-            1,
             Borders::ALL,
             BorderType::Rounded,
-            style(),
-        );
+        )
+        .margin(1);
         let symbol = if use_symbol { ">" } else { " " };
         // list(Some(block), content, Some(symbol), style())
         todo!()
@@ -109,12 +109,12 @@ fn draw(area: Rect, buf: &mut Buffer) {
     }
 
     {
-        let block = block(None, 0, Borders::ALL, BorderType::Rounded, style());
+        let block = block(None, Borders::ALL, BorderType::Rounded);
         let con = [Constraint::Percentage(50), Constraint::Percentage(50)];
         let text = String::from("first item first row");
-        let rows = &[
+        let rows = [
             //Row 1
-            row![&[
+            row![
                 //Row 1 Column 1
                 lines_s!(
                     text,
@@ -125,17 +125,19 @@ fn draw(area: Rect, buf: &mut Buffer) {
                 ),
                 //Row 1 Column 2
                 lines!("second item", " first row")
-            ]],
+            ],
             //Row 2
-            row![&[
+            row![
                 //Row 2 Column 1
                 lines_s!("first item second row", fg(Yellow)),
                 //Row 2 Column 2
                 lines!("second item second row")
-            ]],
+            ],
         ];
-        let lines = &[lines_s!("First", bold()), lines_s!("Second", bold())];
-        let header = Some(header![lines]);
+        let header = Some(header![
+            lines_s!("First", bold()),
+            lines_s!("Second", bold())
+        ]);
 
         let table = table(header, Some(block), &con, rows, Some("> "), fg(Blue));
 
@@ -148,21 +150,43 @@ fn draw(area: Rect, buf: &mut Buffer) {
     }
 
     {
-        let l1 = lines_s!["hi", fg(Red), " there", fg(Blue)];
-        let l2 = lines!["these are", " some more ", "lines"];
-        let items = &[l1, l2];
         let mut state = list_state(Some(5));
         let list = list(
-            Some(block(None, 0, Borders::ALL, BorderType::Rounded, style())),
-            items,
+            Some(block(None, Borders::ALL, BorderType::Rounded)),
+            [
+                lines_s!["hi", fg(Red), " there", fg(Blue)],
+                lines!["these are", " some more ", "lines"],
+            ],
             Some("> "),
             Some(fg(Blue).bg(Red)),
         );
         // list.draw(chunks[2], buf, &mut state);
         // list.draw(area, buf, &mut state);
     }
+
     {
-        settings(area, buf);
+        // settings(area, buf);
+    }
+    {
+        // let l = lines!("This is a test of some text");
+        // l.draw(area, buf);
+        let top = lines_s![
+            "─│ ",
+            style(),
+            "",
+            style(),
+            "TEST ARTIST",
+            fg(Blue),
+            " ─ ",
+            style(),
+            "Test Album",
+            fg(Green),
+            "",
+            style(),
+            " │─",
+            style()
+        ];
+        top.align(Center).draw(area, buf);
     }
 }
 

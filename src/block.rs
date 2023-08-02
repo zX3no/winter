@@ -1,4 +1,4 @@
-use crate::{buffer::Buffer, layout::Rect, symbols::*, Style, Text};
+use crate::{buffer::Buffer, layout::Rect, symbols::*, *};
 use bitflags::bitflags;
 
 bitflags! {
@@ -49,17 +49,15 @@ impl BorderType {
 //Maybe title should be Option<Text<'a>> that way it has it's own style too?
 pub const fn block<'a>(
     title: Option<Text<'a>>,
-    title_margin: u16,
     borders: Borders,
     border_type: BorderType,
-    style: Style,
 ) -> Block<'a> {
     Block {
         title,
-        title_margin,
+        margin: 0,
         borders,
         border_type,
-        style,
+        style: style(),
     }
 }
 
@@ -67,7 +65,7 @@ pub const fn block<'a>(
 #[derive(Debug, Clone)]
 pub struct Block<'a> {
     pub title: Option<Text<'a>>,
-    pub title_margin: u16,
+    pub margin: u16,
     // pub title_alignment: Alignment,
     pub borders: Borders,
     pub border_type: BorderType,
@@ -75,6 +73,14 @@ pub struct Block<'a> {
 }
 
 impl<'a> Block<'a> {
+    pub fn style(mut self, style: Style) -> Self {
+        self.style = style;
+        self
+    }
+    pub fn margin(mut self, title_margin: u16) -> Self {
+        self.margin = title_margin;
+        self
+    }
     /// Compute the inner area of a block based on its border visibility rules.
     pub fn inner(&self, area: Rect) -> Rect {
         let mut inner = area;
@@ -190,7 +196,7 @@ impl<'a> Block<'a> {
             //         .saturating_sub(right_border_dx),
             // };
             let title_dx = left_border_dx;
-            let title_x = area.left() + title_dx + self.title_margin;
+            let title_x = area.left() + title_dx + self.margin;
             let title_y = area.top();
 
             buf.set_stringn(

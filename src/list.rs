@@ -17,15 +17,15 @@ impl ListState {
     }
 }
 
-pub fn list<'a>(
+pub fn list<'a, B: Into<Box<[Lines<'a>]>>>(
     block: Option<Block<'a>>,
-    items: &'a [Lines<'a>],
+    items: B,
     selection_symbol: Option<&'a str>,
     selection_style: Option<Style>,
 ) -> List<'a> {
     List {
         block,
-        items,
+        items: items.into(),
         selection_symbol,
         selection_style,
         start_from_bottom: false,
@@ -49,7 +49,7 @@ pub fn list_state(index: Option<usize>) -> ListState {
 #[derive(Debug, Clone)]
 pub struct List<'a> {
     block: Option<Block<'a>>,
-    items: &'a [Lines<'a>],
+    items: Box<[Lines<'a>]>,
     selection_symbol: Option<&'a str>,
     selection_style: Option<Style>,
     start_from_bottom: bool,
@@ -61,7 +61,7 @@ impl<'a> List<'a> {
         let mut height = 0;
         //Was `item.height()`
         let item_height = 1;
-        for item in self.items {
+        for item in self.items.iter() {
             if height + item_height > terminal_height {
                 break;
             }

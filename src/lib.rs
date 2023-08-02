@@ -64,6 +64,7 @@ pub mod text;
 pub use buffer::{Buffer, Cell};
 pub use layout::*;
 pub use style::{Color::*, *};
+pub use layout::Alignment::*;
 
 pub mod buffer;
 pub mod layout;

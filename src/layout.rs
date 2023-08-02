@@ -44,8 +44,9 @@ impl Constraint {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum Alignment {
+    #[default]
     Left,
     Center,
     Right,
