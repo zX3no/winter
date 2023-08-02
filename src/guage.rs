@@ -1,12 +1,11 @@
 use crate::{block::Block, buffer::Buffer, layout::Rect, *};
-use std::borrow::Cow;
+use std::{borrow::Cow, f32::consts::E};
 use unicode_width::UnicodeWidthStr;
 
 pub fn guage<'a>(
     block: Option<Block<'a>>,
     ratio: f64,
-    label: Option<Cow<'a, str>>,
-    label_style: Style,
+    label: Cow<'a, str>,
     left_style: Style,
     right_style: Style,
 ) -> Gauge<'a> {
@@ -14,7 +13,6 @@ pub fn guage<'a>(
         block,
         ratio,
         label,
-        label_style,
         left_style,
         right_style,
     }
@@ -24,8 +22,7 @@ pub fn guage<'a>(
 pub struct Gauge<'a> {
     pub block: Option<Block<'a>>,
     pub ratio: f64,
-    pub label: Option<Cow<'a, str>>,
-    pub label_style: Style,
+    pub label: Cow<'a, str>,
     pub left_style: Style,
     pub right_style: Style,
 }
@@ -45,13 +42,7 @@ impl<'a> Gauge<'a> {
             return;
         }
 
-        // compute label value and its position
-        // label is put at the center of the gauge_area
-        let pct = f64::round(self.ratio * 100.0);
-        let text = Cow::from(format!("{pct}%"));
-        let label = self.label.as_ref().unwrap_or(&text);
-
-        let clamped_label_width = area.width.min(label.width() as u16);
+        let clamped_label_width = area.width.min(self.label.width() as u16);
         let label_col = area.left() + (area.width - clamped_label_width) / 2;
         let label_row = area.top() + area.height / 2;
 
@@ -69,13 +60,15 @@ impl<'a> Gauge<'a> {
                     .set_bg(self.left_style.bg);
             }
         }
-        // set the span
-        buf.set_stringn(
-            label_col,
-            label_row,
-            label,
-            clamped_label_width as usize,
-            self.label_style,
-        );
+
+        let mut chars = self.label.chars();
+        for x in label_col..area.width {
+            if let Some(char) = chars.next() {
+                let fg = if x < end { Color::Black } else { Color::Reset };
+                buf.get_mut(x, label_row).unwrap().set_char(char).set_fg(fg);
+            } else {
+                break;
+            }
+        }
     }
 }

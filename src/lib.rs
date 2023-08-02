@@ -49,7 +49,7 @@ use winapi::{
 
 //Widgets
 pub use block::*;
-pub use block::*;
+pub use block::{block, Block, BorderType::*, ALL, BOTTOM, LEFT, RIGHT, TOP};
 pub use guage::*;
 pub use list::*;
 pub use table::*;

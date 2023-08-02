@@ -103,7 +103,7 @@ fn draw(area: Rect, buf: &mut Buffer) {
     }
 
     {
-        let guage = guage(None, 0.75, None, bold(), bg(Blue), bg(Red));
+        let guage = guage(None, 0.75, "Label".into(), bg(Blue), bg(Red));
         // guage.draw(chunks[0], buf);
         // guage.draw(viewport, buf);
     }

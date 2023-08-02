@@ -20,23 +20,19 @@ bitflags! {
     }
 }
 
+pub const ALL: Borders = Borders::ALL;
+pub const TOP: Borders = Borders::TOP;
+pub const RIGHT: Borders = Borders::RIGHT;
+pub const BOTTOM: Borders = Borders::BOTTOM;
+pub const LEFT: Borders = Borders::LEFT;
+pub const NONE: Borders = Borders::NONE;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum BorderType {
     Plain,
     Rounded,
     Double,
     Thick,
-}
-
-impl BorderType {
-    pub const fn line_symbols(border_type: BorderType) -> line::Set {
-        match border_type {
-            BorderType::Plain => line::NORMAL,
-            BorderType::Rounded => line::ROUNDED,
-            BorderType::Double => line::DOUBLE,
-            BorderType::Thick => line::THICK,
-        }
-    }
 }
 
 //TODO: This is probably better than a macro.
@@ -104,7 +100,12 @@ impl<'a> Block<'a> {
         if area.area() == 0 {
             return;
         }
-        let symbols = BorderType::line_symbols(self.border_type);
+        let symbols = match self.border_type {
+            BorderType::Plain => line::NORMAL,
+            BorderType::Rounded => line::ROUNDED,
+            BorderType::Double => line::DOUBLE,
+            BorderType::Thick => line::THICK,
+        };
 
         // Sides
         if self.borders.intersects(Borders::LEFT) {

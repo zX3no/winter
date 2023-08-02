@@ -166,10 +166,7 @@ macro_rules! lines_s{
 }
 
 pub const fn text<'a>(text: std::borrow::Cow<'a, str>, style: Style) -> Text<'a> {
-    Text {
-        inner: text,
-        style,
-    }
+    Text { inner: text, style }
 }
 
 //TODO: Things like this `text!(format!("{pct}%"))` seem dumb.

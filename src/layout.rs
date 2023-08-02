@@ -52,6 +52,26 @@ pub enum Alignment {
     Right,
 }
 
+pub fn layout(
+    area: Rect,
+    direction: Direction,
+    margin: (u16, u16),
+    constraints: Vec<Constraint>,
+) -> Vec<Rect> {
+    let layout = Layout {
+        direction,
+        margin,
+        constraints,
+        expand_to_fill: true,
+    };
+    LAYOUT_CACHE.with(|c| {
+        c.borrow_mut()
+            .entry((area, layout.clone()))
+            .or_insert_with(|| split(area, &layout))
+            .clone()
+    })
+}
+
 #[macro_export]
 ///```rs
 ///layout!(
@@ -350,9 +370,14 @@ impl Rect {
         self.y.saturating_add(self.height)
     }
 
-    pub fn inner(self, (v, h): (u16, u16)) -> Rect {
+    pub const fn inner(self, (v, h): (u16, u16)) -> Rect {
         if self.width < 2 * h || self.height < 2 * v {
-            Rect::default()
+            Rect {
+                x: 0,
+                y: 0,
+                width: 0,
+                height: 0,
+            }
         } else {
             Rect {
                 x: self.x + h,
