@@ -3,6 +3,7 @@
 ///![](https://learn.microsoft.com/en-us/windows/console/console-virtual-terminal-sequences)
 use std::{
     collections::VecDeque,
+    fmt::Display,
     io::Write,
     mem::zeroed,
     process::Command,
@@ -11,10 +12,12 @@ use std::{
     time::{Duration, Instant},
 };
 use winapi::um::{
+    wincontypes::SHIFT_PRESSED,
     winnt::CHAR,
     winuser::{
-        ToUnicode, VK_DOWN, VK_LEFT, VK_OEM_1, VK_OEM_2, VK_OEM_3, VK_OEM_4, VK_OEM_5, VK_OEM_6,
-        VK_OEM_7, VK_OEM_COMMA, VK_OEM_MINUS, VK_OEM_PERIOD, VK_OEM_PLUS, VK_RIGHT, VK_TAB, VK_UP,
+        GetKeyState, ToUnicode, VK_DOWN, VK_LEFT, VK_OEM_1, VK_OEM_2, VK_OEM_3, VK_OEM_4, VK_OEM_5,
+        VK_OEM_6, VK_OEM_7, VK_OEM_COMMA, VK_OEM_MINUS, VK_OEM_PERIOD, VK_OEM_PLUS, VK_RIGHT,
+        VK_TAB, VK_UP,
     },
 };
 use winapi::{
@@ -192,11 +195,11 @@ pub fn handles() -> (*mut c_void, *mut c_void) {
 
 //TODO: windows starts counting at 0, unix at 1, add one to replicated unix behaviour.
 //I still haven't figured out why my drawing is different than crossterm.
-pub fn area(output_handle: *mut c_void) -> (u16, u16) {
+pub fn area(output: *mut c_void) -> (u16, u16) {
     unsafe {
         // let handle = GetStdHandle(-11i32 as u32);
         let mut info: CONSOLE_SCREEN_BUFFER_INFO = zeroed();
-        let result = GetConsoleScreenBufferInfo(output_handle, &mut info);
+        let result = GetConsoleScreenBufferInfo(output, &mut info);
         if result != 1 {
             panic!("Could not get window size. result: {}", result);
         }
@@ -211,10 +214,10 @@ pub fn area(output_handle: *mut c_void) -> (u16, u16) {
 ///
 /// This wraps
 /// [`GetConsoleScreenBufferInfo`](https://docs.microsoft.com/en-us/windows/console/getconsolescreenbufferinfo).
-pub fn info(handle: *mut c_void) -> Info {
+pub fn info(output: *mut c_void) -> Info {
     unsafe {
         let mut info: CONSOLE_SCREEN_BUFFER_INFO = zeroed();
-        let result = GetConsoleScreenBufferInfo(handle, &mut info);
+        let result = GetConsoleScreenBufferInfo(output, &mut info);
         if result != 1 {
             panic!("Could not get window size. result: {}", result);
         }
@@ -243,7 +246,7 @@ pub fn info(handle: *mut c_void) -> Info {
 ///```
 /// Also how are we going to handle double clicks?
 /// They might be nice to have...or not.
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum Event {
     //Mouse
     LeftMouse,
@@ -273,24 +276,13 @@ pub enum Event {
     Resize(u16, u16),
 }
 
-///Blocking
-pub fn read_single_input_event(handle: *mut c_void) -> INPUT_RECORD {
-    let mut record: INPUT_RECORD = unsafe { zeroed() };
-
-    //Convert an INPUT_RECORD to an &mut [INPUT_RECORD] of length 1
-    let buf = std::slice::from_mut(&mut record);
-    let mut num_records = 0;
-    debug_assert!(buf.len() < std::u32::MAX as usize);
-    let result =
-        unsafe { ReadConsoleInputW(handle, buf.as_mut_ptr(), buf.len() as u32, &mut num_records) };
-    if result == 0 {
-        panic!("Failed to read input");
+impl Display for Event {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Event::Char(c) => write!(f, "Event::Char('{}')", c),
+            _ => write!(f, "Event::{:?}", self),
+        }
     }
-
-    //The windows API promises that ReadConsoleInput returns at least 1 element.
-    debug_assert!(num_records == 1);
-
-    record
 }
 
 pub unsafe fn convert_event(event: INPUT_RECORD) -> Option<Event> {
@@ -298,75 +290,13 @@ pub unsafe fn convert_event(event: INPUT_RECORD) -> Option<Event> {
         KEY_EVENT => {
             let key_event = event.Event.KeyEvent();
             if key_event.bKeyDown == 1 {
-                let virtual_keycode = key_event.wVirtualKeyCode;
-                let scan_code = key_event.wVirtualScanCode;
-                let is_extended = (key_event.dwControlKeyState & ENHANCED_KEY) != 0;
                 const F24: i32 = VK_F1 + 23;
+                let vk = key_event.wVirtualKeyCode;
+                let sc = key_event.wVirtualScanCode;
+                //TODO: Handle shift, ctrl and alt modifiers. Maybe capslock too.
+                let shift = key_event.dwControlKeyState & SHIFT_PRESSED != 0;
 
-                match virtual_keycode as i32 {
-                    // VK_OEM_4 => {
-                    //     if shift_pressed {
-                    //         '{'
-                    //     } else {
-                    //         '['
-                    //     }
-                    // }
-                    // VK_OEM_6 => {
-                    //     if shift_pressed {
-                    //         '}'
-                    //     } else {
-                    //         ']'
-                    //     }
-                    // }
-                    // VK_OEM_5 => {
-                    //     if shift_pressed {
-                    //         '|'
-                    //     } else {
-                    //         '\\'
-                    //     }
-                    // }
-                    // VK_OEM_1 => {
-                    //     if shift_pressed {
-                    //         ':'
-                    //     } else {
-                    //         ';'
-                    //     }
-                    // }
-                    // VK_OEM_7 => {
-                    //     if shift_pressed {
-                    //         '\"'
-                    //     } else {
-                    //         '\''
-                    //     }
-                    // }
-                    // VK_OEM_COMMA => {
-                    //     if shift_pressed {
-                    //         '<'
-                    //     } else {
-                    //         ','
-                    //     }
-                    // }
-                    // VK_OEM_PERIOD => {
-                    //     if shift_pressed {
-                    //         '>'
-                    //     } else {
-                    //         '.'
-                    //     }
-                    // }
-                    // VK_OEM_2 => {
-                    //     if shift_pressed {
-                    //         '?'
-                    //     } else {
-                    //         '/'
-                    //     }
-                    // }
-                    // VK_OEM_3 => {
-                    //     if shift_pressed {
-                    //         '~'
-                    //     } else {
-                    //         '`'
-                    //     }
-                    // }
+                match vk as i32 {
                     VK_UP => return Some(Event::Up),
                     VK_DOWN => return Some(Event::Down),
                     VK_LEFT => return Some(Event::Left),
@@ -384,17 +314,15 @@ pub unsafe fn convert_event(event: INPUT_RECORD) -> Option<Event> {
                     //TODO: Tilde is kind of an odd ball.
                     //Might need to handle this one better.
                     VK_OEM_3 => return Some(Event::Char('`')),
-                    VK_OEM_4 => return Some(Event::Char('{')),
-                    VK_OEM_6 => return Some(Event::Char('}')),
-                    VK_OEM_5 => return Some(Event::Char('|')),
+                    VK_OEM_4 => return Some(Event::Char('[')),
+                    VK_OEM_6 => return Some(Event::Char(']')),
+                    VK_OEM_5 => return Some(Event::Char('\\')),
                     VK_OEM_1 => return Some(Event::Char(';')),
-                    VK_OEM_7 => return Some(Event::Char('\\')),
+                    VK_OEM_7 => return Some(Event::Char('\'')),
                     VK_OEM_COMMA => return Some(Event::Char(',')),
                     VK_OEM_PERIOD => return Some(Event::Char('.')),
                     VK_OEM_2 => return Some(Event::Char('/')),
-                    VK_F1..=F24 => {
-                        return Some(Event::Function((virtual_keycode - VK_F1 as u16 + 1) as u8))
-                    }
+                    VK_F1..=F24 => return Some(Event::Function((vk - VK_F1 as u16 + 1) as u8)),
                     // Handle alphanumeric keys (A-Z, 0-9).
                     0x30..=0x39 | 0x41..=0x5A => {
                         // Buffer to hold the Unicode characters.
@@ -404,8 +332,8 @@ pub unsafe fn convert_event(event: INPUT_RECORD) -> Option<Event> {
                         let mut keyboard_state: [BYTE; 256] = [0; 256];
 
                         let result = ToUnicode(
-                            virtual_keycode as u32,
-                            scan_code as u32,
+                            vk as u32,
+                            sc as u32,
                             keyboard_state.as_ptr(),
                             buffer.as_mut_ptr(),
                             buffer.len() as i32,
@@ -429,7 +357,7 @@ pub unsafe fn convert_event(event: INPUT_RECORD) -> Option<Event> {
                             }
                         }
                     }
-                    _ => return Some(Event::Unknown(virtual_keycode)),
+                    _ => return Some(Event::Unknown(vk)),
                 }
             }
         }
@@ -461,22 +389,39 @@ pub unsafe fn convert_event(event: INPUT_RECORD) -> Option<Event> {
         }
         WINDOW_BUFFER_SIZE_EVENT => {
             let size = event.Event.WindowBufferSizeEvent().dwSize;
-            println!("{} {}", size.X, size.Y);
+            return Some(Event::Resize(size.X as u16, size.Y as u16));
         }
         _ => (),
     };
     None
 }
 
-//TODO: Does this ever return None?
-pub fn poll_event(timeout: Option<Duration>) -> bool {
+pub fn read_input_event(input: *mut c_void) -> INPUT_RECORD {
+    let mut record: INPUT_RECORD = unsafe { zeroed() };
+
+    //Convert an INPUT_RECORD to an &mut [INPUT_RECORD] of length 1
+    let buf = std::slice::from_mut(&mut record);
+    let mut num_records = 0;
+    debug_assert!(buf.len() < std::u32::MAX as usize);
+    let result =
+        unsafe { ReadConsoleInputW(input, buf.as_mut_ptr(), buf.len() as u32, &mut num_records) };
+    if result == 0 {
+        panic!("Failed to read input");
+    }
+
+    //The windows API promises that ReadConsoleInput returns at least 1 element.
+    debug_assert!(num_records == 1);
+
+    record
+}
+
+pub fn event_ready(input: *mut c_void, timeout: Option<Duration>) -> bool {
     let dw_millis = match timeout {
         Some(duration) => duration.as_millis() as u32,
         None => INFINITE,
     };
 
-    let console_handle = current_in_handle();
-    let output = unsafe { WaitForSingleObject(console_handle, dw_millis) };
+    let output = unsafe { WaitForSingleObject(input, dw_millis) };
 
     match output {
         WAIT_OBJECT_0 => {
@@ -492,23 +437,32 @@ pub fn poll_event(timeout: Option<Duration>) -> bool {
     }
 }
 
+pub fn event_count(input: *mut c_void) -> u32 {
+    let mut buf_len: DWORD = 0;
+    let result = unsafe { GetNumberOfConsoleInputEvents(input, &mut buf_len) };
+    if result == 0 {
+        panic!("Could not get number of console input events.");
+    }
+    buf_len
+}
+
 ///Read terminal events.
 ///```rs
 ///loop {
-///    if let Some(event) = poll(Duration::from_millis(3)) {
+///    if let Some(event) = poll(Duration::from_millis(16)) {
 ///        dbg!(event);
 ///    }
 ///}
 /// ```
 pub fn poll(timeout: Duration) -> Option<Event> {
     let now = Instant::now();
+    //TODO: Stop grabbing this everywhere. File handles are expensive you know.
     let handle = current_in_handle();
 
     loop {
         let leftover = timeout.saturating_sub(now.elapsed());
-        let n = number_of_console_input_events(handle);
-        if poll_event(Some(leftover)) && n != 0 {
-            let event = read_single_input_event(handle);
+        if event_ready(handle, Some(leftover)) && event_count(handle) != 0 {
+            let event = read_input_event(handle);
             return unsafe { convert_event(event) };
         }
 
@@ -519,15 +473,6 @@ pub fn poll(timeout: Duration) -> Option<Event> {
     }
 }
 
-pub fn number_of_console_input_events(handle: *mut c_void) -> u32 {
-    let mut buf_len: DWORD = 0;
-    let result = unsafe { GetNumberOfConsoleInputEvents(handle, &mut buf_len) };
-    if result == 0 {
-        panic!("Could not get number of console input events.");
-    }
-    buf_len
-}
-
 ///Clear the entire screen, using `cmd /c cls`.
 pub fn clear_all() {
     Command::new("cmd").args(["/C", "cls"]).status().unwrap();
@@ -535,6 +480,7 @@ pub fn clear_all() {
 pub fn show_cursor<W: Write>(w: &mut W) {
     write!(w, "\x1b[?25h").unwrap();
 }
+///Must be called after entering an alternate screen.
 pub fn hide_cursor<W: Write>(w: &mut W) {
     write!(w, "\x1b[?25l").unwrap();
 }

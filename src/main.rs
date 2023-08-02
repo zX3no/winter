@@ -6,7 +6,7 @@ use std::{
 };
 use winter::*;
 
-pub fn browser(area: Rect, buf: &mut Buffer) {
+pub fn browser(area: Rect, buf: &mut Buffer, index: Option<usize>) {
     let size = area.width / 3;
     let rem = area.width % 3;
 
@@ -42,7 +42,7 @@ pub fn browser(area: Rect, buf: &mut Buffer) {
 
     artists.draw(chunks[0], buf, &mut list_state(Some(0)));
     albums.draw(chunks[1], buf, &mut list_state(Some(0)));
-    songs.draw(chunks[2], buf, &mut list_state(Some(0)));
+    songs.draw(chunks[2], buf, &mut list_state(index));
 }
 
 fn draw(area: Rect, buf: &mut Buffer) {
@@ -145,30 +145,41 @@ fn main() {
     }));
 
     let mut stdout = stdout();
-    hide_cursor(&mut stdout);
     enter_alternate_screen(&mut stdout);
+    hide_cursor(&mut stdout);
     clear(&mut stdout);
 
     // enable_raw_mode();
     // enable_mouse_capture();
     // enable_resize_events();
-    loop {
-        if let Some(event) = poll(Duration::from_millis(3)) {
-            dbg!(event);
-        }
-    }
+    // loop {
+    //     if let Some(event) = poll(Duration::from_millis(16)) {
+    //         println!("{}", event);
+    //     }
+    // }
 
+    let mut index = 0;
     loop {
         //Draw the widgets into the front buffer.
         {
             // draw(viewport, &mut buffers[current]);
-            browser(viewport, &mut buffers[current]);
+            browser(viewport, &mut buffers[current], Some(index));
         }
 
         //Handle events
         {
-            if let Some(event) = poll(Duration::from_millis(3)) {
-                dbg!(event);
+            if let Some(event) = poll(Duration::from_millis(16)) {
+                // println!("{}", event);
+
+                //TODO: I might want a class or trait or something to handle this pattern.
+                if event == Event::Up {
+                    if index != 0 {
+                        index -= 1;
+                    }
+                }
+                if event == Event::Down {
+                    index += 1;
+                }
             }
         }
 
