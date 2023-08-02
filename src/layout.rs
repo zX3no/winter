@@ -52,6 +52,14 @@ pub enum Alignment {
 }
 
 #[macro_export]
+///```rs
+///layout!(
+///    area,
+///    Direction::Vertical,
+///    Constraint::Min(2),
+///    Constraint::Length(3)
+///);
+///```
 macro_rules! layout {
     ($area:expr, $direction:expr, $constraints:expr) => {
         {

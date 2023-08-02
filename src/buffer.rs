@@ -139,7 +139,8 @@ impl Buffer {
             if remaining_width == 0 {
                 break;
             }
-            let pos = self.set_stringn(x, y, line, remaining_width as usize, line.style);
+            let style = lines.style.unwrap_or_else(|| line.style);
+            let pos = self.set_stringn(x, y, line, remaining_width as usize, style);
             let w = pos.0.saturating_sub(x);
             x = pos.0;
             remaining_width = remaining_width.saturating_sub(w);

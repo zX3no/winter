@@ -19,16 +19,15 @@ impl ListState {
 
 pub fn list<'a>(
     block: Option<Block<'a>>,
-    items: Lines<'a>,
-
-    highlight_symbol: Option<&'a str>,
-    highlight_style: Style,
+    items: &'a [Lines<'a>],
+    selection_symbol: Option<&'a str>,
+    selection_style: Option<Style>,
 ) -> List<'a> {
     List {
         block,
         items,
-        highlight_symbol,
-        highlight_style,
+        selection_symbol,
+        selection_style,
         start_from_bottom: false,
     }
 }
@@ -50,9 +49,9 @@ pub fn list_state(index: Option<usize>) -> ListState {
 #[derive(Debug, Clone)]
 pub struct List<'a> {
     block: Option<Block<'a>>,
-    items: Lines<'a>,
-    highlight_symbol: Option<&'a str>,
-    highlight_style: Style,
+    items: &'a [Lines<'a>],
+    selection_symbol: Option<&'a str>,
+    selection_style: Option<Style>,
     start_from_bottom: bool,
 }
 
@@ -62,7 +61,7 @@ impl<'a> List<'a> {
         let mut height = 0;
         //Was `item.height()`
         let item_height = 1;
-        for _item in self.items.lines {
+        for item in self.items {
             if height + item_height > terminal_height {
                 break;
             }
@@ -70,7 +69,7 @@ impl<'a> List<'a> {
             real_end += 1;
         }
 
-        let selection = selection.min(self.items.lines.len() - 1);
+        let selection = selection.min(self.items.len() - 1);
 
         let half = if height == 0 { 0 } else { (height - 1) / 2 };
 
@@ -84,8 +83,8 @@ impl<'a> List<'a> {
             selection + 1 + half
         };
 
-        if end > self.items.lines.len() {
-            (self.items.lines.len() - height, self.items.lines.len())
+        if end > self.items.len() {
+            (self.items.len() - height, self.items.len())
         } else {
             (start, end)
         }
@@ -98,7 +97,7 @@ impl<'a> List<'a> {
             area
         };
 
-        if list_area.width < 1 || list_area.height < 1 || self.items.lines.is_empty() {
+        if list_area.width < 1 || list_area.height < 1 || self.items.is_empty() {
             return;
         }
 
@@ -106,7 +105,7 @@ impl<'a> List<'a> {
 
         let (start, end) = self.get_items_bounds(state.selection, list_height);
 
-        let highlight_symbol = self.highlight_symbol.unwrap_or("");
+        let highlight_symbol = self.selection_symbol.unwrap_or("");
         let blank_symbol = " ".repeat(highlight_symbol.len());
         let mut current_height = 0;
 
@@ -144,26 +143,25 @@ impl<'a> List<'a> {
 
             //Set the selection symbol.
             let (elem_x, max_element_width) = if state.selected {
-                let (elem_x, _) =
-                    buf.set_stringn(x, y, symbol, list_area.width as usize, item.style);
+                //TODO: What about the symbol style?
+                let (elem_x, _) = buf.set_stringn(x, y, symbol, list_area.width as usize, style());
                 (elem_x, (list_area.width - (elem_x - x)))
             } else {
                 (x, list_area.width)
             };
 
             //Set the item text.
-            buf.set_stringn(
-                elem_x,
-                y + 0 as u16,
-                item,
-                max_element_width as usize,
-                item.style,
-            );
+            if let Some(style) = item.style {
+                buf.set_style(area, style);
+            }
+            buf.set_lines(elem_x, y + 0 as u16, item, max_element_width);
 
             //TODO: Maybe skip the symbol area and just style the list item?
             //Could have a symbol_style and a selection_style?
-            if is_selected {
-                buf.set_style(area, self.highlight_style);
+            if let Some(style) = self.selection_style {
+                if is_selected {
+                    buf.set_style(area, style);
+                }
             }
         }
     }

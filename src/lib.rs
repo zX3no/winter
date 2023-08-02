@@ -89,8 +89,8 @@ pub fn info(output: *mut c_void) -> Info {
         Info {
             buffer_size: (info.dwSize.X as u16, info.dwSize.Y as u16),
             window_size: (
-                (info.srWindow.Right - info.srWindow.Left) as u16,
-                (info.srWindow.Bottom - info.srWindow.Top) as u16,
+                (info.srWindow.Right - info.srWindow.Left) as u16 + 1,
+                (info.srWindow.Bottom - info.srWindow.Top) as u16 + 1,
             ),
             cursor_position: (
                 info.dwCursorPosition.X as u16,
@@ -215,6 +215,7 @@ pub enum Event {
     MiddleMouse,
     ScrollUp,
     ScrollDown,
+    Mouse(u16, u16),
 
     //Key
     Char(char),

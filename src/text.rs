@@ -25,7 +25,7 @@ use unicode_width::UnicodeWidthStr;
 /// `う ず ま き` instead of `うずまき`
 #[derive(Debug, Clone)]
 pub struct Lines<'a> {
-    pub lines: &'a [Text<'a>],
+    pub lines: Box<[Text<'a>]>,
     pub block: Option<Block<'a>>,
     pub style: Option<Style>,
 }
@@ -106,10 +106,23 @@ impl<'a> Lines<'a> {
 }
 
 impl<'a> Deref for Lines<'a> {
-    type Target = &'a [Text<'a>];
+    type Target = Box<[Text<'a>]>;
 
     fn deref(&self) -> &Self::Target {
         &self.lines
+    }
+}
+
+//TODO: Rework lines macros. They don't support blocks.
+pub fn lines<'a, B: Into<Box<[Text<'a>]>>>(
+    lines: B,
+    block: Option<Block<'a>>,
+    style: Option<Style>,
+) -> Lines<'a> {
+    Lines {
+        lines: lines.into(),
+        block,
+        style,
     }
 }
 
@@ -121,14 +134,14 @@ impl<'a> Deref for Lines<'a> {
 macro_rules! lines {
     ($($text:expr),*) => {
         Lines {
-            lines: &[
+            lines: Box::new([
                 $(
                     crate::Text {
-                        inner: Cow::from($text),
+                        inner: std::borrow::Cow::from($text),
                         style: Style::default(),
                     }
                 ),*
-            ],
+            ]),
             block: None,
             style: None,
         }
@@ -143,14 +156,14 @@ macro_rules! lines {
 macro_rules! lines_s{
     ($($text:expr, $style:expr),*) => {
         Lines {
-            lines: &[
+            lines: Box::new([
                 $(
                     crate::Text {
-                        inner: Cow::from($text),
+                        inner: std::borrow::Cow::from($text),
                         style: $style,
                     }
                 ),*
-            ],
+            ]),
             block: None,
             style: None,
         }
@@ -207,6 +220,15 @@ impl<'a> DerefMut for Text<'a> {
 }
 
 impl<'a> Into<Text<'a>> for &'static str {
+    fn into(self) -> Text<'a> {
+        Text {
+            inner: std::borrow::Cow::from(self),
+            style: Style::default(),
+        }
+    }
+}
+
+impl<'a> Into<Text<'a>> for String {
     fn into(self) -> Text<'a> {
         Text {
             inner: std::borrow::Cow::from(self),

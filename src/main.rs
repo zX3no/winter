@@ -6,6 +6,44 @@ use std::{
 };
 use winter::*;
 
+pub fn settings(area: Rect, buf: &mut Buffer) {
+    //TODO: I liked the old item menu bold selections.
+    //It doesn't work on most terminals though :(
+    let devices = ["OUT 1-2", "OUT 1-4", "MONITOR"];
+    let current_device = "MONITOR";
+    let index = Some(0);
+
+    let mut items = Vec::new();
+    for device in devices {
+        let item = if device == current_device {
+            lines([text!(">> ", dim()), device.into()], None, None)
+        } else {
+            lines(["   ".into(), device.into()], None, None)
+        };
+        items.push(item);
+    }
+
+    if let Some(index) = index {
+        //TODO: Style doesn't apply across the entire row. Just the text area.
+        items[index].style = Some(fg(Black).bg(White));
+    }
+
+    let list = list(
+        Some(block(
+            Some("Output Device".into()),
+            1,
+            Borders::ALL,
+            BorderType::Rounded,
+            style(),
+        )),
+        &items,
+        None,
+        None,
+    );
+
+    list.draw(area, buf, &mut list_state(index));
+}
+
 pub fn browser(area: Rect, buf: &mut Buffer, index: Option<usize>) {
     let size = area.width / 3;
     let rem = area.width % 3;
@@ -33,7 +71,8 @@ pub fn browser(area: Rect, buf: &mut Buffer, index: Option<usize>) {
             style(),
         );
         let symbol = if use_symbol { ">" } else { " " };
-        list(Some(block), content, Some(symbol), style())
+        // list(Some(block), content, Some(symbol), style())
+        todo!()
     }
 
     let artists = browser_list("Aritst", a, false);
@@ -109,16 +148,21 @@ fn draw(area: Rect, buf: &mut Buffer) {
     }
 
     {
-        let lines = lines!["hi", "test", "test", "test", "test", "test", "test", "test"];
+        let l1 = lines_s!["hi", fg(Red), " there", fg(Blue)];
+        let l2 = lines!["these are", " some more ", "lines"];
+        let items = &[l1, l2];
         let mut state = list_state(Some(5));
         let list = list(
-            Some(block(None, 0, Borders::ALL, BorderType::Rounded, fg(Red))),
-            lines,
+            Some(block(None, 0, Borders::ALL, BorderType::Rounded, style())),
+            items,
             Some("> "),
-            fg(Blue).bg(Red),
+            Some(fg(Blue).bg(Red)),
         );
         // list.draw(chunks[2], buf, &mut state);
-        // list.draw(viewport, buf, &mut state);
+        // list.draw(area, buf, &mut state);
+    }
+    {
+        settings(area, buf);
     }
 }
 
@@ -161,10 +205,7 @@ fn main() {
     let mut index = 0;
     loop {
         //Draw the widgets into the front buffer.
-        {
-            // draw(viewport, &mut buffers[current]);
-            browser(viewport, &mut buffers[current], Some(index));
-        }
+        draw(viewport, &mut buffers[current]);
 
         //Handle events
         {

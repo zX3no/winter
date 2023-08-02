@@ -8,6 +8,7 @@
 - [x] Reset all styles on exit
 
 ### Widgets:
+- [ ] Maybe area: Rect and buf: Buffer should be combined somehow.
 - [x] Table
 - [x] Constraints
 - [x] List
@@ -15,6 +16,9 @@
 - [x] Block
 - [x] Text
 - [x] Layout
+- [ ] Add builder macros like with styles -> `list().style().margin(1)`
+- [ ] Replace ListState and TableState with variables. No need for struct.
+- [ ] Change Borders::ALL to just ALL and BorderType::Rounded to just Rounded. Or combine into single enum.
 
 ### Lines
 - [x] Simplify the way text and lines work.
