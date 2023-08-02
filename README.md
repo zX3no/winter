@@ -16,8 +16,8 @@
 - [x] Block
 - [x] Text
 - [x] Layout
+- [x] Replace ListState and TableState with variables. No need for struct.
 - [ ] Add builder macros like with styles -> `list().style().margin(1)`
-- [ ] Replace ListState and TableState with variables. No need for struct.
 - [ ] Change Borders::ALL to just ALL and BorderType::Rounded to just Rounded. Or combine into single enum.
 
 ### Lines

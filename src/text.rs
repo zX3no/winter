@@ -20,6 +20,20 @@ pub struct Lines<'a> {
 }
 
 impl<'a> Lines<'a> {
+    //TODO: I have mixed feelings about this.
+    pub fn block(
+        mut self,
+        title: Option<Text<'a>>,
+        borders: Borders,
+        border_type: BorderType,
+    ) -> Lines<'a> {
+        self.block = Some(block(title, borders, border_type));
+        self
+    }
+    pub fn style(mut self, style: Style) -> Self {
+        self.style = Some(style);
+        self
+    }
     pub fn align(mut self, alignment: Alignment) -> Self {
         self.alignment = alignment;
         self
@@ -93,15 +107,11 @@ impl<'a> Deref for Lines<'a> {
 }
 
 //TODO: Rework lines macros. They don't support blocks.
-pub fn lines<'a, B: Into<Box<[Text<'a>]>>>(
-    lines: B,
-    block: Option<Block<'a>>,
-    style: Option<Style>,
-) -> Lines<'a> {
+pub fn lines<'a, B: Into<Box<[Text<'a>]>>>(lines: B) -> Lines<'a> {
     Lines {
         lines: lines.into(),
-        block,
-        style,
+        block: None,
+        style: None,
         alignment: Alignment::Left,
     }
 }
@@ -153,6 +163,13 @@ macro_rules! lines_s{
             alignment: Alignment::Left,
         }
     };
+}
+
+pub const fn text<'a>(text: std::borrow::Cow<'a, str>, style: Style) -> Text<'a> {
+    Text {
+        inner: text,
+        style,
+    }
 }
 
 //TODO: Things like this `text!(format!("{pct}%"))` seem dumb.

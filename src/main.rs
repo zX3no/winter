@@ -16,9 +16,9 @@ pub fn settings(area: Rect, buf: &mut Buffer) {
     let mut items = Vec::new();
     for device in devices {
         let item = if device == current_device {
-            lines([text!(">> ", dim()), device.into()], None, None)
+            lines([text!(">> ", dim()), device.into()])
         } else {
-            lines(["   ".into(), device.into()], None, None)
+            lines(["   ".into(), device.into()])
         };
         items.push(item);
     }
@@ -42,7 +42,7 @@ pub fn settings(area: Rect, buf: &mut Buffer) {
         None,
     );
 
-    list.draw(area, buf, &mut list_state(index));
+    list.draw(area, buf, index);
 }
 
 pub fn browser(area: Rect, buf: &mut Buffer, index: Option<usize>) {
@@ -79,9 +79,9 @@ pub fn browser(area: Rect, buf: &mut Buffer, index: Option<usize>) {
     let albums = browser_list("Album", b, false);
     let songs = browser_list("Song", c, true);
 
-    artists.draw(chunks[0], buf, &mut list_state(Some(0)));
-    albums.draw(chunks[1], buf, &mut list_state(Some(0)));
-    songs.draw(chunks[2], buf, &mut list_state(index));
+    artists.draw(chunks[0], buf, Some(0));
+    albums.draw(chunks[1], buf, Some(0));
+    songs.draw(chunks[2], buf, index);
 }
 
 fn draw(area: Rect, buf: &mut Buffer) {
@@ -143,14 +143,12 @@ fn draw(area: Rect, buf: &mut Buffer) {
 
         //TODO: Maybe state should hold a row, style and index.
         //That way you can set exacly what you want when selected.
-        let mut state = table_state(Some(0));
 
-        // table.draw(chunks[1], buf, &mut state);
-        // table.draw(viewport, buf, &mut state);
+        // table.draw(chunks[1], buf, Some(1));
+        // table.draw(area, buf, Some(0));
     }
 
     {
-        let mut state = list_state(Some(5));
         let list = list(
             Some(block(None, Borders::ALL, BorderType::Rounded)),
             [
@@ -187,7 +185,7 @@ fn draw(area: Rect, buf: &mut Buffer) {
             " │─",
             style()
         ];
-        top.align(Center).draw(area, buf);
+        // top.align(Center).draw(area, buf);
     }
 
     //Empty

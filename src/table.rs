@@ -1,14 +1,5 @@
 use crate::{buffer::Buffer, *};
 
-pub fn table_state(index: Option<usize>) -> TableState {
-    TableState { selected: index }
-}
-
-#[derive(Debug, Clone)]
-pub struct TableState {
-    pub selected: Option<usize>,
-}
-
 #[macro_export]
 ///It's just a row with a 1px bottom margin.
 macro_rules! header {
@@ -207,7 +198,7 @@ impl<'a> Table<'a> {
         rows_height
     }
 
-    pub fn draw(&self, area: Rect, buf: &mut Buffer, state: &TableState) {
+    pub fn draw(&self, area: Rect, buf: &mut Buffer, state: Option<usize>) {
         if area.area() == 0 {
             return;
         }
@@ -219,7 +210,7 @@ impl<'a> Table<'a> {
             area
         };
 
-        let has_selection = state.selected.is_some();
+        let has_selection = state.is_some();
         let columns_widths = self.get_columns_widths(table_area.width, has_selection);
         let highlight_symbol = self.highlight_symbol.unwrap_or("");
         let blank_symbol = " ".repeat(highlight_symbol.len());
@@ -254,7 +245,7 @@ impl<'a> Table<'a> {
         if self.rows.is_empty() {
             return;
         }
-        let (start, end) = self.get_row_bounds(state.selected, rows_height);
+        let (start, end) = self.get_row_bounds(state, rows_height);
 
         //TODO: Fix the table moving to the left when selected.
         //I don't think list has this problem?
@@ -262,7 +253,7 @@ impl<'a> Table<'a> {
             let (x, y) = (table_area.left(), table_area.top() + current_height);
             current_height += row.total_height();
 
-            let selected = state.selected.map_or(false, |s| s == i);
+            let selected = state.map_or(false, |s| s == i);
 
             let mut x = if has_selection {
                 let symbol = if selected {

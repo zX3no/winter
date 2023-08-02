@@ -1,22 +1,5 @@
 use crate::{buffer::Buffer, layout::Rect, *};
 
-#[derive(Debug, Clone, Default)]
-pub struct ListState {
-    selection: usize,
-    selected: bool,
-}
-
-impl ListState {
-    pub fn select(&mut self, index: Option<usize>) {
-        if let Some(i) = index {
-            self.selection = i;
-            self.selected = true;
-        } else {
-            self.selected = false;
-        }
-    }
-}
-
 pub fn list<'a, B: Into<Box<[Lines<'a>]>>>(
     block: Option<Block<'a>>,
     items: B,
@@ -29,20 +12,6 @@ pub fn list<'a, B: Into<Box<[Lines<'a>]>>>(
         selection_symbol,
         selection_style,
         start_from_bottom: false,
-    }
-}
-
-pub fn list_state(index: Option<usize>) -> ListState {
-    if let Some(i) = index {
-        ListState {
-            selection: i,
-            selected: true,
-        }
-    } else {
-        ListState {
-            selection: 0,
-            selected: false,
-        }
     }
 }
 
@@ -89,7 +58,7 @@ impl<'a> List<'a> {
             (start, end)
         }
     }
-    pub fn draw(&self, area: Rect, buf: &mut Buffer, state: &ListState) {
+    pub fn draw(&self, area: Rect, buf: &mut Buffer, state: Option<usize>) {
         let list_area = if let Some(block) = &self.block {
             block.draw(area, buf);
             block.inner(area)
@@ -97,13 +66,16 @@ impl<'a> List<'a> {
             area
         };
 
+        let selected = state.is_some();
+        let selection = state.unwrap_or(0);
+
         if list_area.width < 1 || list_area.height < 1 || self.items.is_empty() {
             return;
         }
 
         let list_height = list_area.height as usize;
 
-        let (start, end) = self.get_items_bounds(state.selection, list_height);
+        let (start, end) = self.get_items_bounds(selection, list_height);
 
         let highlight_symbol = self.selection_symbol.unwrap_or("");
         let blank_symbol = " ".repeat(highlight_symbol.len());
@@ -129,7 +101,7 @@ impl<'a> List<'a> {
                 height,
             };
 
-            let is_selected = state.selected && state.selection == i;
+            let is_selected = selected && selection == i;
 
             let symbol = if is_selected {
                 highlight_symbol
@@ -138,7 +110,7 @@ impl<'a> List<'a> {
             };
 
             //Set the selection symbol.
-            let (elem_x, max_element_width) = if state.selected {
+            let (elem_x, max_element_width) = if selected {
                 //TODO: What about the symbol style?
                 let (elem_x, _) = buf.set_stringn(x, y, symbol, list_area.width as usize, style());
                 (elem_x, (list_area.width - (elem_x - x)))
