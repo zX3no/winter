@@ -129,7 +129,7 @@ fn draw(area: Rect, buf: &mut Buffer) {
             //Row 2
             row![
                 //Row 2 Column 1
-                lines_s!("first item second row", fg(Yellow)),
+                lines_s!("Namā", fg(Yellow)),
                 //Row 2 Column 2
                 lines!("second item second row")
             ],
@@ -145,7 +145,7 @@ fn draw(area: Rect, buf: &mut Buffer) {
         //That way you can set exacly what you want when selected.
 
         // table.draw(chunks[1], buf, Some(1));
-        // table.draw(area, buf, Some(0));
+        table.draw(area, buf, Some(0));
     }
 
     {
@@ -163,7 +163,7 @@ fn draw(area: Rect, buf: &mut Buffer) {
     }
 
     {
-        settings(area, buf);
+        // settings(area, buf);
     }
 
     {

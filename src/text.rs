@@ -142,6 +142,10 @@ macro_rules! lines {
     };
 }
 
+//TODO: What is going on with styling in lines.
+//lines_s doesn't set the lines style???
+//These should probably just be removed in favour of text().into().
+
 /// Use `lines` for un-styled text.
 ///```rs
 /// lines_s!["Text", fg(Blue), "Text", fg(Red)]
@@ -208,6 +212,17 @@ impl<'a> AsRef<str> for Text<'a> {
     }
 }
 
+impl<'a> Into<Lines<'a>> for Text<'a> {
+    fn into(self) -> Lines<'a> {
+        Lines {
+            style: Some(self.style),
+            lines: Box::new([self]),
+            block: None,
+            alignment: Alignment::Left,
+        }
+    }
+}
+
 macro_rules! impl_lines {
     ($($t:ty),*) => {
         $(
@@ -241,5 +256,4 @@ macro_rules! impl_text {
     };
 }
 
-impl_lines! { Text<'a> }
 impl_text! { String, std::borrow::Cow<'a, str>, &'static str }

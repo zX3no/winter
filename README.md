@@ -7,6 +7,9 @@
 - [ ] Simplify main loop even more
 - [x] Reset all styles on exit
 
+### Events:
+- [ ] Handle Shift, Ctrl and Alt.
+
 ### Widgets:
 - [ ] Maybe area: Rect and buf: Buffer should be combined somehow.
 - [x] Table
@@ -40,6 +43,7 @@
 ### Table
 - [x] Only first line is displayed
 - [x] Fix styles
+- [x] Background style does not follow area only text.
 
 ### Layout
 - [x] Cleanup

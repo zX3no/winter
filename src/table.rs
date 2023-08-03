@@ -107,6 +107,10 @@ pub struct Table<'a> {
 }
 
 impl<'a> Table<'a> {
+    pub fn spacing(mut self, spacing: u16) -> Self {
+        self.column_spacing = spacing;
+        self
+    }
     fn get_columns_widths(&self, max_width: u16, has_selection: bool) -> Vec<u16> {
         let mut constraints = Vec::with_capacity(self.widths.len() * 2 + 1);
         if has_selection {
@@ -211,7 +215,6 @@ impl<'a> Table<'a> {
         if area.area() == 0 {
             return;
         }
-        // buf.set_style(area, self.style);
         let table_area = if let Some(block) = &self.block {
             block.draw(area, buf);
             block.inner(area)
@@ -261,7 +264,6 @@ impl<'a> Table<'a> {
         for (i, row) in self.rows.iter().enumerate().skip(start).take(end - start) {
             let (x, y) = (table_area.left(), table_area.top() + current_height);
             current_height += row.total_height();
-
             let selected = state.map_or(false, |s| s == i);
 
             let mut x = if has_selection {
@@ -279,6 +281,17 @@ impl<'a> Table<'a> {
             };
 
             for (width, column) in columns_widths.iter().zip(row.columns.iter()) {
+                if let Some(style) = column.style {
+                    buf.set_style(
+                        Rect {
+                            x,
+                            y,
+                            width: *width,
+                            height: row.height,
+                        },
+                        style,
+                    );
+                }
                 buf.set_lines(x, y, column, *width);
                 x += width + self.column_spacing;
             }

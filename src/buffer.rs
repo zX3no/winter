@@ -1,5 +1,5 @@
 use crate::{layout::Rect, *};
-use std::{cmp::min, io::Write};
+use std::{cmp::min, f32::consts::E, io::Write};
 use unicode_segmentation::UnicodeSegmentation;
 use unicode_width::UnicodeWidthStr;
 
@@ -165,6 +165,8 @@ impl Buffer {
         let graphemes = UnicodeSegmentation::graphemes(string.as_ref(), true);
         let max_offset = min(self.area.right() as usize, width.saturating_add(x as usize));
         for s in graphemes {
+            //FIXME: This dumbass character is broken for some reason.
+            let s = if s == "a\u{304}" { "ā" } else { s };
             let width = s.width();
             if width == 0 {
                 continue;
