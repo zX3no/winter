@@ -63,8 +63,12 @@ pub mod text;
 
 pub use buffer::{Buffer, Cell};
 pub use layout::Alignment::*;
-pub use layout::*;
+pub use layout::Constraint::*;
+pub use layout::Direction::*;
 pub use style::{Color::*, *};
+
+//TODO: Remove
+pub use layout::*;
 
 pub mod buffer;
 pub mod layout;
@@ -456,33 +460,35 @@ pub fn leave_alternate_screen<W: Write>(w: &mut W) {
 pub fn move_to<W: Write>(w: &mut W, x: u16, y: u16) {
     write!(w, "\x1b[{};{}H", y, x).unwrap();
 }
-pub fn shift_up<W: Write>(w: &mut W, amount: u16) {
+
+//TODO: Most of these are not used.
+fn shift_up<W: Write>(w: &mut W, amount: u16) {
     write!(w, "\x1b[{}S", amount).unwrap();
 }
-pub fn shift_down<W: Write>(w: &mut W, amount: u16) {
+fn shift_down<W: Write>(w: &mut W, amount: u16) {
     write!(w, "\x1b[{}T", amount).unwrap();
 }
 ///Reset all modes (styles and colors)
-pub fn reset<W: Write>(w: &mut W) {
+fn reset<W: Write>(w: &mut W) {
     write!(w, "\x1b[0m").unwrap();
 }
 ///Same as \x1b[0J
-pub fn clear_from_cursor<W: Write>(w: &mut W) {
+fn clear_from_cursor<W: Write>(w: &mut W) {
     write!(w, "\x1b[J").unwrap();
 }
-pub fn clear_from_cursor_to_start<W: Write>(w: &mut W) {
+fn clear_from_cursor_to_start<W: Write>(w: &mut W) {
     write!(w, "\x1b[1J").unwrap();
 }
 pub fn clear<W: Write>(w: &mut W) {
     write!(w, "\x1b[2J").unwrap();
 }
 ///Same as \x1b[0K
-pub fn clear_line_from_cursor<W: Write>(w: &mut W) {
+fn clear_line_from_cursor<W: Write>(w: &mut W) {
     write!(w, "\x1b[K").unwrap();
 }
-pub fn clear_line_from_cursor_to_start<W: Write>(w: &mut W) {
+fn clear_line_from_cursor_to_start<W: Write>(w: &mut W) {
     write!(w, "\x1b[1K").unwrap();
 }
-pub fn clear_line<W: Write>(w: &mut W) {
+fn clear_line<W: Write>(w: &mut W) {
     write!(w, "\x1b[2K").unwrap();
 }

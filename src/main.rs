@@ -217,6 +217,8 @@ fn main() {
         std::process::exit(1);
     }));
 
+    //TODO: Might need to wrap stdout, viewport and current buffer.
+    //v.area(), v.stdout(), v.buffer(). maybe maybe not.
     let mut stdout = stdout();
     enter_alternate_screen(&mut stdout);
     hide_cursor(&mut stdout);

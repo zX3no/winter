@@ -2,6 +2,15 @@ use crate::{buffer::Buffer, *};
 
 #[macro_export]
 ///It's just a row with a 1px bottom margin.
+/// ```rs
+/// let header = header![
+///         text!(),
+///         text!("#", bold()),
+///         text!("Title", bold()),
+///         text!("Album", bold()),
+///         text!("Artist", bold())
+///     ];
+/// ```
 macro_rules! header {
     ($($column:expr),*)  => {
         Row {

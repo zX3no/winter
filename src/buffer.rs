@@ -322,6 +322,13 @@ impl Buffer {
             c.reset();
         }
     }
+    pub fn clear(&mut self, area: Rect) {
+        for y in area.top()..area.bottom() {
+            for x in area.left()..area.right() {
+                self.get_mut(x, y).unwrap().reset();
+            }
+        }
+    }
 }
 
 //TODO: Why is symbol a string?
