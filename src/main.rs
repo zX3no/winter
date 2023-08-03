@@ -163,7 +163,7 @@ fn draw(area: Rect, buf: &mut Buffer) {
     }
 
     {
-        // settings(area, buf);
+        settings(area, buf);
     }
 
     {
@@ -206,13 +206,9 @@ fn main() {
     //Prevents panic messages from being hidden.
     let orig_hook = std::panic::take_hook();
     std::panic::set_hook(Box::new(move |panic_info| {
-        // let mut stdout = stdout();
-        // disable_raw_mode();
-        // disable_mouse_caputure();
-        // leave_alternate_screen(&mut stdout);
-        // show_cursor(&mut stdout);
-        // stdout.flush().unwrap();
-
+        let mut stdout = stdout();
+        uninit(&mut stdout);
+        stdout.flush().unwrap();
         orig_hook(panic_info);
         std::process::exit(1);
     }));
@@ -220,20 +216,10 @@ fn main() {
     //TODO: Might need to wrap stdout, viewport and current buffer.
     //v.area(), v.stdout(), v.buffer(). maybe maybe not.
     let mut stdout = stdout();
-    enter_alternate_screen(&mut stdout);
-    hide_cursor(&mut stdout);
-    clear(&mut stdout);
-
-    // enable_raw_mode();
-    // enable_mouse_capture();
-    // enable_resize_events();
-    // loop {
-    //     if let Some(event) = poll(Duration::from_millis(16)) {
-    //         println!("{}", event);
-    //     }
-    // }
+    init(&mut stdout);
 
     let mut index = 0;
+
     loop {
         //Draw the widgets into the front buffer.
         draw(viewport, &mut buffers[current]);
@@ -251,6 +237,9 @@ fn main() {
                 }
                 if event == Event::Down {
                     index += 1;
+                }
+                if event == Event::Char('c') || event == Event::Escape {
+                    break;
                 }
             }
         }
@@ -283,7 +272,5 @@ fn main() {
         // break;
     }
 
-    // leave_alternate_screen(&mut stdout);
-    show_cursor(&mut stdout);
-    stdout.flush().unwrap();
+    uninit(&mut stdout);
 }

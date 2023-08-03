@@ -125,57 +125,30 @@ pub fn current_in_handle() -> *mut c_void {
 
 const NOT_RAW_MODE_MASK: DWORD = ENABLE_LINE_INPUT | ENABLE_ECHO_INPUT | ENABLE_PROCESSED_INPUT;
 
-//TODO: This enables raw mode
-///Also breaks CTRL+C
-pub fn enable_mouse_capture() {
+pub fn init<W: Write>(w: &mut W) {
     let handle = current_in_handle();
-    set_mode(
-        handle,
-        //Also turns off text selection.
-        ENABLE_MOUSE_INPUT | ENABLE_EXTENDED_FLAGS,
-    );
-}
+    let mode =
+        (ENABLE_MOUSE_INPUT | ENABLE_EXTENDED_FLAGS | ENABLE_WINDOW_INPUT) & !NOT_RAW_MODE_MASK;
+    assert!(mode & NOT_RAW_MODE_MASK == 0);
 
-//TODO: Re-write this. Just testing how crossterm does it.
-pub fn enable_raw_mode() {
-    let handle = current_in_handle();
-    let dw_mode = get_mode(handle);
-    let new_mode = dw_mode & !NOT_RAW_MODE_MASK;
-    set_mode(handle, new_mode);
-}
-
-pub fn disable_raw_mode() {
-    let handle = current_in_handle();
-    let dw_mode = get_mode(handle);
-    let new_mode = dw_mode | NOT_RAW_MODE_MASK;
-    set_mode(handle, new_mode);
-}
-
-pub fn is_raw_mode() -> bool {
-    let handle = current_in_handle();
-    let dw_mode = get_mode(handle);
-    dw_mode & NOT_RAW_MODE_MASK == 0
-}
-
-//TODO: Figure out what flags are actually useful and move into a function.
-//Something like enable_terminal_events() or something.
-pub fn enable_resize_events() {
-    let handle = unsafe { GetStdHandle(STD_INPUT_HANDLE) };
-
-    if handle == INVALID_HANDLE_VALUE {
-        panic!("Failed to get the input handle");
-    }
-
-    let mut mode = get_mode(handle);
-
-    // mode &= !ENABLE_EXTENDED_FLAGS;
-    // mode &= !(ENABLE_LINE_INPUT | ENABLE_ECHO_INPUT);
-
-    // mode |= ENABLE_MOUSE_MODE;
-
-    //Enables resize events.
-    mode |= ENABLE_WINDOW_INPUT;
     set_mode(handle, mode);
+
+    enter_alternate_screen(w);
+    hide_cursor(w);
+    clear(w);
+}
+
+pub fn uninit<W: Write>(w: &mut W) {
+    let handle = current_in_handle();
+    let mut mode = get_mode(handle);
+    mode &= (ENABLE_MOUSE_INPUT | ENABLE_EXTENDED_FLAGS | ENABLE_WINDOW_INPUT);
+    mode |= NOT_RAW_MODE_MASK;
+    assert!(mode & NOT_RAW_MODE_MASK != 0);
+
+    set_mode(handle, mode);
+
+    leave_alternate_screen(w);
+    show_cursor(w);
 }
 
 /// This wraps
