@@ -17,6 +17,7 @@ use winapi::{
         },
         fileapi::{CreateFileW, OPEN_EXISTING},
         handleapi::INVALID_HANDLE_VALUE,
+        minwinbase::CONTROL_C_EXIT,
         processenv::GetStdHandle,
         synchapi::WaitForSingleObject,
         winbase::{
@@ -28,12 +29,12 @@ use winapi::{
             ENABLE_EXTENDED_FLAGS, ENABLE_LINE_INPUT, ENABLE_MOUSE_INPUT, ENABLE_PROCESSED_INPUT,
             ENABLE_WINDOW_INPUT,
         },
-        wincontypes::SHIFT_PRESSED,
         wincontypes::{
             DOUBLE_CLICK, FROM_LEFT_1ST_BUTTON_PRESSED, FROM_LEFT_2ND_BUTTON_PRESSED, INPUT_RECORD,
-            KEY_EVENT, MOUSE_EVENT, MOUSE_WHEELED, RIGHTMOST_BUTTON_PRESSED,
-            WINDOW_BUFFER_SIZE_EVENT,
+            KEY_EVENT, LEFT_ALT_PRESSED, MOUSE_EVENT, MOUSE_WHEELED, RIGHTMOST_BUTTON_PRESSED,
+            RIGHT_ALT_PRESSED, RIGHT_CTRL_PRESSED, WINDOW_BUFFER_SIZE_EVENT,
         },
+        wincontypes::{LEFT_CTRL_PRESSED, SHIFT_PRESSED},
         winnt::{FILE_SHARE_READ, FILE_SHARE_WRITE, GENERIC_READ, GENERIC_WRITE},
         winuser::{
             ToUnicode, VK_DOWN, VK_LEFT, VK_OEM_1, VK_OEM_2, VK_OEM_3, VK_OEM_4, VK_OEM_5,
@@ -225,6 +226,52 @@ impl Display for Event {
     }
 }
 
+//TODO: This sucks.
+use bitflags::bitflags;
+
+bitflags! {
+    #[derive(Debug, Clone, PartialEq, Eq, Copy, Default)]
+    pub struct KeyState: u16 {
+        const CTRL              = 0b0000_0000_0001;
+        const SHIFT             = 0b0000_0000_0010;
+        const ALT               = 0b0000_0000_0100;
+    }
+}
+
+impl KeyState {
+    pub fn shift(&self) -> bool {
+        self.contains(KeyState::SHIFT)
+    }
+    pub fn ctrl(&self) -> bool {
+        self.contains(KeyState::CTRL)
+    }
+    pub fn alt(&self) -> bool {
+        self.contains(KeyState::ALT)
+    }
+}
+
+pub fn key_state(event: INPUT_RECORD) -> KeyState {
+    if event.EventType == KEY_EVENT {
+        let ks = unsafe { event.Event.KeyEvent().dwControlKeyState };
+        let mut state = KeyState::empty();
+        if ks & SHIFT_PRESSED != 0 {
+            state |= KeyState::SHIFT;
+        }
+
+        if ks & LEFT_CTRL_PRESSED != 0 || ks & RIGHT_CTRL_PRESSED != 0 {
+            state |= KeyState::CTRL;
+        }
+
+        if ks & LEFT_ALT_PRESSED != 0 || ks & RIGHT_ALT_PRESSED != 0 {
+            state |= KeyState::ALT;
+        }
+
+        state
+    } else {
+        KeyState::empty()
+    }
+}
+
 pub unsafe fn convert_event(event: INPUT_RECORD) -> Option<Event> {
     match event.EventType {
         KEY_EVENT => {
@@ -234,7 +281,8 @@ pub unsafe fn convert_event(event: INPUT_RECORD) -> Option<Event> {
                 let vk = key_event.wVirtualKeyCode;
                 let sc = key_event.wVirtualScanCode;
                 //TODO: Handle shift, ctrl and alt modifiers. Maybe capslock too.
-                let shift = key_event.dwControlKeyState & SHIFT_PRESSED != 0;
+                // let shift = key_event.dwControlKeyState & SHIFT_PRESSED != 0;
+                // let ctrl = key_event.dwControlKeyState & SHIFT_PRESSED != 0;
 
                 match vk as i32 {
                     VK_UP => return Some(Event::Up),
@@ -394,7 +442,7 @@ pub fn event_count(input: *mut c_void) -> u32 {
 ///    }
 ///}
 /// ```
-pub fn poll(timeout: Duration) -> Option<Event> {
+pub fn poll(timeout: Duration) -> Option<(Event, KeyState)> {
     let now = Instant::now();
     //TODO: Stop grabbing this everywhere. File handles are expensive you know.
     let handle = current_in_handle();
@@ -402,8 +450,15 @@ pub fn poll(timeout: Duration) -> Option<Event> {
     loop {
         let leftover = timeout.saturating_sub(now.elapsed());
         if event_ready(handle, Some(leftover)) && event_count(handle) != 0 {
-            let event = read_input_event(handle);
-            return unsafe { convert_event(event) };
+            let input_event = read_input_event(handle);
+            let event = unsafe { convert_event(input_event) };
+            //TODO: This could be done better.
+            return if let Some(event) = event {
+                let state = key_state(input_event);
+                Some((event, state))
+            } else {
+                None
+            };
         }
 
         //Timeout elapsed

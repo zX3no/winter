@@ -6,9 +6,11 @@
 - [x] Simplify main loop
 - [ ] Simplify main loop even more
 - [x] Reset all styles on exit
+- [ ] Colors are slightly different from crossterm. Most likely due to using old Win32 colors. https://learn.microsoft.com/en-us/windows/console/char-info-str
+
 
 ### Events:
-- [ ] Handle Shift, Ctrl and Alt.
+- [x] Handle Shift, Ctrl and Alt.
 
 ### Widgets:
 - [ ] Maybe area: Rect and buf: Buffer should be combined somehow.

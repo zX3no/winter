@@ -226,7 +226,7 @@ fn main() {
 
         //Handle events
         {
-            if let Some(event) = poll(Duration::from_millis(16)) {
+            if let Some((event, state)) = poll(Duration::from_millis(16)) {
                 // println!("{}", event);
 
                 //TODO: I might want a class or trait or something to handle this pattern.
@@ -238,7 +238,7 @@ fn main() {
                 if event == Event::Down {
                     index += 1;
                 }
-                if event == Event::Char('c') || event == Event::Escape {
+                if event == Event::Char('c') && state.ctrl() || event == Event::Escape {
                     break;
                 }
             }
