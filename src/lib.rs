@@ -280,9 +280,7 @@ pub unsafe fn convert_event(event: INPUT_RECORD) -> Option<Event> {
                 const F24: i32 = VK_F1 + 23;
                 let vk = key_event.wVirtualKeyCode;
                 let sc = key_event.wVirtualScanCode;
-                //TODO: Handle shift, ctrl and alt modifiers. Maybe capslock too.
-                // let shift = key_event.dwControlKeyState & SHIFT_PRESSED != 0;
-                // let ctrl = key_event.dwControlKeyState & SHIFT_PRESSED != 0;
+                let shift = key_event.dwControlKeyState & SHIFT_PRESSED != 0;
 
                 match vk as i32 {
                     VK_UP => return Some(Event::Up),
@@ -297,10 +295,23 @@ pub unsafe fn convert_event(event: INPUT_RECORD) -> Option<Event> {
                     VK_SHIFT | VK_LSHIFT | VK_RSHIFT => return Some(Event::Shift),
                     VK_CONTROL | VK_LCONTROL | VK_RCONTROL => return Some(Event::Control),
                     VK_MENU | VK_LMENU | VK_RMENU => return Some(Event::Alt),
-                    VK_OEM_PLUS => return Some(Event::Char('+')),
-                    VK_OEM_MINUS => return Some(Event::Char('-')),
+
                     //TODO: Tilde is kind of an odd ball.
                     //Might need to handle this one better.
+                    VK_OEM_PLUS if shift => return Some(Event::Char('+')),
+                    VK_OEM_MINUS if shift => return Some(Event::Char('_')),
+                    VK_OEM_3 if shift => return Some(Event::Char('~')),
+                    VK_OEM_4 if shift => return Some(Event::Char('{')),
+                    VK_OEM_6 if shift => return Some(Event::Char('}')),
+                    VK_OEM_5 if shift => return Some(Event::Char('|')),
+                    VK_OEM_1 if shift => return Some(Event::Char(':')),
+                    VK_OEM_7 if shift => return Some(Event::Char('"')),
+                    VK_OEM_COMMA if shift => return Some(Event::Char('<')),
+                    VK_OEM_PERIOD if shift => return Some(Event::Char('>')),
+                    VK_OEM_2 if shift => return Some(Event::Char('?')),
+                    VK_OEM_PLUS => return Some(Event::Char('=')),
+                    VK_OEM_MINUS => return Some(Event::Char('-')),
+
                     VK_OEM_3 => return Some(Event::Char('`')),
                     VK_OEM_4 => return Some(Event::Char('[')),
                     VK_OEM_6 => return Some(Event::Char(']')),
@@ -310,6 +321,7 @@ pub unsafe fn convert_event(event: INPUT_RECORD) -> Option<Event> {
                     VK_OEM_COMMA => return Some(Event::Char(',')),
                     VK_OEM_PERIOD => return Some(Event::Char('.')),
                     VK_OEM_2 => return Some(Event::Char('/')),
+
                     VK_F1..=F24 => return Some(Event::Function((vk - VK_F1 as u16 + 1) as u8)),
                     // Handle alphanumeric keys (A-Z, 0-9).
                     0x30..=0x39 | 0x41..=0x5A => {
@@ -328,21 +340,24 @@ pub unsafe fn convert_event(event: INPUT_RECORD) -> Option<Event> {
                             0,
                         );
                         match result {
-                            // The key is a dead key or is a key that has no translation.
-                            // This is usually used for keys that modify other characters, like accent keys.
-                            -1 => todo!("Dead key or no translation."),
-                            // The key is a dead key and a buffer is not provided, or the key is not a dead key but is a key that does not produce a character.
-                            0 => todo!("No character produced."),
-                            // The key is a single character key.
-                            1 => return Some(Event::Char(buffer[0] as u8 as char)),
-                            _ => {
-                                // The key is a multi-character key, e.g., a CTRL+key combination.
-                                let result_chars: Vec<WCHAR> =
-                                    buffer.iter().take(result as usize).copied().collect();
-                                let result_str: String =
-                                    result_chars.iter().map(|&c| c as u8 as char).collect();
-                                todo!("Multi-character produced: {}", result_str);
+                            1 if shift => {
+                                let char = buffer[0] as u8 as char;
+                                return Some(Event::Char(match char {
+                                    '1' => '!',
+                                    '2' => '@',
+                                    '3' => '#',
+                                    '4' => '$',
+                                    '5' => '%',
+                                    '6' => '^',
+                                    '7' => '&',
+                                    '8' => '*',
+                                    '9' => '(',
+                                    '0' => ')',
+                                    _ => char.to_ascii_uppercase(),
+                                }));
                             }
+                            1 => return Some(Event::Char(buffer[0] as u8 as char)),
+                            _ => unimplemented!(),
                         }
                     }
                     _ => return Some(Event::Unknown(vk)),

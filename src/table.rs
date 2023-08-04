@@ -238,7 +238,15 @@ impl<'a> Table<'a> {
             }
             for (width, column) in columns_widths.iter().zip(header.columns.iter()) {
                 if let Some(style) = column.style {
-                    buf.set_style(area, style);
+                    buf.set_style(
+                        Rect {
+                            x: col,
+                            y: table_area.top(),
+                            width: *width,
+                            height: max_header_height,
+                        },
+                        style,
+                    );
                 }
                 buf.set_lines(col, table_area.top(), column, *width);
                 col += *width + self.column_spacing;
