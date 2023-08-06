@@ -122,7 +122,7 @@ impl<'a> List<'a> {
             if let Some(style) = item.style {
                 buf.set_style(area, style);
             }
-            buf.set_lines(elem_x, y, item, max_element_width);
+            buf.set_lines(elem_x, y, item, max_element_width, false);
 
             //TODO: Maybe skip the symbol area and just style the list item?
             //Could have a symbol_style and a selection_style?

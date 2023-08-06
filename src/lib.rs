@@ -189,17 +189,15 @@ pub fn handles() -> (*mut c_void, *mut c_void) {
 #[derive(Debug, PartialEq, Eq)]
 pub enum Event {
     //Mouse
-    LeftMouse,
-    RightMouse,
-    MiddleMouse,
+    LeftMouse(u16, u16),
+    RightMouse(u16, u16),
+    MiddleMouse(u16, u16),
     ScrollUp,
     ScrollDown,
-    Mouse(u16, u16),
 
     //Key
     Char(char),
     Function(u8),
-    Space,
     Enter,
     Backspace,
     Escape,
@@ -288,7 +286,7 @@ pub unsafe fn convert_event(event: INPUT_RECORD) -> Option<Event> {
                     VK_LEFT => return Some(Event::Left),
                     VK_RIGHT => return Some(Event::Right),
                     VK_RETURN => return Some(Event::Enter),
-                    VK_SPACE => return Some(Event::Space),
+                    VK_SPACE => return Some(Event::Char(' ')),
                     VK_BACK => return Some(Event::Backspace),
                     VK_ESCAPE => return Some(Event::Escape),
                     VK_TAB => return Some(Event::Tab),
@@ -368,13 +366,17 @@ pub unsafe fn convert_event(event: INPUT_RECORD) -> Option<Event> {
             //Keep in mind mouse_event.dwControlKeyState for control clicks.
             let mouse_event = event.Event.MouseEvent();
             let event_flags = mouse_event.dwEventFlags;
+            let (x, y) = (
+                mouse_event.dwMousePosition.X as u16,
+                mouse_event.dwMousePosition.Y as u16,
+            );
 
             match event_flags {
                 //TODO: Double click event?
                 0 | DOUBLE_CLICK => match mouse_event.dwButtonState {
-                    FROM_LEFT_1ST_BUTTON_PRESSED => return Some(Event::LeftMouse),
-                    RIGHTMOST_BUTTON_PRESSED => return Some(Event::RightMouse),
-                    FROM_LEFT_2ND_BUTTON_PRESSED => return Some(Event::MiddleMouse),
+                    FROM_LEFT_1ST_BUTTON_PRESSED => return Some(Event::LeftMouse(x, y)),
+                    RIGHTMOST_BUTTON_PRESSED => return Some(Event::RightMouse(x, y)),
+                    FROM_LEFT_2ND_BUTTON_PRESSED => return Some(Event::MiddleMouse(x, y)),
                     _ => (),
                 },
                 MOUSE_WHEELED => {

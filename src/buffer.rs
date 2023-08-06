@@ -123,28 +123,52 @@ impl Buffer {
         let i = self.index_of(x, y)?;
         Ok(&mut self.content[i])
     }
-    /// Print multiple lines
-    // pub fn set_lines<'a>(&mut self, x: u16, y: u16, lines: &Lines<'a>) {
-    //     let mut width = 0;
-    //     for line in lines.iter() {
-    //         self.set_stringn(x + width as u16, y, line, line.width(), line.style);
-
-    //         width += line.width();
-    //     }
-    // }
-    pub fn set_lines(&mut self, x: u16, y: u16, lines: &Lines<'_>, width: u16) -> (u16, u16) {
+    pub fn set_lines(
+        &mut self,
+        mut x: u16,
+        y: u16,
+        lines: &Lines<'_>,
+        width: u16,
+        scroll: bool,
+    ) -> (u16, u16) {
         let mut remaining_width = width;
-        let mut x = x;
+
+        let text_width = lines.iter().map(|text| text.width()).sum::<usize>();
+        let mut overflow = text_width.saturating_sub(width as usize);
+
         for line in lines.iter() {
             if remaining_width == 0 {
                 break;
             }
+
             let style = lines.style.unwrap_or(line.style);
+            let line = if scroll {
+                // If there is overflow, skip characters from the start of the line
+                let mut skip = 0;
+                if overflow > 0 {
+                    let graphemes =
+                        UnicodeSegmentation::grapheme_indices(&line.inner as &str, true)
+                            .collect::<Vec<(usize, &str)>>();
+                    for (i, grapheme) in graphemes.iter() {
+                        if skip + grapheme.width() <= overflow {
+                            skip += grapheme.width();
+                        } else {
+                            break;
+                        }
+                    }
+                    overflow -= skip;
+                }
+                &line.inner[skip..]
+            } else {
+                &line.inner
+            };
+
             let pos = self.set_stringn(x, y, line, remaining_width as usize, style);
             let w = pos.0.saturating_sub(x);
             x = pos.0;
             remaining_width = remaining_width.saturating_sub(w);
         }
+
         (x, y)
     }
     /// Print at most the first n characters of a string if enough space is available

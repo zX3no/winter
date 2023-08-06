@@ -17,6 +17,7 @@ pub struct Lines<'a> {
     pub block: Option<Block<'a>>,
     pub style: Option<Style>,
     pub alignment: Alignment,
+    pub scroll: bool,
 }
 
 impl<'a> Lines<'a> {
@@ -38,6 +39,10 @@ impl<'a> Lines<'a> {
         self.alignment = alignment;
         self
     }
+    pub fn scroll(mut self) -> Self {
+        self.scroll = true;
+        self
+    }
     pub fn draw(&self, area: Rect, buf: &mut Buffer) {
         let area = if let Some(block) = &self.block {
             block.draw(area, buf);
@@ -47,51 +52,13 @@ impl<'a> Lines<'a> {
         };
 
         let text_width = self.lines.iter().map(|text| text.width()).sum::<usize>() as u16;
-        let x_offset = match self.alignment {
+        let alignment = match self.alignment {
             Alignment::Center => area.width.saturating_sub(text_width) / 2,
             Alignment::Right => area.width.saturating_sub(text_width),
             Alignment::Left => 0,
         };
 
-        buf.set_lines(area.x + x_offset, area.y, self, area.width);
-    }
-    pub fn draw_wrapping(&self, area: Rect, buf: &mut Buffer) {
-        let mut lines = self.lines.iter();
-        let Some(mut line) = lines.next() else {
-            return;
-        };
-        //Don't ask.
-        let mut chars = line.inner.chars();
-
-        let area = if let Some(block) = &self.block {
-            block.draw(area, buf);
-            block.inner(area)
-        } else {
-            area
-        };
-
-        for y in area.top()..area.bottom() {
-            for x in area.left()..area.right() {
-                if let Some(char) = chars.next() {
-                    if let Some(style) = self.style {
-                        buf.get_mut(x, y).unwrap().set_char(char).set_style(style);
-                    } else {
-                        buf.get_mut(x, y)
-                            .unwrap()
-                            .set_char(char)
-                            .set_style(line.style);
-                    }
-                } else {
-                    if let Some(new_line) = lines.next() {
-                        line = new_line;
-                        chars = line.inner.chars();
-                    } else {
-                        return;
-                    }
-                    break;
-                }
-            }
-        }
+        buf.set_lines(area.x + alignment, area.y, self, area.width, self.scroll);
     }
     pub fn height(&self) -> usize {
         self.lines.len()
@@ -113,6 +80,7 @@ pub fn lines<'a, B: Into<Box<[Text<'a>]>>>(lines: B) -> Lines<'a> {
         block: None,
         style: None,
         alignment: Alignment::Left,
+        scroll: false,
     }
 }
 
@@ -138,6 +106,7 @@ macro_rules! lines {
             block: None,
             style: None,
             alignment: Alignment::Left,
+            scroll: false,
         }
     };
 }
@@ -165,6 +134,7 @@ macro_rules! lines_s{
             block: None,
             style: None,
             alignment: Alignment::Left,
+            scroll: false,
         }
     };
 }
@@ -219,6 +189,7 @@ impl<'a> Into<Lines<'a>> for Text<'a> {
             lines: Box::new([self]),
             block: None,
             alignment: Alignment::Left,
+            scroll: false,
         }
     }
 }
@@ -233,6 +204,7 @@ macro_rules! impl_lines {
                         block: None,
                         style: None,
                         alignment: Alignment::Left,
+                        scroll: false,
                     }
                 }
             }
