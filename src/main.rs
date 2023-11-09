@@ -16,9 +16,9 @@ pub fn settings(area: Rect, buf: &mut Buffer) {
     let mut items = Vec::new();
     for device in devices {
         let item = if device == current_device {
-            lines([text!(">> ", dim()), device.into()])
+            lines!(">> ".dim(), device)
         } else {
-            lines(["   ".into(), device.into()])
+            lines!("   ", device)
         };
         items.push(item);
     }
@@ -62,17 +62,9 @@ pub fn browser(area: Rect, buf: &mut Buffer, index: Option<usize>) {
     let c = lines!["Song 1", "Song 2", "Song 3"];
 
     fn browser_list<'a>(title: &'static str, content: Lines<'a>, use_symbol: bool) -> List<'a> {
-        //TODO: Some(title!(title, bold(), 1))
-        //This might be a little dumb ^.
-        let block = block(
-            Some(text!(title, bold())),
-            Borders::ALL,
-            BorderType::Rounded,
-        )
-        .margin(1);
+        let block = block(Some(title.bold()), Borders::ALL, BorderType::Rounded).margin(1);
         let symbol = if use_symbol { ">" } else { " " };
-        // list(Some(block), content, Some(symbol), style())
-        todo!()
+        list(Some(block), vec![content], Some(symbol), Some(style()))
     }
 
     let artists = browser_list("Aritst", a, false);
@@ -86,7 +78,7 @@ pub fn browser(area: Rect, buf: &mut Buffer, index: Option<usize>) {
 
 fn draw(area: Rect, buf: &mut Buffer) {
     let test = lines!("hi", "hi", String::from("test"));
-    let test = lines_s!("hi", style(), "hi", style(), String::from("hi"), style());
+    let test = lines!("hi", "hi", String::from("hi"));
     let str = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed vitae nisi et mi sollicitudin vulputate. Vestibulum et hendrerit mauris. Nam euismod, nulla sit amet bibendum consequat, arcu sapien hendrerit odio, ut venenatis elit urna et risus. Vivamus laoreet volutpat urna, at interdum massa eleifend a. Fusce ut congue lectus. Aenean quis cursus arcu. Sed fermentum, enim vitae fermentum ultrices, orci risus blandit sem, nec egestas tortor odio id dui. Sed quis quam eu mauris hendrerit aliquam. Sed malesuada iaculis neque, id porttitor velit vulputate nec. Duis ac dapibus mi, nec gravida mauris. Ut id";
 
     let chunks = layout!(
@@ -98,7 +90,7 @@ fn draw(area: Rect, buf: &mut Buffer) {
     );
 
     {
-        let lines = lines_s!("hi", bold().italic());
+        let lines = lines!("hi".bold().italic());
         // lines.draw(viewport, buf);
     }
 
@@ -112,32 +104,33 @@ fn draw(area: Rect, buf: &mut Buffer) {
         let block = block(None, Borders::ALL, BorderType::Rounded);
         let con = [Constraint::Percentage(50), Constraint::Percentage(50)];
         let text = String::from("first item first row");
+
+        let str = format_args!("hello {}", 1).to_string();
+        let text = text!("hello {} {}", "test", 1);
+
+        //TODO: Delete the Lines struct and swap to using newlines instead????
+
         let rows = [
             //Row 1
             row![
                 //Row 1 Column 1
-                lines_s!(
-                    text,
-                    // "first item first row",
-                    fg(Cyan),
-                    " <-- there is a space here",
-                    fg(Blue).underlined()
+                lines!(
+                    text.fg(Cyan),
+                    " <-- there is a space here".fg(Blue).underlined()
                 ),
                 //Row 1 Column 2
-                lines!("second item", " first row")
+                text!("second item{}", " first row")
             ],
             //Row 2
             row![
                 //Row 2 Column 1
-                lines_s!("Namā", fg(Yellow)),
+                "Namā".fg(Yellow),
                 //Row 2 Column 2
-                lines!("second item second row")
+                "second item second row"
             ],
         ];
-        let header = Some(header![
-            lines_s!("First", bold()),
-            lines_s!("Second", bold())
-        ]);
+
+        let header = Some(header!["First".bold(), "Second".bold()]);
 
         let table = table(header, Some(block), &con, rows, Some("> "), fg(Blue));
 
@@ -145,21 +138,21 @@ fn draw(area: Rect, buf: &mut Buffer) {
         //That way you can set exacly what you want when selected.
 
         // table.draw(chunks[1], buf, Some(1));
-        table.draw(area, buf, Some(0));
+        // table.draw(area, buf, Some(0));
     }
 
     {
         let list = list(
             Some(block(None, Borders::ALL, BorderType::Rounded)),
             [
-                lines_s!["hi", fg(Red), " there", fg(Blue)],
+                lines!["hi".fg(Red), " there".fg(Blue)],
                 lines!["these are", " some more ", "lines"],
             ],
-            Some("> "),
+            Some("> "), //TODO: Would using "" as an empty selector be better than None?
             Some(fg(Blue).bg(Red)),
         );
-        // list.draw(chunks[2], buf, &mut state);
-        // list.draw(area, buf, &mut state);
+        // list.draw(chunks[2], buf, None);
+        list.draw(area, buf, Some(1));
     }
 
     {
@@ -169,23 +162,17 @@ fn draw(area: Rect, buf: &mut Buffer) {
     {
         // let l = lines!("This is a test of some text");
         // l.draw(area, buf);
-        let top = lines_s![
+
+        let top = lines![
             "─│ ",
-            style(),
             "",
-            style(),
-            "TEST ARTIST",
-            fg(Blue),
+            "TEST ARTIST".fg(Blue),
             " ─ ",
-            style(),
-            "Test Album",
-            fg(Green),
+            "Test Album".fg(Green),
             "",
-            style(),
-            " │─",
-            style()
+            " │─"
         ];
-        // top.align(Center).draw(area, buf);
+        top.align(Center).draw(area, buf);
     }
 
     //Empty

@@ -58,7 +58,7 @@
 ### Example
 
 ```rs
-pub fn browser(area: Rect, buf: &mut Buffer) {
+pub fn browser(area: Rect, buf: &mut Buffer, index: Option<usize>) {
     let size = area.width / 3;
     let rem = area.width % 3;
 
@@ -75,23 +75,17 @@ pub fn browser(area: Rect, buf: &mut Buffer) {
     let c = lines!["Song 1", "Song 2", "Song 3"];
 
     fn browser_list<'a>(title: &'static str, content: Lines<'a>, use_symbol: bool) -> List<'a> {
-        let block = block(
-            Some(text!(title, bold())),
-            1,
-            Borders::ALL,
-            BorderType::Rounded,
-            style(),
-        );
+        let block = block(Some(title.bold()), Borders::ALL, BorderType::Rounded).margin(1);
         let symbol = if use_symbol { ">" } else { " " };
-        list(Some(block), content, Some(symbol), style())
+        list(Some(block), vec![content], Some(symbol), Some(style()))
     }
 
     let artists = browser_list("Aritst", a, false);
     let albums = browser_list("Album", b, false);
     let songs = browser_list("Song", c, true);
 
-    artists.draw(chunks[0], buf, &mut list_state(Some(0)));
-    albums.draw(chunks[1], buf, &mut list_state(Some(0)));
-    songs.draw(chunks[2], buf, &mut list_state(Some(0)));
+    artists.draw(chunks[0], buf, Some(0));
+    albums.draw(chunks[1], buf, Some(0));
+    songs.draw(chunks[2], buf, index);
 }
 ```

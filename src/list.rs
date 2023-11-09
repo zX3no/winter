@@ -1,5 +1,6 @@
 use crate::{buffer::Buffer, layout::Rect, *};
 
+//TODO: This is not the best API. Please improve.
 pub fn list<'a, B: Into<Box<[Lines<'a>]>>>(
     block: Option<Block<'a>>,
     items: B,

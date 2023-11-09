@@ -1,4 +1,6 @@
 //![](https://learn.microsoft.com/en-us/windows/console/console-virtual-terminal-sequences)
+
+#![feature(macro_metavar_expr)]
 #![allow(unused)]
 use std::{
     fmt::Display,
@@ -47,6 +49,7 @@ use winapi::{
         },
     },
 };
+
 
 //Widgets
 pub use block::*;

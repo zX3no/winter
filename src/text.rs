@@ -6,8 +6,7 @@ use unicode_width::UnicodeWidthStr;
 //Otherwise Lines::height() will not work correctly.
 //I think this is what graphemes are used for.
 
-//TODO: Do we ever actually use lines.style?
-//None of the macros use it. So I guess it's just None all the time.
+//TODO: Figure out style inheritence. Do we want it?
 
 ///Keep in mind wide characters must be formatted with spaces. FIXME: This is not needed in block titles.
 /// `う ず ま き` instead of `うずまき`
@@ -21,7 +20,6 @@ pub struct Lines<'a> {
 }
 
 impl<'a> Lines<'a> {
-    //TODO: I have mixed feelings about this.
     pub fn block(
         mut self,
         title: Option<Text<'a>>,
@@ -73,21 +71,19 @@ impl<'a> Deref for Lines<'a> {
     }
 }
 
-//TODO: Rework lines macros. They don't support blocks.
-pub fn lines<'a, B: Into<Box<[Text<'a>]>>>(lines: B) -> Lines<'a> {
-    Lines {
-        lines: lines.into(),
-        block: None,
-        style: None,
-        alignment: Alignment::Left,
-        scroll: false,
+impl<'a> Into<Lines<'a>> for &'a [Text<'a>] {
+    fn into(self) -> Lines<'a> {
+        Lines {
+            lines: self.into(),
+            block: None,
+            style: None,
+            alignment: Alignment::Left,
+            scroll: false,
+        }
     }
 }
 
-/// Use `lines_s` for styled text.
-///```rs
-/// lines!["Text", "Text", "Text", "Text"]
-/// ```
+/// Can take in anything that implements Into<Text<'a>>.
 #[macro_export]
 macro_rules! lines {
     () => {
@@ -97,10 +93,7 @@ macro_rules! lines {
         Lines {
             lines: Box::new([
                 $(
-                    $crate::Text {
-                        inner: std::borrow::Cow::from($text),
-                        style: Style::default(),
-                    }
+                    $text.into()
                 ),*
             ]),
             block: None,
@@ -111,55 +104,16 @@ macro_rules! lines {
     };
 }
 
-//TODO: What is going on with styling in lines.
-//lines_s doesn't set the lines style???
-//These should probably just be removed in favour of text().into().
-
-/// Use `lines` for un-styled text.
-///```rs
-/// lines_s!["Text", fg(Blue), "Text", fg(Red)]
-/// ```
-#[macro_export]
-macro_rules! lines_s{
-    ($($text:expr, $style:expr),*) => {
-        Lines {
-            lines: Box::new([
-                $(
-                    $crate::Text {
-                        inner: std::borrow::Cow::from($text),
-                        style: $style,
-                    }
-                ),*
-            ]),
-            block: None,
-            style: None,
-            alignment: Alignment::Left,
-            scroll: false,
-        }
-    };
-}
-
-pub const fn text<'a>(text: std::borrow::Cow<'a, str>, style: Style) -> Text<'a> {
-    Text { inner: text, style }
-}
-
-//TODO: Things like this `text!(format!("{pct}%"))` seem dumb.
-//Maybe add format args or something.
 #[macro_export]
 macro_rules! text {
     () => {
+        //TODO: This is not const!
         Text::default()
     };
-    ($text:expr) => {
+    ($($args:tt)*) => {
         Text {
-            inner: $text.into(),
+            inner: format_args!($($args)*).to_string().into(),
             style: Style::default(),
-        }
-    };
-    ($text:expr, $style:expr) => {
-        Text {
-            inner: $text.into(),
-            style: $style,
         }
     };
 }
@@ -182,6 +136,76 @@ impl<'a> AsRef<str> for Text<'a> {
     }
 }
 
+macro_rules! modifier {
+    ($($type:ty),*; $($name:ident),*) => {
+        macro_rules! style {
+            () => {
+                $(fn $name(mut self) -> Text<'a> {
+                    let mut text = Into::<Text>::into(self);
+                    let style = text.style.$name();
+                    text.style = style;
+                    text
+                })*
+            };
+        }
+
+        macro_rules! color {
+            () => {
+                fn fg(self, fg: Color) -> Text<'a> {
+                    let mut text = Into::<Text>::into(self);
+                    text.style.fg = fg;
+                    text
+                }
+                fn bg(self, bg: Color) -> Text<'a> {
+                    let mut text = Into::<Text>::into(self);
+                    text.style.bg = bg;
+                    text
+                }
+            }
+        }
+
+        impl<'a> Stylize<'a> for Text<'a> {
+            style!();
+            color!();
+        }
+
+        $(
+            impl<'a> Stylize<'a> for $type {
+                style!();
+                color!();
+            }
+        )*
+    };
+}
+
+pub trait Stylize<'a> {
+    fn bold(self) -> Text<'a>;
+    fn dim(self) -> Text<'a>;
+    fn italic(self) -> Text<'a>;
+    fn underlined(self) -> Text<'a>;
+    fn fast_blink(self) -> Text<'a>;
+    fn slow_blink(self) -> Text<'a>;
+    fn invert(self) -> Text<'a>;
+    fn hidden(self) -> Text<'a>;
+    fn crossed_out(self) -> Text<'a>;
+    fn fg(self, fg: Color) -> Text<'a>;
+    fn bg(self, bg: Color) -> Text<'a>;
+}
+
+modifier! {
+    String,
+    &'static str;
+    bold,
+    dim,
+    italic,
+    underlined,
+    fast_blink,
+    slow_blink,
+    invert,
+    hidden,
+    crossed_out
+}
+
 impl<'a> Into<Lines<'a>> for Text<'a> {
     fn into(self) -> Lines<'a> {
         Lines {
@@ -194,9 +218,18 @@ impl<'a> Into<Lines<'a>> for Text<'a> {
     }
 }
 
-macro_rules! impl_lines {
+macro_rules! impl_into {
     ($($t:ty),*) => {
         $(
+            impl<'a> Into<Text<'a>> for $t {
+                fn into(self) -> Text<'a> {
+                    Text {
+                        inner: std::borrow::Cow::from(self),
+                        style: Style::default(),
+                    }
+                }
+            }
+
             impl<'a> Into<Lines<'a>> for $t {
                 fn into(self) -> Lines<'a> {
                     Lines {
@@ -212,20 +245,4 @@ macro_rules! impl_lines {
     };
 }
 
-macro_rules! impl_text {
-    ($($t:ty),*) => {
-        impl_lines!($($t),*);
-        $(
-            impl<'a> Into<Text<'a>> for $t {
-                fn into(self) -> Text<'a> {
-                    Text {
-                        inner: std::borrow::Cow::from(self),
-                        style: Style::default(),
-                    }
-                }
-            }
-        )*
-    };
-}
-
-impl_text! { String, std::borrow::Cow<'a, str>, &'static str }
+impl_into! { String, std::borrow::Cow<'a, str>, &'static str }
