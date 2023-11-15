@@ -1,5 +1,5 @@
 use crate::{block::Block, buffer::Buffer, layout::Rect, *};
-use std::{borrow::Cow, f32::consts::E};
+use std::borrow::Cow;
 use unicode_width::UnicodeWidthStr;
 
 pub fn guage<'a>(

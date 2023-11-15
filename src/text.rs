@@ -1,5 +1,5 @@
 use crate::{block::Block, buffer::Buffer, layout::Rect, *};
-use std::ops::{Deref, DerefMut};
+use std::ops::Deref;
 use unicode_width::UnicodeWidthStr;
 
 //TODO: Split on \n so that each line has it's own item in the array.
@@ -71,6 +71,18 @@ impl<'a> Deref for Lines<'a> {
     }
 }
 
+impl<'a> Into<Lines<'a>> for Text<'a> {
+    fn into(self) -> Lines<'a> {
+        Lines {
+            style: Some(self.style),
+            lines: Box::new([self]),
+            block: None,
+            alignment: Alignment::Left,
+            scroll: false,
+        }
+    }
+}
+
 impl<'a> Into<Lines<'a>> for &'a [Text<'a>] {
     fn into(self) -> Lines<'a> {
         Lines {
@@ -128,6 +140,9 @@ impl<'a> Text<'a> {
     pub fn width(&self) -> usize {
         self.inner.width()
     }
+    pub fn into_lines(self) -> Lines<'a> {
+        self.into()
+    }
 }
 
 impl<'a> AsRef<str> for Text<'a> {
@@ -138,18 +153,28 @@ impl<'a> AsRef<str> for Text<'a> {
 
 macro_rules! modifier {
     ($($type:ty),*; $($name:ident),*) => {
-        macro_rules! style {
+        macro_rules! modifier {
             () => {
-                $(fn $name(mut self) -> Text<'a> {
-                    let mut text = Into::<Text>::into(self);
-                    let style = text.style.$name();
-                    text.style = style;
-                    text
+                $(fn $name(self) -> Text<'a> {
+                    Text {
+                        inner: std::borrow::Cow::from(self),
+                        style: $name(),
+                    }
                 })*
             };
         }
 
-        macro_rules! color {
+        macro_rules! modifier_text {
+            () => {
+                $(fn $name(mut self) -> Text<'a> {
+                    //TODO: Maybe cleanup this.
+                    self.style.modifier.insert($name().modifier);
+                    self
+                })*
+            };
+        }
+
+        macro_rules! style {
             () => {
                 fn fg(self, fg: Color) -> Text<'a> {
                     let mut text = Into::<Text>::into(self);
@@ -161,18 +186,23 @@ macro_rules! modifier {
                     text.style.bg = bg;
                     text
                 }
+                fn style(self, style: Style) -> Text<'a> {
+                    let mut text = Into::<Text>::into(self);
+                    text.style = style;
+                    text
+                }
             }
         }
 
         impl<'a> Stylize<'a> for Text<'a> {
             style!();
-            color!();
+            modifier_text!();
         }
 
         $(
             impl<'a> Stylize<'a> for $type {
                 style!();
-                color!();
+                modifier!();
             }
         )*
     };
@@ -190,11 +220,13 @@ pub trait Stylize<'a> {
     fn crossed_out(self) -> Text<'a>;
     fn fg(self, fg: Color) -> Text<'a>;
     fn bg(self, bg: Color) -> Text<'a>;
+    fn style(self, style: Style) -> Text<'a>;
 }
 
 modifier! {
     String,
-    &'static str;
+    &'a String,
+    &'a str;
     bold,
     dim,
     italic,
@@ -204,18 +236,6 @@ modifier! {
     invert,
     hidden,
     crossed_out
-}
-
-impl<'a> Into<Lines<'a>> for Text<'a> {
-    fn into(self) -> Lines<'a> {
-        Lines {
-            style: Some(self.style),
-            lines: Box::new([self]),
-            block: None,
-            alignment: Alignment::Left,
-            scroll: false,
-        }
-    }
 }
 
 macro_rules! impl_into {
@@ -245,4 +265,4 @@ macro_rules! impl_into {
     };
 }
 
-impl_into! { String, std::borrow::Cow<'a, str>, &'static str }
+impl_into! { String, std::borrow::Cow<'a, str>, &'a str, &'a String }

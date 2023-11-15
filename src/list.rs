@@ -31,7 +31,7 @@ impl<'a> List<'a> {
         let mut height = 0;
         //Was `item.height()`
         let item_height = 1;
-        for item in self.items.iter() {
+        for _ in self.items.iter() {
             if height + item_height > terminal_height {
                 break;
             }

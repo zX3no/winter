@@ -1,7 +1,5 @@
-//![](https://learn.microsoft.com/en-us/windows/console/console-virtual-terminal-sequences)
-
 #![feature(macro_metavar_expr)]
-#![allow(unused)]
+#![allow(non_camel_case_types, non_snake_case)]
 use std::{
     fmt::Display,
     io::Write,
@@ -10,46 +8,6 @@ use std::{
     ptr::null_mut,
     time::{Duration, Instant},
 };
-use winapi::{
-    ctypes::c_void,
-    shared::{minwindef::BYTE, minwindef::DWORD, ntdef::WCHAR, winerror::WAIT_TIMEOUT},
-    um::{
-        consoleapi::{
-            GetConsoleMode, GetNumberOfConsoleInputEvents, ReadConsoleInputW, SetConsoleMode,
-        },
-        fileapi::{CreateFileW, OPEN_EXISTING},
-        handleapi::INVALID_HANDLE_VALUE,
-        minwinbase::CONTROL_C_EXIT,
-        processenv::GetStdHandle,
-        synchapi::WaitForSingleObject,
-        winbase::{
-            INFINITE, STD_INPUT_HANDLE, STD_OUTPUT_HANDLE, WAIT_ABANDONED_0, WAIT_FAILED,
-            WAIT_OBJECT_0,
-        },
-        wincon::{
-            GetConsoleScreenBufferInfo, CONSOLE_SCREEN_BUFFER_INFO, ENABLE_ECHO_INPUT,
-            ENABLE_EXTENDED_FLAGS, ENABLE_LINE_INPUT, ENABLE_MOUSE_INPUT, ENABLE_PROCESSED_INPUT,
-            ENABLE_WINDOW_INPUT,
-        },
-        wincontypes::{
-            DOUBLE_CLICK, FROM_LEFT_1ST_BUTTON_PRESSED, FROM_LEFT_2ND_BUTTON_PRESSED, INPUT_RECORD,
-            KEY_EVENT, LEFT_ALT_PRESSED, MOUSE_EVENT, MOUSE_WHEELED, RIGHTMOST_BUTTON_PRESSED,
-            RIGHT_ALT_PRESSED, RIGHT_CTRL_PRESSED, WINDOW_BUFFER_SIZE_EVENT,
-        },
-        wincontypes::{LEFT_CTRL_PRESSED, SHIFT_PRESSED},
-        winnt::{FILE_SHARE_READ, FILE_SHARE_WRITE, GENERIC_READ, GENERIC_WRITE},
-        winuser::{
-            ToUnicode, VK_DOWN, VK_LEFT, VK_OEM_1, VK_OEM_2, VK_OEM_3, VK_OEM_4, VK_OEM_5,
-            VK_OEM_6, VK_OEM_7, VK_OEM_COMMA, VK_OEM_MINUS, VK_OEM_PERIOD, VK_OEM_PLUS, VK_RIGHT,
-            VK_TAB, VK_UP,
-        },
-        winuser::{
-            VK_BACK, VK_CONTROL, VK_ESCAPE, VK_F1, VK_LCONTROL, VK_LMENU, VK_LSHIFT, VK_MENU,
-            VK_RCONTROL, VK_RETURN, VK_RMENU, VK_RSHIFT, VK_SHIFT, VK_SPACE,
-        },
-    },
-};
-
 
 //Widgets
 pub use block::*;
@@ -64,12 +22,14 @@ pub mod guage;
 pub mod list;
 pub mod table;
 pub mod text;
+pub mod win32;
 
 pub use buffer::{Buffer, Cell};
 pub use layout::Alignment::*;
 pub use layout::Constraint::*;
 pub use layout::Direction::*;
 pub use style::{Color::*, *};
+pub use win32::*;
 
 //TODO: Remove
 pub use layout::*;
@@ -127,7 +87,7 @@ pub fn current_in_handle() -> *mut c_void {
     }
 }
 
-const NOT_RAW_MODE_MASK: DWORD = ENABLE_LINE_INPUT | ENABLE_ECHO_INPUT | ENABLE_PROCESSED_INPUT;
+const NOT_RAW_MODE_MASK: u32 = ENABLE_LINE_INPUT | ENABLE_ECHO_INPUT | ENABLE_PROCESSED_INPUT;
 
 pub fn init<W: Write>(w: &mut W) {
     let handle = current_in_handle();
@@ -145,7 +105,7 @@ pub fn init<W: Write>(w: &mut W) {
 pub fn uninit<W: Write>(w: &mut W) {
     let handle = current_in_handle();
     let mut mode = get_mode(handle);
-    mode &= (ENABLE_MOUSE_INPUT | ENABLE_EXTENDED_FLAGS | ENABLE_WINDOW_INPUT);
+    mode &= ENABLE_MOUSE_INPUT | ENABLE_EXTENDED_FLAGS | ENABLE_WINDOW_INPUT;
     mode |= NOT_RAW_MODE_MASK;
     assert!(mode & NOT_RAW_MODE_MASK != 0);
 
@@ -327,10 +287,10 @@ pub unsafe fn convert_event(event: INPUT_RECORD) -> Option<Event> {
                     // Handle alphanumeric keys (A-Z, 0-9).
                     0x30..=0x39 | 0x41..=0x5A => {
                         // Buffer to hold the Unicode characters.
-                        let mut buffer: [WCHAR; 5] = [0; 5];
+                        let mut buffer: [u16; 5] = [0; 5];
 
                         //This would return a multi-character key if this wasn't blank.
-                        let keyboard_state: [BYTE; 256] = [0; 256];
+                        let keyboard_state: [u8; 256] = [0; 256];
 
                         let result = ToUnicode(
                             vk as u32,
@@ -396,7 +356,7 @@ pub unsafe fn convert_event(event: INPUT_RECORD) -> Option<Event> {
             }
         }
         WINDOW_BUFFER_SIZE_EVENT => {
-            let size = event.Event.WindowBufferSizeEvent().dwSize;
+            let size = &event.Event.WindowBufferSizeEvent().dwSize;
             return Some(Event::Resize(size.X as u16, size.Y as u16));
         }
         _ => (),
@@ -446,7 +406,7 @@ pub fn event_ready(input: *mut c_void, timeout: Option<Duration>) -> bool {
 }
 
 pub fn event_count(input: *mut c_void) -> u32 {
-    let mut buf_len: DWORD = 0;
+    let mut buf_len: u32 = 0;
     let result = unsafe { GetNumberOfConsoleInputEvents(input, &mut buf_len) };
     if result == 0 {
         panic!("Could not get number of console input events.");
@@ -471,7 +431,7 @@ pub fn poll(timeout: Duration) -> Option<(Event, KeyState)> {
         let leftover = timeout.saturating_sub(now.elapsed());
         if event_ready(handle, Some(leftover)) && event_count(handle) != 0 {
             let input_event = read_input_event(handle);
-            let event = unsafe { convert_event(input_event) };
+            let event = unsafe { convert_event(input_event.clone()) };
             //TODO: This could be done better.
             return if let Some(event) = event {
                 let state = key_state(input_event);
@@ -508,35 +468,33 @@ pub fn leave_alternate_screen<W: Write>(w: &mut W) {
 pub fn move_to<W: Write>(w: &mut W, x: u16, y: u16) {
     write!(w, "\x1b[{};{}H", y, x).unwrap();
 }
-
-//TODO: Most of these are not used.
-fn shift_up<W: Write>(w: &mut W, amount: u16) {
+pub fn shift_up<W: Write>(w: &mut W, amount: u16) {
     write!(w, "\x1b[{}S", amount).unwrap();
 }
-fn shift_down<W: Write>(w: &mut W, amount: u16) {
+pub fn shift_down<W: Write>(w: &mut W, amount: u16) {
     write!(w, "\x1b[{}T", amount).unwrap();
 }
 ///Reset all modes (styles and colors)
-fn reset<W: Write>(w: &mut W) {
+pub fn reset<W: Write>(w: &mut W) {
     write!(w, "\x1b[0m").unwrap();
 }
 ///Same as \x1b[0J
-fn clear_from_cursor<W: Write>(w: &mut W) {
+pub fn clear_from_cursor<W: Write>(w: &mut W) {
     write!(w, "\x1b[J").unwrap();
 }
-fn clear_from_cursor_to_start<W: Write>(w: &mut W) {
+pub fn clear_from_cursor_to_start<W: Write>(w: &mut W) {
     write!(w, "\x1b[1J").unwrap();
 }
 pub fn clear<W: Write>(w: &mut W) {
     write!(w, "\x1b[2J").unwrap();
 }
 ///Same as \x1b[0K
-fn clear_line_from_cursor<W: Write>(w: &mut W) {
+pub fn clear_line_from_cursor<W: Write>(w: &mut W) {
     write!(w, "\x1b[K").unwrap();
 }
-fn clear_line_from_cursor_to_start<W: Write>(w: &mut W) {
+pub fn clear_line_from_cursor_to_start<W: Write>(w: &mut W) {
     write!(w, "\x1b[1K").unwrap();
 }
-fn clear_line<W: Write>(w: &mut W) {
+pub fn clear_line<W: Write>(w: &mut W) {
     write!(w, "\x1b[2K").unwrap();
 }

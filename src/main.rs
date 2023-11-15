@@ -84,9 +84,9 @@ fn draw(area: Rect, buf: &mut Buffer) {
     let chunks = layout!(
         area,
         Direction::Horizontal,
-        Constraint::Percentage(33),
-        Constraint::Percentage(33),
-        Constraint::Percentage(33)
+        Constraint::Percentage(15),
+        Constraint::Percentage(45),
+        Constraint::Percentage(30)
     );
 
     {

@@ -1,5 +1,5 @@
 use crate::{layout::Rect, *};
-use std::{cmp::min, f32::consts::E, io::Write};
+use std::{cmp::min, io::Write};
 use unicode_segmentation::UnicodeSegmentation;
 use unicode_width::UnicodeWidthStr;
 
@@ -148,7 +148,7 @@ impl Buffer {
                     let graphemes =
                         UnicodeSegmentation::grapheme_indices(&line.inner as &str, true)
                             .collect::<Vec<(usize, &str)>>();
-                    for (i, grapheme) in graphemes.iter() {
+                    for (_, grapheme) in graphemes.iter() {
                         if skip + grapheme.width() <= overflow {
                             skip += grapheme.width();
                         } else {
