@@ -35,10 +35,10 @@ pub fn browser(area: Rect, buf: &mut Buffer, index: Option<usize>) {
 ```
 
 ### Terminal:
-- [ ] Swap to [Taffy](https://github.com/DioxusLabs/taffy).
 - [ ] Cursor positioning
 - [ ] Simplify main loop even more
 - [ ] Colors are slightly different from crossterm. Most likely due to using old [Win32 colors](https://learn.microsoft.com/en-us/windows/console/char-info-str).
+- [x] Re-write layout system.
 - [x] Simplify main loop
 - [x] Reset all styles on exit
 - [x] Raw mode

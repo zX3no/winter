@@ -26,12 +26,12 @@ pub mod win32;
 
 pub use buffer::{Buffer, Cell};
 pub use layout::Alignment::*;
-pub use layout::Constraint::*;
-pub use layout::Direction::*;
 pub use style::{Color::*, *};
 pub use win32::*;
 
 //TODO: Remove
+pub use layout::Constraint::*;
+pub use layout::Direction::*;
 pub use layout::*;
 
 pub mod buffer;

@@ -35,40 +35,39 @@ pub enum BorderType {
     Thick,
 }
 
-//TODO: This is probably better than a macro.
-//Macros aren't powerfull enough to allow omitting all fields.
-//This is simple and consistant.
-//It allows gets people in the habbit of using style()
-//instead of omitting it.
-
-//TODO: Title has bad ergonomics. Some("title".into())
-//Maybe title should be Option<Text<'a>> that way it has it's own style too?
-pub const fn block(
-    title: Option<Text<'_>>,
-    borders: Borders,
-    border_type: BorderType,
-) -> Block<'_> {
+pub const fn block<'a>() -> Block<'a> {
     Block {
-        title,
+        title: None,
         margin: 0,
-        borders,
-        border_type,
+        borders: Borders::ALL,
+        border_type: BorderType::Rounded,
         style: style(),
     }
 }
 
-//TODO: Title alignment?
 #[derive(Debug, Clone)]
 pub struct Block<'a> {
     pub title: Option<Text<'a>>,
     pub margin: u16,
-    // pub title_alignment: Alignment,
     pub borders: Borders,
     pub border_type: BorderType,
     pub style: Style,
+    //TODO: pub title_alignment: Alignment,
 }
 
 impl<'a> Block<'a> {
+    pub fn title<T: Into<Text<'a>>>(mut self, title: T) -> Self {
+        self.title = Some(title.into());
+        self
+    }
+    pub fn borders(mut self, borders: Borders) -> Self {
+        self.borders = borders;
+        self
+    }
+    pub fn border_type(mut self, border_type: BorderType) -> Self {
+        self.border_type = border_type;
+        self
+    }
     pub fn style(mut self, style: Style) -> Self {
         self.style = style;
         self

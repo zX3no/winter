@@ -28,20 +28,7 @@ pub fn settings(area: Rect, buf: &mut Buffer) {
         items[index].style = Some(fg(Black).bg(White));
     }
 
-    let list = list(
-        Some(
-            block(
-                Some("Output Device".into()),
-                Borders::ALL,
-                BorderType::Rounded,
-            )
-            .margin(1),
-        ),
-        items,
-        None,
-        None,
-    );
-
+    let list = list(&items).block(block().title("Output Device").margin(1));
     list.draw(area, buf, index);
 }
 
@@ -49,27 +36,25 @@ pub fn browser(area: Rect, buf: &mut Buffer, index: Option<usize>) {
     let size = area.width / 3;
     let rem = area.width % 3;
 
-    let chunks = layout!(
+    let chunks = layout(
         area,
-        Direction::Horizontal,
-        Constraint::Length(size),
-        Constraint::Length(size),
-        Constraint::Length(size + rem)
+        Horizontal,
+        &[Length(size), Length(size), Length(size + rem)],
     );
 
-    let a = lines!["Artist 1", "Artist 2", "Artist 3"];
-    let b = lines!["Album 1", "Album 2", "Album 3"];
-    let c = lines!["Song 1", "Song 2", "Song 3"];
+    let a: [Lines<'_>; 3] = ["Artist 1".into(), "Artist 2".into(), "Artist 3".into()];
+    let b: [Lines<'_>; 3] = ["Album 1".into(), "Album 2".into(), "Album 3".into()];
+    let c: [Lines<'_>; 3] = ["Song 1".into(), "Song 2".into(), "Song 3".into()];
 
-    fn browser_list<'a>(title: &'static str, content: Lines<'a>, use_symbol: bool) -> List<'a> {
-        let block = block(Some(title.bold()), Borders::ALL, BorderType::Rounded).margin(1);
+    fn browser_list<'a>(title: &'static str, content: &[Lines<'a>], use_symbol: bool) -> List<'a> {
+        let block = block().title(title.bold()).margin(1);
         let symbol = if use_symbol { ">" } else { " " };
-        list(Some(block), vec![content], Some(symbol), Some(style()))
+        list(content).block(block).symbol(symbol)
     }
 
-    let artists = browser_list("Aritst", a, false);
-    let albums = browser_list("Album", b, false);
-    let songs = browser_list("Song", c, true);
+    let artists = browser_list("Aritst", &a, false);
+    let albums = browser_list("Album", &b, false);
+    let songs = browser_list("Song", &c, true);
 
     artists.draw(chunks[0], buf, Some(0));
     albums.draw(chunks[1], buf, Some(0));
@@ -81,17 +66,35 @@ fn draw(area: Rect, buf: &mut Buffer) {
     let test = lines!("hi", "hi", String::from("hi"));
     let str = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed vitae nisi et mi sollicitudin vulputate. Vestibulum et hendrerit mauris. Nam euismod, nulla sit amet bibendum consequat, arcu sapien hendrerit odio, ut venenatis elit urna et risus. Vivamus laoreet volutpat urna, at interdum massa eleifend a. Fusce ut congue lectus. Aenean quis cursus arcu. Sed fermentum, enim vitae fermentum ultrices, orci risus blandit sem, nec egestas tortor odio id dui. Sed quis quam eu mauris hendrerit aliquam. Sed malesuada iaculis neque, id porttitor velit vulputate nec. Duis ac dapibus mi, nec gravida mauris. Ut id";
 
-    let chunks = layout!(
+    let chunks = layout(
         area,
         Direction::Horizontal,
-        Constraint::Percentage(15),
-        Constraint::Percentage(45),
-        Constraint::Percentage(30)
+        &[
+            Constraint::Percentage(15),
+            Constraint::Percentage(45),
+            Constraint::Percentage(30),
+        ],
     );
 
     {
         let lines = lines!("hi".bold().italic());
         // lines.draw(viewport, buf);
+    }
+
+    {
+        let chunks = layout(
+            area,
+            Direction::Vertical,
+            &[
+                Constraint::Length(10),
+                Constraint::Percentage(10),
+                Constraint::Percentage(45),
+            ],
+        );
+
+        for chunk in chunks {
+            // block().draw(*chunk, buf);
+        }
     }
 
     {
@@ -101,7 +104,6 @@ fn draw(area: Rect, buf: &mut Buffer) {
     }
 
     {
-        let block = block(None, Borders::ALL, BorderType::Rounded);
         let con = [Constraint::Percentage(50), Constraint::Percentage(50)];
         let text = String::from("first item first row");
 
@@ -128,31 +130,34 @@ fn draw(area: Rect, buf: &mut Buffer) {
                 //Row 2 Column 2
                 "second item second row"
             ],
+            row!["Row 3"],
+            row!["Row 4"],
+            row!["Row 5"],
+            row!["Row 6"],
+            row!["Row 7"],
+            row!["Row 8"],
         ];
 
         let header = Some(header!["First".bold(), "Second".bold()]);
 
-        let table = table(header, Some(block), &con, rows, Some("> "), fg(Blue));
+        let table = table(header, Some(block()), &con, rows, Some("> "), fg(Blue));
 
         //TODO: Maybe state should hold a row, style and index.
         //That way you can set exacly what you want when selected.
 
         // table.draw(chunks[1], buf, Some(1));
-        // table.draw(area, buf, Some(0));
+        table.draw(area, buf, Some(0));
     }
 
     {
-        let list = list(
-            Some(block(None, Borders::ALL, BorderType::Rounded)),
-            [
-                lines!["hi".fg(Red), " there".fg(Blue)],
-                lines!["these are", " some more ", "lines"],
-            ],
-            Some("> "), //TODO: Would using "" as an empty selector be better than None?
-            Some(fg(Blue).bg(Red)),
-        );
-        // list.draw(chunks[2], buf, None);
-        list.draw(area, buf, Some(1));
+        let list = list(&[
+            lines!["hi".fg(Red), " there".fg(Blue)],
+            lines!["these are", " some more ", "lines"],
+        ])
+        .block(block())
+        .symbol("> ")
+        .selection_style(fg(Blue).bg(Red).into());
+        // list.draw(area, buf, Some(1));
     }
 
     {
@@ -210,6 +215,8 @@ fn main() {
     loop {
         //Draw the widgets into the front buffer.
         draw(viewport, &mut buffers[current]);
+        // browser(viewport, &mut buffers[current], None);
+        // settings(viewport, &mut buffers[current]);
 
         //Handle events
         {

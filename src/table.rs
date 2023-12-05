@@ -124,7 +124,7 @@ impl<'a> Table<'a> {
         if !self.widths.is_empty() {
             constraints.pop();
         }
-        let mut chunks = layout!(
+        let chunks = layout(
             Rect {
                 x: 0,
                 y: 0,
@@ -132,11 +132,12 @@ impl<'a> Table<'a> {
                 height: 1,
             },
             Direction::Horizontal,
-            constraints
+            if has_selection {
+                &constraints[1..]
+            } else {
+                &constraints
+            },
         );
-        if has_selection {
-            chunks.remove(0);
-        }
         chunks.iter().step_by(2).map(|c| c.width).collect()
     }
 

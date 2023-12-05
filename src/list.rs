@@ -1,63 +1,36 @@
 use crate::{buffer::Buffer, layout::Rect, *};
 
-//TODO: This is not the best API. Please improve.
-pub fn list<'a, B: Into<Box<[Lines<'a>]>>>(
-    block: Option<Block<'a>>,
-    items: B,
-    selection_symbol: Option<&'a str>,
-    selection_style: Option<Style>,
-) -> List<'a> {
+pub fn list<'a>(items: &[Lines<'a>]) -> List<'a> {
     List {
-        block,
-        items: items.into(),
-        selection_symbol,
-        selection_style,
+        block: None,
+        items: items.to_vec(),
+        selection_symbol: None,
+        selection_style: None,
         start_from_bottom: false,
     }
 }
 
 #[derive(Debug, Clone)]
 pub struct List<'a> {
-    block: Option<Block<'a>>,
-    items: Box<[Lines<'a>]>,
-    selection_symbol: Option<&'a str>,
-    selection_style: Option<Style>,
-    start_from_bottom: bool,
+    pub block: Option<Block<'a>>,
+    pub items: Vec<Lines<'a>>,
+    pub selection_symbol: Option<&'a str>,
+    pub selection_style: Option<Style>,
+    pub start_from_bottom: bool,
 }
 
 impl<'a> List<'a> {
-    fn get_items_bounds(&self, selection: usize, terminal_height: usize) -> (usize, usize) {
-        let mut real_end = 0;
-        let mut height = 0;
-        //Was `item.height()`
-        let item_height = 1;
-        for _ in self.items.iter() {
-            if height + item_height > terminal_height {
-                break;
-            }
-            height += item_height;
-            real_end += 1;
-        }
-
-        let selection = selection.min(self.items.len() - 1);
-
-        let half = if height == 0 { 0 } else { (height - 1) / 2 };
-
-        let start = selection.saturating_sub(half);
-
-        let end = if selection <= half {
-            real_end
-        } else if height % 2 == 0 {
-            selection + 2 + half
-        } else {
-            selection + 1 + half
-        };
-
-        if end > self.items.len() {
-            (self.items.len() - height, self.items.len())
-        } else {
-            (start, end)
-        }
+    pub fn block(mut self, block: Block<'a>) -> Self {
+        self.block = Some(block);
+        self
+    }
+    pub fn symbol(mut self, symbol: &'a str) -> Self {
+        self.selection_symbol = Some(symbol);
+        self
+    }
+    pub fn selection_style(mut self, style: Style) -> Self {
+        self.selection_style = Some(style);
+        self
     }
     pub fn draw(&self, area: Rect, buf: &mut Buffer, state: Option<usize>) {
         let list_area = if let Some(block) = &self.block {
@@ -132,6 +105,40 @@ impl<'a> List<'a> {
                     buf.set_style(area, style);
                 }
             }
+        }
+    }
+
+    fn get_items_bounds(&self, selection: usize, terminal_height: usize) -> (usize, usize) {
+        let mut real_end = 0;
+        let mut height = 0;
+        //Was `item.height()`
+        let item_height = 1;
+        for _ in self.items.iter() {
+            if height + item_height > terminal_height {
+                break;
+            }
+            height += item_height;
+            real_end += 1;
+        }
+
+        let selection = selection.min(self.items.len() - 1);
+
+        let half = if height == 0 { 0 } else { (height - 1) / 2 };
+
+        let start = selection.saturating_sub(half);
+
+        let end = if selection <= half {
+            real_end
+        } else if height % 2 == 0 {
+            selection + 2 + half
+        } else {
+            selection + 1 + half
+        };
+
+        if end > self.items.len() {
+            (self.items.len() - height, self.items.len())
+        } else {
+            (start, end)
         }
     }
 }
