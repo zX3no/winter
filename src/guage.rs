@@ -4,7 +4,7 @@ use unicode_width::UnicodeWidthStr;
 
 pub fn guage<'a>(
     block: Option<Block<'a>>,
-    ratio: f64,
+    ratio: f32,
     label: Cow<'a, str>,
     left_style: Style,
     right_style: Style,
@@ -21,7 +21,7 @@ pub fn guage<'a>(
 #[derive(Debug, Clone)]
 pub struct Gauge<'a> {
     pub block: Option<Block<'a>>,
-    pub ratio: f64,
+    pub ratio: f32,
     pub label: Cow<'a, str>,
     pub left_style: Style,
     pub right_style: Style,
@@ -47,7 +47,7 @@ impl<'a> Gauge<'a> {
         let label_row = area.top() + area.height / 2;
 
         // the gauge will be filled proportionally to the ratio
-        let filled_width = f64::from(area.width) * self.ratio;
+        let filled_width = f32::from(area.width) * self.ratio;
         let end = area.left() + filled_width.round() as u16;
         for y in area.top()..area.bottom() {
             // render the filled area (left to end)
