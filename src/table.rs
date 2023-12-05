@@ -71,21 +71,13 @@ impl<'a> Row<'a> {
     }
 }
 
-pub fn table<'a, B: Into<Box<[Row<'a>]>>>(
-    header: Option<Row<'a>>,
-    block: Option<Block<'a>>,
-    widths: &'a [Constraint],
-    rows: B,
-    highlight_symbol: Option<&'a str>,
-    highlight_style: Style,
-) -> Table<'a> {
+pub fn table<'a, B: Into<Box<[Row<'a>]>>>(rows: B, widths: &'a [Constraint]) -> Table<'a> {
     Table {
-        header,
-        block,
+        header: None,
+        block: None,
         widths,
         rows: rows.into(),
-        highlight_symbol,
-        highlight_style,
+        highlight_symbol: None,
         separator: false,
         column_spacing: 0,
     }
@@ -98,8 +90,6 @@ pub struct Table<'a> {
     pub widths: &'a [Constraint],
     pub rows: Box<[Row<'a>]>,
     pub highlight_symbol: Option<&'a str>,
-    //TODO: REMOVE ME and replace with highlight_line or something?
-    pub highlight_style: Style,
     //Puts a line underneath the table header.
     pub separator: bool,
     //Moves the columns apart.
@@ -107,10 +97,27 @@ pub struct Table<'a> {
 }
 
 impl<'a> Table<'a> {
+    pub fn header(mut self, header: Row<'a>) -> Self {
+        self.header = Some(header);
+        self
+    }
+    pub fn block(mut self, block: Block<'a>) -> Self {
+        self.block = Some(block);
+        self
+    }
+    pub fn symbol(mut self, symbol: &'a str) -> Self {
+        self.highlight_symbol = Some(symbol);
+        self
+    }
     pub fn spacing(mut self, spacing: u16) -> Self {
         self.column_spacing = spacing;
         self
     }
+    pub fn seperator(mut self, seperator: bool) -> Self {
+        self.separator = seperator;
+        self
+    }
+
     fn get_columns_widths(&self, max_width: u16, has_selection: bool) -> Vec<u16> {
         let mut constraints = Vec::with_capacity(self.widths.len() * 2 + 1);
         if has_selection {

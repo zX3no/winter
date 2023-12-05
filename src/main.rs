@@ -138,15 +138,17 @@ fn draw(area: Rect, buf: &mut Buffer) {
             row!["Row 8"],
         ];
 
-        let header = Some(header!["First".bold(), "Second".bold()]);
-
-        let table = table(header, Some(block()), &con, rows, Some("> "), fg(Blue));
+        // let table = table(header, Some(block()), &con, rows, Some("> "), fg(Blue));
+        let table = table(rows, &con)
+            .header(header!["First".bold(), "Second".bold()])
+            .block(block())
+            .symbol("> ");
 
         //TODO: Maybe state should hold a row, style and index.
         //That way you can set exacly what you want when selected.
 
         // table.draw(chunks[1], buf, Some(1));
-        table.draw(area, buf, Some(0));
+        // table.draw(area, buf, Some(0));
     }
 
     {
@@ -161,7 +163,30 @@ fn draw(area: Rect, buf: &mut Buffer) {
     }
 
     {
-        // settings(area, buf);
+        let fill = area.height - 3 - 3;
+        // dbg!(area.height);
+        let area = layout(
+            area,
+            Direction::Vertical,
+            &[
+                Constraint::Length(3),
+                Constraint::Length(fill),
+                Constraint::Length(3),
+            ],
+        );
+
+        let table = table(
+            [row!["Row 1"], row!["Row 2"]],
+            &[Constraint::Percentage(50), Constraint::Percentage(50)],
+        )
+        .header(header!["First".bold(), "Second".bold()])
+        .block(block())
+        .symbol("> ");
+
+        // dbg!(area);
+        block().draw(area[0], buf);
+        table.draw(area[1], buf, None);
+        block().draw(area[2], buf);
     }
 
     {

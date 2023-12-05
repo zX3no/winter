@@ -30,20 +30,28 @@ pub enum Alignment {
 
 static mut RECTS: Vec<Rect> = Vec::new();
 
-#[track_caller]
-pub fn layout(area: Rect, direction: Direction, cons: &'_ [Constraint]) -> &'static [Rect] {
+pub fn layout(area: Rect, direction: Direction, cons: &'_ [Constraint]) -> Vec<Rect> {
+    layout_margin(area, (0, 0), direction, cons)
+}
+
+pub fn layout_margin(
+    area: Rect,
+    margin: (u16, u16),
+    direction: Direction,
+    cons: &'_ [Constraint],
+) -> Vec<Rect> {
     unsafe {
         RECTS.clear();
-        let mut x = area.x;
-        let mut y = area.y;
+        let mut x = area.x + margin.0;
+        let mut y = area.y + margin.1;
 
         match direction {
             Direction::Horizontal => {
                 for con in cons {
                     match con {
                         Constraint::Percentage(p) => {
-                            let width = (area.width as f32 * ((*p).clamp(0, 100) as f32 / 100.0))
-                                .floor() as u16;
+                            let width = (area.width as f32 * (*p as f32 / 100.0)).round() as u16;
+                            let width = width.clamp(0, area.width - x - 1);
                             RECTS.push(Rect::new(x, y, width, area.height));
                             x += width;
                         }
@@ -58,8 +66,8 @@ pub fn layout(area: Rect, direction: Direction, cons: &'_ [Constraint]) -> &'sta
                 for con in cons {
                     match con {
                         Constraint::Percentage(p) => {
-                            let height = (area.height as f32 * ((*p).clamp(0, 100) as f32 / 100.0))
-                                .floor() as u16;
+                            let height = (area.height as f32 * (*p as f32 / 100.0)).round() as u16;
+                            let height = height.clamp(0, area.height - y - 1);
                             RECTS.push(Rect::new(x, y, area.width, height));
                             y += height;
                         }
@@ -72,7 +80,7 @@ pub fn layout(area: Rect, direction: Direction, cons: &'_ [Constraint]) -> &'sta
             }
         }
 
-        &RECTS
+        std::mem::take(&mut RECTS)
     }
 }
 

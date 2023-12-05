@@ -20,6 +20,10 @@ pub struct Lines<'a> {
 }
 
 impl<'a> Lines<'a> {
+    pub fn block(mut self, block: Block<'a>) -> Self {
+        self.block = Some(block);
+        self
+    }
     pub fn style(mut self, style: Style) -> Self {
         self.style = Some(style);
         self
@@ -133,26 +137,6 @@ impl<'a> Text<'a> {
     }
     pub fn into_lines(self) -> Lines<'a> {
         self.into()
-    }
-}
-
-// impl<'a> Into<&'a [Text<'a>]> for &'a [&'a str] {
-//     fn into(self) -> &'a [Text<'a>] {
-//         todo!()
-//     }
-// }
-trait IntoText<'a> {
-    fn into_text(self) -> Vec<Text<'a>>;
-}
-
-impl<'a> IntoText<'a> for &'a [&'a str] {
-    fn into_text(self) -> Vec<Text<'a>> {
-        self.iter()
-            .map(|s| Text {
-                inner: std::borrow::Cow::Borrowed(*s),
-                style: Style::default(), // You might need to adjust this depending on your use case
-            })
-            .collect()
     }
 }
 
