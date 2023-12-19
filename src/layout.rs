@@ -33,7 +33,7 @@ static mut RECTS: Vec<Rect> = Vec::new();
 
 #[inline(always)]
 pub fn layout(area: Rect, direction: Direction, cons: &'_ [Constraint]) -> Vec<Rect> {
-    layout_margin(area, direction, cons, (0, 0))
+    layout_margin(area, direction, cons, (0, 0)).unwrap()
 }
 
 //This should never panic. Area is always clamped to be inside the input area.
@@ -42,10 +42,10 @@ pub fn layout_margin(
     direction: Direction,
     cons: &'_ [Constraint],
     margin: (u16, u16),
-) -> Vec<Rect> {
+) -> Result<Vec<Rect>, &'static str> {
     unsafe {
         RECTS.clear();
-        let area = area.inner(margin);
+        let area = area.inner(margin.0, margin.1)?;
         let mut x = area.x;
         let mut y = area.y;
 
@@ -73,7 +73,12 @@ pub fn layout_margin(
                             x += l;
                         }
                         Constraint::Remainder => {
-                            RECTS.push(Rect::new(x, y, area.width - x, area.height - y));
+                            //FIXME: This is wrong.
+                            if x > area.width || y > area.height {
+                                RECTS.push(Rect::default());
+                            } else {
+                                RECTS.push(Rect::new(x, y, area.width - x, area.height - y));
+                            }
                         }
                     }
                 }
@@ -101,14 +106,20 @@ pub fn layout_margin(
                             y += l;
                         }
                         Constraint::Remainder => {
-                            RECTS.push(Rect::new(x, y, area.width - x, area.height - y));
+                            //FIXME: This is not handled right.
+                            //There should be some room to fill y here.
+                            if x > area.width || y > area.height {
+                                RECTS.push(Rect::default());
+                            } else {
+                                RECTS.push(Rect::new(x, y, area.width - x, area.height - y));
+                            }
                         }
                     }
                 }
             }
         }
 
-        std::mem::take(&mut RECTS)
+        Ok(std::mem::take(&mut RECTS))
     }
 }
 
@@ -145,16 +156,20 @@ impl Rect {
     pub const fn centered(&self, width: u16, height: u16) -> Result<Rect, &'static str> {
         let v = self.height / 2;
         let h = self.width / 2;
-        let mut rect = self.inner((v.saturating_sub(height / 2), h.saturating_sub(width / 2)));
-        rect.width = width;
-        rect.height = height;
+        match self.inner(h.saturating_sub(width / 2), v.saturating_sub(height / 2)) {
+            Ok(mut rect) => {
+                rect.width = width;
+                rect.height = height;
 
-        if rect.bottom() > self.bottom() {
-            Err("Centered rectangle bounds exceed it's parent. Reduce the height.")
-        } else if rect.right() > self.right() {
-            Err("Centered rectangle bounds exceed it's parent. Reduce the width.")
-        } else {
-            Ok(rect)
+                if rect.bottom() > self.bottom() {
+                    Err("Centered rectangle bounds exceed it's parent. Reduce the height.")
+                } else if rect.right() > self.right() {
+                    Err("Centered rectangle bounds exceed it's parent. Reduce the width.")
+                } else {
+                    Ok(rect)
+                }
+            }
+            Err(err) => Err(err),
         }
     }
 
@@ -178,21 +193,18 @@ impl Rect {
         self.y.saturating_add(self.height)
     }
 
-    pub const fn inner(self, (v, h): (u16, u16)) -> Rect {
-        if self.width < 2 * h || self.height < 2 * v {
-            Rect {
-                x: 0,
-                y: 0,
-                width: 0,
-                height: 0,
-            }
+    pub const fn inner(self, w: u16, h: u16) -> Result<Rect, &'static str> {
+        if self.width < 2 * w {
+            Err("Inner area exceeded outside area. Reduce margin width.")
+        } else if self.height < 2 * h {
+            Err("Inner area exceeded outside area. Reduce margin height.")
         } else {
-            Rect {
-                x: self.x + h,
-                y: self.y + v,
-                width: self.width - 2 * h,
-                height: self.height - 2 * v,
-            }
+            Ok(Rect {
+                x: self.x + w,
+                y: self.y + h,
+                width: self.width - 2 * w,
+                height: self.height - 2 * h,
+            })
         }
     }
 
