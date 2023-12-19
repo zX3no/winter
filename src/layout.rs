@@ -18,6 +18,7 @@ pub enum Direction {
 pub enum Constraint {
     Percentage(u16),
     Length(u16),
+    Remainder,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
@@ -30,20 +31,23 @@ pub enum Alignment {
 
 static mut RECTS: Vec<Rect> = Vec::new();
 
+#[inline(always)]
 pub fn layout(area: Rect, direction: Direction, cons: &'_ [Constraint]) -> Vec<Rect> {
-    layout_margin(area, (0, 0), direction, cons)
+    layout_margin(area, direction, cons, (0, 0))
 }
 
+//This should never panic. Area is always clamped to be inside the input area.
 pub fn layout_margin(
     area: Rect,
-    margin: (u16, u16),
     direction: Direction,
     cons: &'_ [Constraint],
+    margin: (u16, u16),
 ) -> Vec<Rect> {
     unsafe {
         RECTS.clear();
-        let mut x = area.x + margin.0;
-        let mut y = area.y + margin.1;
+        let area = area.inner(margin);
+        let mut x = area.x;
+        let mut y = area.y;
 
         match direction {
             Direction::Horizontal => {
@@ -51,13 +55,25 @@ pub fn layout_margin(
                     match con {
                         Constraint::Percentage(p) => {
                             let width = (area.width as f32 * (*p as f32 / 100.0)).round() as u16;
-                            let width = width.clamp(0, area.width - x - 1);
+                            let width = if width + x >= area.right() {
+                                area.right().saturating_sub(x)
+                            } else {
+                                width
+                            };
                             RECTS.push(Rect::new(x, y, width, area.height));
                             x += width;
                         }
                         Constraint::Length(l) => {
-                            RECTS.push(Rect::new(x, y, *l, area.height));
+                            let l = if x + l >= area.right() {
+                                area.right().saturating_sub(x)
+                            } else {
+                                *l
+                            };
+                            RECTS.push(Rect::new(x, y, l, area.height));
                             x += l;
+                        }
+                        Constraint::Remainder => {
+                            RECTS.push(Rect::new(x, y, area.width - x, area.height - y));
                         }
                     }
                 }
@@ -67,13 +83,25 @@ pub fn layout_margin(
                     match con {
                         Constraint::Percentage(p) => {
                             let height = (area.height as f32 * (*p as f32 / 100.0)).round() as u16;
-                            let height = height.clamp(0, area.height - y - 1);
+                            let height = if height + y >= area.bottom() {
+                                area.bottom().saturating_sub(y)
+                            } else {
+                                height
+                            };
                             RECTS.push(Rect::new(x, y, area.width, height));
                             y += height;
                         }
                         Constraint::Length(l) => {
-                            RECTS.push(Rect::new(x, y, area.width, *l));
+                            let l = if y + l >= area.bottom() {
+                                area.bottom().saturating_sub(y)
+                            } else {
+                                *l
+                            };
+                            RECTS.push(Rect::new(x, y, area.width, l));
                             y += l;
+                        }
+                        Constraint::Remainder => {
+                            RECTS.push(Rect::new(x, y, area.width - x, area.height - y));
                         }
                     }
                 }
@@ -97,16 +125,15 @@ impl Rect {
     /// If clipped, aspect ratio will be preserved.
     pub fn new(x: u16, y: u16, width: u16, height: u16) -> Rect {
         let max_area = u16::max_value();
-        let (clipped_width, clipped_height) =
-            if u32::from(width) * u32::from(height) > u32::from(max_area) {
-                let aspect_ratio = f64::from(width) / f64::from(height);
-                let max_area_f = f64::from(max_area);
-                let height_f = (max_area_f / aspect_ratio).sqrt();
-                let width_f = height_f * aspect_ratio;
-                (width_f as u16, height_f as u16)
-            } else {
-                (width, height)
-            };
+        let (clipped_width, clipped_height) = if width as u32 * height as u32 > max_area as u32 {
+            let aspect_ratio = width as f64 / height as f64;
+            let max_area_f = max_area as f64;
+            let height_f = (max_area_f / aspect_ratio).sqrt();
+            let width_f = height_f * aspect_ratio;
+            (width_f as u16, height_f as u16)
+        } else {
+            (width, height)
+        };
         Rect {
             x,
             y,
@@ -115,23 +142,39 @@ impl Rect {
         }
     }
 
-    pub fn area(self) -> u16 {
+    pub const fn centered(&self, width: u16, height: u16) -> Result<Rect, &'static str> {
+        let v = self.height / 2;
+        let h = self.width / 2;
+        let mut rect = self.inner((v.saturating_sub(height / 2), h.saturating_sub(width / 2)));
+        rect.width = width;
+        rect.height = height;
+
+        if rect.bottom() > self.bottom() {
+            Err("Centered rectangle bounds exceed it's parent. Reduce the height.")
+        } else if rect.right() > self.right() {
+            Err("Centered rectangle bounds exceed it's parent. Reduce the width.")
+        } else {
+            Ok(rect)
+        }
+    }
+
+    pub const fn area(self) -> u16 {
         self.width * self.height
     }
 
-    pub fn left(self) -> u16 {
+    pub const fn left(self) -> u16 {
         self.x
     }
 
-    pub fn right(self) -> u16 {
+    pub const fn right(self) -> u16 {
         self.x.saturating_add(self.width)
     }
 
-    pub fn top(self) -> u16 {
+    pub const fn top(self) -> u16 {
         self.y
     }
 
-    pub fn bottom(self) -> u16 {
+    pub const fn bottom(self) -> u16 {
         self.y.saturating_add(self.height)
     }
 

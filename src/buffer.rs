@@ -57,6 +57,7 @@ pub fn draw_modifier<W: Write>(w: &mut W, from: Modifier, to: Modifier) {
     }
 }
 
+///Note: Appends the cells to a buffer. Hides the cursor.
 pub fn draw<W: Write>(w: &mut W, diff: Vec<(u16, u16, &Cell)>) {
     let mut fg = Color::Reset;
     let mut bg = Color::Reset;
@@ -66,7 +67,9 @@ pub fn draw<W: Write>(w: &mut W, diff: Vec<(u16, u16, &Cell)>) {
     let mut last_pos: Option<(u16, u16)> = None;
 
     //Move to start.
+    hide_cursor(w);
     move_to(w, 1, 1);
+
     for (x, y, cell) in diff {
         //Apparently 0, 0 and 1, 1 are the same?
         let x = x + 1;
@@ -95,8 +98,6 @@ pub fn draw<W: Write>(w: &mut W, diff: Vec<(u16, u16, &Cell)>) {
     //Always write reset as the last symbol.
     //That way styles never stay when the program is closed.
     write!(w, "{}", RESET).unwrap();
-
-    w.flush().unwrap();
 }
 
 #[derive(Debug)]
@@ -117,7 +118,6 @@ impl Buffer {
         }
         Self { area, content }
     }
-    #[track_caller]
     pub fn get_mut(&mut self, x: u16, y: u16) -> &mut Cell {
         let i = self.index_of(x, y).unwrap();
         &mut self.content[i]
@@ -259,66 +259,6 @@ impl Buffer {
         }
         updates
     }
-    ///Allows for multi-width characters.
-    // pub fn diff_wide<'a>(&self, other: &'a Buffer) -> Vec<(u16, u16, &'a Cell)> {
-    //     let previous_buffer = &self.content;
-    //     let next_buffer = &other.content;
-    //     let width = self.area.width;
-
-    //     let mut updates: Vec<(u16, u16, &Cell)> = vec![];
-    //     let mut skip_count: usize = 0;
-
-    //     for (i, (current, previous)) in next_buffer.iter().zip(previous_buffer.iter()).enumerate() {
-    //         let x = i as u16 % width;
-    //         let y = i as u16 / width;
-
-    //         if skip_count == 0 {
-    //             if current != previous {
-    //                 updates.push((x, y, current));
-    //             }
-
-    //             let mut affected_width = current.symbol.width();
-    //             if affected_width > 1 {
-    //                 // Check if this multi-width character spans into the next cells.
-    //                 for j in 1..affected_width {
-    //                     let next_index = i + j;
-    //                     if next_index >= next_buffer.len() {
-    //                         break;
-    //                     }
-
-    //                     let next_cell = &next_buffer[next_index];
-    //                     if next_cell.symbol.width() == 0 {
-    //                         break;
-    //                     }
-
-    //                     // If the next cell is part of the same multi-width character, mark it as skipped.
-    //                     updates.push((x + j as u16, y, next_cell));
-    //                     skip_count += 1;
-    //                     affected_width = std::cmp::max(affected_width, next_cell.symbol.width());
-    //                 }
-    //             }
-
-    //             // The number of cells to skip due to multi-width character.
-    //             skip_count = affected_width.saturating_sub(1);
-    //         } else {
-    //             // Skip the cell since it's part of a multi-width character.
-    //             skip_count -= 1;
-    //         }
-    //     }
-
-    //     updates
-    // }
-    pub fn to_vec(&self) -> Vec<(u16, u16, &Cell)> {
-        self.content
-            .iter()
-            .enumerate()
-            .map(|(i, cell)| {
-                let row = (i as u16) / self.area.width;
-                let col = (i as u16) % self.area.width;
-                (col, row, cell)
-            })
-            .collect()
-    }
     /// Resize the buffer so that the mapped area matches the given area and that the buffer
     /// length is equal to area.width * area.height
     pub fn resize(&mut self, area: Rect) {
@@ -329,10 +269,6 @@ impl Buffer {
             self.content.resize(length, Default::default());
         }
         self.area = area;
-    }
-    pub fn draw<W: Write>(&self, w: &mut W) {
-        let diff = self.to_vec();
-        draw(w, diff);
     }
     pub fn is_empty(&self) -> bool {
         for c in &self.content {

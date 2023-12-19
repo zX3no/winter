@@ -72,7 +72,7 @@ impl<'a> Block<'a> {
         self.style = style;
         self
     }
-    pub fn margin(mut self, title_margin: u16) -> Self {
+    pub fn title_margin(mut self, title_margin: u16) -> Self {
         self.margin = title_margin;
         self
     }

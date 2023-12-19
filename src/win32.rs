@@ -13,7 +13,6 @@ extern "system" {
     pub fn SetConsoleMode(hConsoleHandle: HANDLE, dwMode: u32) -> i32;
     pub fn GetConsoleMode(hConsoleHandle: HANDLE, lpMode: *mut u32) -> i32;
     pub fn GetNumberOfConsoleInputEvents(hConsoleInput: HANDLE, lpNumberOfEvents: *mut u32) -> i32;
-    pub fn GetStdHandle(nStdHandle: u32) -> HANDLE;
     pub fn WaitForSingleObject(hHandle: HANDLE, dwMilliseconds: u32) -> u32;
     //TODO: Swap to A
     pub fn CreateFileW(

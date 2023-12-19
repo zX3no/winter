@@ -1,9 +1,10 @@
-#![feature(macro_metavar_expr)]
+#![feature(macro_metavar_expr, const_fn_floating_point_arithmetic)]
 #![allow(non_camel_case_types, non_snake_case)]
 use std::{
     fmt::Display,
-    io::Write,
+    io::{stdout, Stdout, Write},
     mem::zeroed,
+    os::windows::io::AsRawHandle,
     process::Command,
     ptr::null_mut,
     time::{Duration, Instant},
@@ -38,6 +39,69 @@ pub mod buffer;
 pub mod layout;
 pub mod style;
 pub mod symbols;
+
+pub struct Winter {
+    pub viewport: Rect,
+    pub buffers: [Buffer; 2],
+    pub current: usize,
+    pub stdout: Stdout,
+}
+
+impl Winter {
+    pub fn new() -> Self {
+        let mut stdout = stdout();
+        init(&mut stdout);
+
+        let raw = stdout.as_raw_handle();
+        let (width, height) = info(raw).window_size;
+        let viewport = Rect::new(0, 0, width, height);
+
+        Self {
+            viewport,
+            buffers: [Buffer::empty(viewport), Buffer::empty(viewport)],
+            current: 0,
+            stdout,
+        }
+    }
+    pub fn draw(&mut self) {
+        //Calculate difference and draw to the terminal.
+        let previous_buffer = &self.buffers[1 - self.current];
+        let current_buffer = &self.buffers[self.current];
+        let diff = previous_buffer.diff(current_buffer);
+        buffer::draw(&mut self.stdout, diff);
+
+        //Swap buffers
+        self.buffers[1 - self.current].reset();
+        self.current = 1 - self.current;
+
+        //Update the viewport area.
+        //TODO: I think there is a resize event that might be better.
+        let (width, height) = info(self.stdout.as_raw_handle()).window_size;
+        self.viewport = Rect::new(0, 0, width, height);
+
+        //Resize
+        if self.buffers[self.current].area != self.viewport {
+            self.buffers[self.current].resize(self.viewport);
+            self.buffers[1 - self.current].resize(self.viewport);
+
+            // Reset the back buffer to make sure the next update will redraw everything.
+            self.buffers[1 - self.current].reset();
+            clear(&mut self.stdout);
+        }
+    }
+    pub fn flush(&mut self) -> Result<(), std::io::Error> {
+        self.stdout.flush()
+    }
+    pub fn buffer(&mut self) -> &mut Buffer {
+        &mut self.buffers[self.current]
+    }
+}
+
+impl Drop for Winter {
+    fn drop(&mut self) {
+        uninit(&mut self.stdout);
+    }
+}
 
 pub struct Info {
     pub buffer_size: (u16, u16),
@@ -94,11 +158,8 @@ pub fn init<W: Write>(w: &mut W) {
     let mode =
         (ENABLE_MOUSE_INPUT | ENABLE_EXTENDED_FLAGS | ENABLE_WINDOW_INPUT) & !NOT_RAW_MODE_MASK;
     assert!(mode & NOT_RAW_MODE_MASK == 0);
-
     set_mode(handle, mode);
-
-    enter_alternate_screen(w);
-    hide_cursor(w);
+    show_alternate_screen(w);
     clear(w);
 }
 
@@ -108,10 +169,8 @@ pub fn uninit<W: Write>(w: &mut W) {
     mode &= ENABLE_MOUSE_INPUT | ENABLE_EXTENDED_FLAGS | ENABLE_WINDOW_INPUT;
     mode |= NOT_RAW_MODE_MASK;
     assert!(mode & NOT_RAW_MODE_MASK != 0);
-
     set_mode(handle, mode);
-
-    leave_alternate_screen(w);
+    hide_alternate_screen(w);
     show_cursor(w);
 }
 
@@ -134,17 +193,6 @@ pub fn get_mode(handle: *mut c_void) -> u32 {
             panic!("Failed to get console mode");
         }
         mode
-    }
-}
-
-pub fn handles() -> (*mut c_void, *mut c_void) {
-    unsafe {
-        let output = GetStdHandle(STD_OUTPUT_HANDLE);
-        let input = GetStdHandle(STD_OUTPUT_HANDLE);
-        if output == INVALID_HANDLE_VALUE || input == INVALID_HANDLE_VALUE {
-            panic!("Failed to get the input handle");
-        }
-        (output, input)
     }
 }
 
@@ -448,6 +496,8 @@ pub fn poll(timeout: Duration) -> Option<(Event, KeyState)> {
     }
 }
 
+//https://learn.microsoft.com/en-us/windows/console/console-virtual-terminal-sequences
+
 ///Clear the entire screen, using `cmd /c cls`.
 pub fn clear_all() {
     Command::new("cmd").args(["/C", "cls"]).status().unwrap();
@@ -459,15 +509,23 @@ pub fn show_cursor<W: Write>(w: &mut W) {
 pub fn hide_cursor<W: Write>(w: &mut W) {
     write!(w, "\x1b[?25l").unwrap();
 }
-pub fn enter_alternate_screen<W: Write>(w: &mut W) {
-    write!(w, "\x1b[?1049h").unwrap();
-}
-pub fn leave_alternate_screen<W: Write>(w: &mut W) {
-    write!(w, "\x1b[?1049l").unwrap();
-}
 pub fn move_to<W: Write>(w: &mut W, x: u16, y: u16) {
     write!(w, "\x1b[{};{}H", y, x).unwrap();
 }
+pub fn show_blinking<W: Write>(w: &mut W) {
+    write!(w, "\x1b[?12h").unwrap();
+}
+pub fn hide_blinking<W: Write>(w: &mut W) {
+    write!(w, "\x1b[?12l").unwrap();
+}
+
+pub fn show_alternate_screen<W: Write>(w: &mut W) {
+    write!(w, "\x1b[?1049h").unwrap();
+}
+pub fn hide_alternate_screen<W: Write>(w: &mut W) {
+    write!(w, "\x1b[?1049l").unwrap();
+}
+
 pub fn shift_up<W: Write>(w: &mut W, amount: u16) {
     write!(w, "\x1b[{}S", amount).unwrap();
 }
