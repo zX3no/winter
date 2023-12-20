@@ -1,7 +1,7 @@
 #![allow(unused)]
 use std::{
     borrow::Cow,
-    io::{stdout, Write},
+    io::{stdin, stdout, Write},
     time::{Duration, Instant},
 };
 use winter::*;
@@ -132,9 +132,7 @@ fn main() {
     //Prevents panic messages from being hidden.
     let orig_hook = std::panic::take_hook();
     std::panic::set_hook(Box::new(move |panic_info| {
-        let mut stdout = stdout();
-        uninit(&mut stdout);
-        stdout.flush().unwrap();
+        uninit(&mut stdout(), &mut stdin());
         orig_hook(panic_info);
         std::process::exit(1);
     }));

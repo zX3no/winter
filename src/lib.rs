@@ -184,6 +184,7 @@ pub fn uninit(stdout: &mut Stdout, stdin: &mut Stdin) {
     set_mode(stdin, mode);
     hide_alternate_screen(stdout);
     show_cursor(stdout);
+    stdout.flush().unwrap();
 }
 
 /// This wraps
