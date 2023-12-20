@@ -127,6 +127,7 @@ fn draw(buf: &mut Buffer) {
 }
 
 fn main() {
+    dbg!('\u{00FC}');
     let mut winter = Winter::new();
 
     //Prevents panic messages from being hidden.
@@ -151,7 +152,7 @@ fn main() {
 
         //Handle events
         {
-            if let Some((event, state)) = poll(Duration::from_millis(16)) {
+            if let Some((event, state)) = winter.poll() {
                 // println!("{}", event);
 
                 //TODO: I might want a class or trait or something to handle this pattern.

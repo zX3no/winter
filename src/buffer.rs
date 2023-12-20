@@ -1,7 +1,6 @@
 use crate::{layout::Rect, *};
 use std::{cmp::min, io::Write};
-use unicode_segmentation::UnicodeSegmentation;
-use unicode_width::UnicodeWidthStr;
+use unicode_width::{UnicodeWidthChar, UnicodeWidthStr};
 
 pub fn draw_modifier<W: Write>(w: &mut W, from: Modifier, to: Modifier) {
     let removed = from - to;
@@ -145,12 +144,10 @@ impl Buffer {
                 // If there is overflow, skip characters from the start of the line
                 let mut skip = 0;
                 if overflow > 0 {
-                    let graphemes =
-                        UnicodeSegmentation::grapheme_indices(&line.inner as &str, true)
-                            .collect::<Vec<(usize, &str)>>();
-                    for (_, grapheme) in graphemes.iter() {
-                        if skip + grapheme.width() <= overflow {
-                            skip += grapheme.width();
+                    for c in line.inner.chars() {
+                        let width = c.width().unwrap_or_default();
+                        if skip + width <= overflow {
+                            skip += width;
                         } else {
                             break;
                         }
@@ -186,22 +183,21 @@ impl Buffer {
     {
         let mut index = self.index_of(x, y).unwrap();
         let mut x_offset = x as usize;
-        let graphemes = UnicodeSegmentation::graphemes(string.as_ref(), true);
         let max_offset = min(self.area.right() as usize, width.saturating_add(x as usize));
-        for s in graphemes {
-            //FIXME: This dumbass character is broken for some reason.
-            let s = if s == "a\u{304}" { "ā" } else { s };
-            let width = s.width();
+
+        for s in string.as_ref().chars() {
+            let Some(width) = s.width() else { continue };
             if width == 0 {
                 continue;
-            }
+            };
+
             // `x_offset + width > max_offset` could be integer overflow on 32-bit machines if we
             // change dimenstions to usize or u32 and someone resizes the terminal to 1x2^32.
             if width > max_offset.saturating_sub(x_offset) {
                 break;
             }
 
-            self.content[index].set_symbol(s);
+            self.content[index].set_char(s);
             self.content[index].set_style(style);
             // Reset following cells if multi-width (they would be hidden by the grapheme),
             for i in index + 1..index + width {

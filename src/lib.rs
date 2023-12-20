@@ -98,6 +98,34 @@ impl Winter {
             clear(&mut self.stdout);
         }
     }
+
+    pub fn poll(&self) -> Option<(Event, KeyState)> {
+        self.poll_timeout(Duration::from_secs(0))
+    }
+    pub fn poll_timeout(&self, timeout: Duration) -> Option<(Event, KeyState)> {
+        let now = Instant::now();
+        let handle = self.stdin.as_raw_handle();
+
+        loop {
+            let leftover = timeout.saturating_sub(now.elapsed());
+            if event_ready(handle, Some(leftover)) && event_count(handle) != 0 {
+                let input_event = read_input_event(handle);
+                let event = unsafe { convert_event(input_event.clone()) };
+                //TODO: This could be done better.
+                return if let Some(event) = event {
+                    let state = key_state(input_event);
+                    Some((event, state))
+                } else {
+                    None
+                };
+            }
+
+            //Timeout elapsed
+            if now.elapsed().as_millis() >= timeout.as_millis() {
+                return None;
+            }
+        }
+    }
     pub fn flush(&mut self) -> Result<(), std::io::Error> {
         self.stdout.flush()
     }
@@ -473,40 +501,6 @@ pub fn event_count(input: *mut c_void) -> u32 {
         panic!("Could not get number of console input events.");
     }
     buf_len
-}
-
-///Read terminal events.
-///```rs
-///loop {
-///    if let Some(event) = poll(Duration::from_millis(16)) {
-///        dbg!(event);
-///    }
-///}
-/// ```
-pub fn poll(timeout: Duration) -> Option<(Event, KeyState)> {
-    let now = Instant::now();
-    //TODO: Stop grabbing this everywhere. File handles are expensive you know.
-    let handle = current_in_handle();
-
-    loop {
-        let leftover = timeout.saturating_sub(now.elapsed());
-        if event_ready(handle, Some(leftover)) && event_count(handle) != 0 {
-            let input_event = read_input_event(handle);
-            let event = unsafe { convert_event(input_event.clone()) };
-            //TODO: This could be done better.
-            return if let Some(event) = event {
-                let state = key_state(input_event);
-                Some((event, state))
-            } else {
-                None
-            };
-        }
-
-        //Timeout elapsed
-        if now.elapsed().as_millis() >= timeout.as_millis() {
-            return None;
-        }
-    }
 }
 
 //https://learn.microsoft.com/en-us/windows/console/console-virtual-terminal-sequences
