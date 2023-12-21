@@ -6,7 +6,6 @@ use std::{
     mem::zeroed,
     os::windows::io::AsRawHandle,
     process::Command,
-    ptr::null_mut,
     time::{Duration, Instant},
 };
 
@@ -51,12 +50,11 @@ pub struct Winter {
 impl Winter {
     pub fn new() -> Self {
         let mut stdout = stdout();
-        // let handle = current_in_handle();
         let stdin = stdin();
-        let mode =
-            (ENABLE_MOUSE_INPUT | ENABLE_EXTENDED_FLAGS | ENABLE_WINDOW_INPUT) & !NOT_RAW_MODE_MASK;
-        assert!(mode & NOT_RAW_MODE_MASK == 0);
-        set_mode(stdin.as_raw_handle(), mode);
+        set_mode(
+            stdin.as_raw_handle(),
+            ENABLE_WINDOW_INPUT | ENABLE_EXTENDED_FLAGS | ENABLE_MOUSE_INPUT,
+        );
         show_alternate_screen(&mut stdout);
         clear(&mut stdout);
 
@@ -134,6 +132,25 @@ impl Winter {
     }
 }
 
+/// Used with panic handlers.
+///
+/// ```
+/// let orig_hook = std::panic::take_hook();
+///     std::panic::set_hook(Box::new(move |panic_info| {
+///         let mut stdout = std::io::stdout();
+///         let mut stdin = std::io::stdin();
+///         uninit(&mut stdout, &mut stdin);
+///         orig_hook(panic_info);
+///         std::process::exit(1);
+/// }));
+/// ```
+pub fn uninit(stdout: &mut Stdout, stdin: &mut Stdin) {
+    set_mode(stdin.as_raw_handle(), 0);
+    hide_alternate_screen(stdout);
+    show_cursor(stdout);
+    stdout.flush().unwrap();
+}
+
 impl Drop for Winter {
     fn drop(&mut self) {
         uninit(&mut self.stdout, &mut self.stdin);
@@ -168,51 +185,6 @@ pub fn info(output: *mut c_void) -> Info {
             ),
         }
     }
-}
-
-//TODO: What is the difference between this and `GetStdHandle(STD_INPUT_HANDLE)`
-pub fn current_in_handle() -> *mut c_void {
-    let utf16: Vec<u16> = "CONIN$\0".encode_utf16().collect();
-    let utf16_ptr: *const u16 = utf16.as_ptr();
-
-    unsafe {
-        CreateFileW(
-            utf16_ptr,
-            GENERIC_READ | GENERIC_WRITE,
-            FILE_SHARE_READ | FILE_SHARE_WRITE,
-            null_mut(),
-            OPEN_EXISTING,
-            0,
-            null_mut(),
-        )
-    }
-}
-
-const NOT_RAW_MODE_MASK: u32 = ENABLE_LINE_INPUT | ENABLE_ECHO_INPUT | ENABLE_PROCESSED_INPUT;
-
-/// Used with panic handlers.
-///
-/// ```
-///  let orig_hook = std::panic::take_hook();
-///  std::panic::set_hook(Box::new(move |panic_info| {
-///      let mut stdout = stdout();
-///      uninit(&mut stdout);
-///      stdout.flush().unwrap();
-///      orig_hook(panic_info);
-///      std::process::exit(1);
-///  }));
-/// ```
-pub fn uninit(stdout: &mut Stdout, stdin: &mut Stdin) {
-    // let handle = current_in_handle();
-    let stdin = stdin.as_raw_handle();
-    let mut mode = get_mode(stdin);
-    mode &= ENABLE_MOUSE_INPUT | ENABLE_EXTENDED_FLAGS | ENABLE_WINDOW_INPUT;
-    mode |= NOT_RAW_MODE_MASK;
-    assert!(mode & NOT_RAW_MODE_MASK != 0);
-    set_mode(stdin, mode);
-    hide_alternate_screen(stdout);
-    show_cursor(stdout);
-    stdout.flush().unwrap();
 }
 
 /// This wraps
