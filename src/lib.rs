@@ -141,7 +141,7 @@ impl Winter {
 ///     std::panic::set_hook(Box::new(move |panic_info| {
 ///         let mut stdout = std::io::stdout();
 ///         let mut stdin = std::io::stdin();
-///         uninit(&mut stdout, &mut stdin);
+///         winter::uninit(&mut stdout, &mut stdin);
 ///         orig_hook(panic_info);
 ///         std::process::exit(1);
 /// }));

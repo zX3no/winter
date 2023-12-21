@@ -35,8 +35,8 @@ pub fn browser(area: Rect, buf: &mut Buffer, index: Option<usize>) {
 ```
 
 ### Terminal:
-- [ ] Cursor positioning
-- [ ] Simplify main loop even more
+- [x] Cursor positioning
+- [x] Simplify main loop even more
 - [ ] Colors are slightly different from crossterm. Most likely due to using old [Win32 colors](https://learn.microsoft.com/en-us/windows/console/char-info-str).
 - [x] Re-write layout system.
 - [x] Simplify main loop
@@ -48,9 +48,9 @@ pub fn browser(area: Rect, buf: &mut Buffer, index: Option<usize>) {
 - [x] Handle Shift, Ctrl and Alt.
 
 ### Widgets:
-- [ ] Maybe area: Rect and buf: Buffer should be combined somehow.
-- [ ] Add builder macros like with styles -> `list().style().margin(1)`
-- [ ] Change Borders::ALL to just ALL and BorderType::Rounded to just Rounded. Or combine into single enum.
+- [ ] Maybe `area: Rect, buf: Buffer` should be combined somehow.
+- [x] Add builder macros like with styles -> `list().style().margin(1)`
+- [x] Change Borders::ALL to just ALL and BorderType::Rounded to just Rounded. Or combine into single enum.
 - [x] Table
 - [x] Constraints
 - [x] List
@@ -66,7 +66,7 @@ pub fn browser(area: Rect, buf: &mut Buffer, index: Option<usize>) {
 
 ### Text
 - [ ] Text alignment: Left, Center, Right
-- [ ] Correctly handle multi-width characters
+- [x] Correctly handle multi-width characters
 - [x] Fix modifiers
 
 ### Block
