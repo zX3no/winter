@@ -29,7 +29,6 @@ pub use layout::Alignment::*;
 pub use style::{Color::*, *};
 pub use win32::*;
 
-//TODO: Remove
 pub use layout::Constraint::*;
 pub use layout::Direction::*;
 pub use layout::*;
@@ -38,6 +37,9 @@ pub mod buffer;
 pub mod layout;
 pub mod style;
 pub mod symbols;
+
+//Re-export unicode width.
+pub use unicode_width::{UnicodeWidthChar, UnicodeWidthStr};
 
 pub struct Winter {
     pub viewport: Rect,
