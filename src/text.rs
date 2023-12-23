@@ -2,14 +2,6 @@ use crate::{block::Block, buffer::Buffer, layout::Rect, *};
 use std::ops::Deref;
 use unicode_width::UnicodeWidthStr;
 
-//TODO: Split on \n so that each line has it's own item in the array.
-//Otherwise Lines::height() will not work correctly.
-//I think this is what graphemes are used for.
-
-//TODO: Figure out style inheritence. Do we want it?
-
-///Keep in mind wide characters must be formatted with spaces. FIXME: This is not needed in block titles.
-/// `う ず ま き` instead of `うずまき`
 #[derive(Debug, Clone, Default)]
 pub struct Lines<'a> {
     pub lines: Box<[Text<'a>]>,
@@ -146,6 +138,21 @@ impl<'a> AsRef<str> for Text<'a> {
     }
 }
 
+pub trait Stylize<'a> {
+    fn bold(self) -> Text<'a>;
+    fn dim(self) -> Text<'a>;
+    fn italic(self) -> Text<'a>;
+    fn underlined(self) -> Text<'a>;
+    fn fast_blink(self) -> Text<'a>;
+    fn slow_blink(self) -> Text<'a>;
+    fn invert(self) -> Text<'a>;
+    fn hidden(self) -> Text<'a>;
+    fn crossed_out(self) -> Text<'a>;
+    fn fg(self, fg: Color) -> Text<'a>;
+    fn bg(self, bg: Color) -> Text<'a>;
+    fn style(self, style: Style) -> Text<'a>;
+}
+
 macro_rules! modifier {
     ($($type:ty),*; $($name:ident),*) => {
         macro_rules! modifier {
@@ -201,21 +208,6 @@ macro_rules! modifier {
             }
         )*
     };
-}
-
-pub trait Stylize<'a> {
-    fn bold(self) -> Text<'a>;
-    fn dim(self) -> Text<'a>;
-    fn italic(self) -> Text<'a>;
-    fn underlined(self) -> Text<'a>;
-    fn fast_blink(self) -> Text<'a>;
-    fn slow_blink(self) -> Text<'a>;
-    fn invert(self) -> Text<'a>;
-    fn hidden(self) -> Text<'a>;
-    fn crossed_out(self) -> Text<'a>;
-    fn fg(self, fg: Color) -> Text<'a>;
-    fn bg(self, bg: Color) -> Text<'a>;
-    fn style(self, style: Style) -> Text<'a>;
 }
 
 modifier! {

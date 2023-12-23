@@ -127,7 +127,6 @@ fn draw(buf: &mut Buffer) {
 }
 
 fn main() {
-    dbg!('\u{00FC}');
     let mut winter = Winter::new();
 
     //Prevents panic messages from being hidden.
@@ -164,7 +163,7 @@ fn main() {
                 if event == Event::Down {
                     index += 1;
                 }
-                if event == Event::Char('c') && state.ctrl() || event == Event::Escape {
+                if event == Event::Char('c') && state.control() || event == Event::Escape {
                     break;
                 }
             }

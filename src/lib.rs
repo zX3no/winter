@@ -250,49 +250,40 @@ impl Display for Event {
     }
 }
 
-//TODO: This sucks.
-use bitflags::bitflags;
+pub const CONTROL: u32 = 0b0000_0000_0001;
+pub const SHIFT: u32 = 0b0000_0000_0010;
+pub const ALT: u32 = 0b0000_0000_0100;
 
-bitflags! {
-    #[derive(Debug, Clone, PartialEq, Eq, Copy, Default)]
-    pub struct KeyState: u16 {
-        const CTRL              = 0b0000_0000_0001;
-        const SHIFT             = 0b0000_0000_0010;
-        const ALT               = 0b0000_0000_0100;
-    }
-}
+pub struct KeyState(u32);
 
 impl KeyState {
-    pub fn shift(&self) -> bool {
-        self.contains(KeyState::SHIFT)
+    pub fn control(&self) -> bool {
+        (self.0 & CONTROL) != 0
     }
-    pub fn ctrl(&self) -> bool {
-        self.contains(KeyState::CTRL)
+    pub fn shift(&self) -> bool {
+        (self.0 & SHIFT) != 0
     }
     pub fn alt(&self) -> bool {
-        self.contains(KeyState::ALT)
+        (self.0 & ALT) != 0
     }
 }
 
 pub fn key_state(event: INPUT_RECORD) -> KeyState {
     if event.EventType == KEY_EVENT {
         let ks = unsafe { event.Event.KeyEvent().dwControlKeyState };
-        let mut state = KeyState::empty();
+        let mut state = 0;
         if ks & SHIFT_PRESSED != 0 {
-            state |= KeyState::SHIFT;
+            state |= SHIFT;
         }
-
         if ks & LEFT_CTRL_PRESSED != 0 || ks & RIGHT_CTRL_PRESSED != 0 {
-            state |= KeyState::CTRL;
+            state |= CONTROL;
         }
-
         if ks & LEFT_ALT_PRESSED != 0 || ks & RIGHT_ALT_PRESSED != 0 {
-            state |= KeyState::ALT;
+            state |= ALT;
         }
-
-        state
+        KeyState(state)
     } else {
-        KeyState::empty()
+        KeyState(0)
     }
 }
 
