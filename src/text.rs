@@ -1,3 +1,4 @@
+//TODO: This needs to be re-written it's too complicated and impossible to use.
 use crate::{block::Block, buffer::Buffer, layout::Rect, *};
 use std::ops::Deref;
 use unicode_width::UnicodeWidthStr;
@@ -83,6 +84,8 @@ impl<'a> Into<Lines<'a>> for &'a [Text<'a>] {
 }
 
 /// Can take in anything that implements Into<Text<'a>>.
+/// core::str::Lines<'_> is an interator and cannot be converted to a slice.
+//TODO: This needs to be able to take in Vec<String>, Vec<&str>
 #[macro_export]
 macro_rules! lines {
     () => {

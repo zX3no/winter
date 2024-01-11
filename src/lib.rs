@@ -50,6 +50,9 @@ pub struct Winter {
 }
 
 impl Winter {
+    //TODO: WinterOpitons or something?
+    //Alternate screen, raw mode, mouse support.
+    //I want to be able to use copy and paste sometimes.
     pub fn new() -> Self {
         let mut stdout = stdout();
         let stdin = stdin();
@@ -57,6 +60,7 @@ impl Winter {
             stdin.as_raw_handle(),
             ENABLE_WINDOW_INPUT | ENABLE_EXTENDED_FLAGS | ENABLE_MOUSE_INPUT,
         );
+
         show_alternate_screen(&mut stdout);
         clear(&mut stdout);
 
@@ -95,7 +99,7 @@ impl Winter {
 
             // Reset the back buffer to make sure the next update will redraw everything.
             self.buffers[1 - self.current].reset();
-            clear(&mut self.stdout);
+            // clear(&mut self.stdout);
         }
     }
 

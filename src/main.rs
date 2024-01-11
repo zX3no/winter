@@ -65,6 +65,16 @@ fn draw(buf: &mut Buffer) {
     let area = buf.area;
 
     {
+        let layout = layout(area, Vertical, &[Constraint::Percentage(50), Fill]);
+        // let layout = layout(area, Vertical, &[Fill, Constraint::Length(5)]);
+        // dbg!(&layout);
+
+        block().draw(layout[0], buf);
+        block().draw(layout[1], buf);
+        return;
+    }
+
+    {
         let area = area.centered(100, 22).unwrap();
 
         block().style(bg(Red)).draw(area, buf);

@@ -18,7 +18,7 @@ pub enum Direction {
 pub enum Constraint {
     Percentage(u16),
     Length(u16),
-    Remainder,
+    Fill,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
@@ -49,74 +49,92 @@ pub fn layout_margin(
         let mut x = area.x;
         let mut y = area.y;
 
-        match direction {
-            Direction::Horizontal => {
-                for con in cons {
-                    match con {
-                        Constraint::Percentage(p) => {
-                            let width = (area.width as f32 * (*p as f32 / 100.0)).round() as u16;
-                            let width = if width + x >= area.right() {
-                                area.right().saturating_sub(x)
-                            } else {
-                                width
-                            };
-                            RECTS.push(Rect::new(x, y, width, area.height));
-                            x += width;
-                        }
-                        Constraint::Length(l) => {
-                            let l = if x + l >= area.right() {
-                                area.right().saturating_sub(x)
-                            } else {
-                                *l
-                            };
-                            RECTS.push(Rect::new(x, y, l, area.height));
-                            x += l;
-                        }
-                        Constraint::Remainder => {
-                            //FIXME: This is wrong.
-                            if x > area.width || y > area.height {
-                                RECTS.push(Rect::default());
-                            } else {
-                                RECTS.push(Rect::new(x, y, area.width - x, area.height - y));
-                            }
-                        }
+        //Fill can only be used at the start or end.
+        //There cannot be more than one.
+        //TODO: Add to result.
+        let count = cons.iter().filter(|con| **con == Constraint::Fill).count();
+
+        if count > 1 {
+            return Err("Cannot have multiple fill constraints.");
+        }
+
+        let start = cons.starts_with(&[Constraint::Fill]);
+        let end = cons.ends_with(&[Constraint::Fill]);
+
+        if !(start || end) && count == 1 {
+            return Err("Fill constraint must be at the beginning or end.");
+        }
+
+        for con in cons {
+            match con {
+                Constraint::Percentage(p) => match direction {
+                    Direction::Horizontal => {
+                        let width = (area.width as f32 * (*p as f32 / 100.0)).round() as u16;
+                        let width = if width + x >= area.right() {
+                            area.right().saturating_sub(x)
+                        } else {
+                            width
+                        };
+                        RECTS.push(Rect::new(x, y, width, area.height));
+                        x += width;
+                    }
+                    Direction::Vertical => {
+                        let height = (area.height as f32 * (*p as f32 / 100.0)).round() as u16;
+                        let height = if height + y >= area.bottom() {
+                            area.bottom().saturating_sub(y)
+                        } else {
+                            height
+                        };
+                        RECTS.push(Rect::new(x, y, area.width, height));
+                        y += height;
+                    }
+                },
+                Constraint::Length(l) => match direction {
+                    Direction::Horizontal => {
+                        let l = if x + l >= area.right() {
+                            area.right().saturating_sub(x)
+                        } else {
+                            *l
+                        };
+                        RECTS.push(Rect::new(x, y, l, area.height));
+                        x += l;
+                    }
+                    Direction::Vertical => {
+                        let l = if y + l >= area.bottom() {
+                            area.bottom().saturating_sub(y)
+                        } else {
+                            *l
+                        };
+                        RECTS.push(Rect::new(x, y, area.width, l));
+                        y += l;
+                    }
+                },
+                _ => {}
+            }
+        }
+
+        if start {
+            let rem_y = area.height - y;
+            let rem_x = area.width - x;
+            match direction {
+                Direction::Horizontal => {
+                    for RECT in &mut RECTS {
+                        RECT.x += rem_x;
+                    }
+                }
+                Direction::Vertical => {
+                    for RECT in &mut RECTS {
+                        RECT.y += rem_y;
                     }
                 }
             }
-            Direction::Vertical => {
-                for con in cons {
-                    match con {
-                        Constraint::Percentage(p) => {
-                            let height = (area.height as f32 * (*p as f32 / 100.0)).round() as u16;
-                            let height = if height + y >= area.bottom() {
-                                area.bottom().saturating_sub(y)
-                            } else {
-                                height
-                            };
-                            RECTS.push(Rect::new(x, y, area.width, height));
-                            y += height;
-                        }
-                        Constraint::Length(l) => {
-                            let l = if y + l >= area.bottom() {
-                                area.bottom().saturating_sub(y)
-                            } else {
-                                *l
-                            };
-                            RECTS.push(Rect::new(x, y, area.width, l));
-                            y += l;
-                        }
-                        Constraint::Remainder => {
-                            //FIXME: This is not handled right.
-                            //There should be some room to fill y here.
-                            if x > area.width || y > area.height {
-                                RECTS.push(Rect::default());
-                            } else {
-                                RECTS.push(Rect::new(x, y, area.width - x, area.height - y));
-                            }
-                        }
-                    }
-                }
-            }
+
+            RECTS.insert(0, Rect::new(0, 0, rem_x, rem_y));
+        }
+
+        if end {
+            //TODO: Overflow?
+            RECTS.push(Rect::new(x, y, area.width - x, area.height - y))
         }
 
         Ok(std::mem::take(&mut RECTS))
