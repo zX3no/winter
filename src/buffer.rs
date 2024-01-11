@@ -121,11 +121,11 @@ impl Buffer {
         let i = self.index_of(x, y).unwrap();
         &mut self.content[i]
     }
-    pub fn set_lines(
+    pub fn set_line(
         &mut self,
         mut x: u16,
         y: u16,
-        lines: &Lines<'_>,
+        lines: &Line<'_>,
         width: u16,
         scroll: bool,
     ) -> (u16, u16) {

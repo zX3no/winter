@@ -59,7 +59,7 @@ macro_rules! row {
 
 #[derive(Debug, Clone)]
 pub struct Row<'a> {
-    pub columns: Box<[Lines<'a>]>,
+    pub columns: Box<[Line<'a>]>,
     //TODO: Why is exist?
     pub height: u16,
     pub bottom_margin: u16,
@@ -256,13 +256,13 @@ impl<'a> Table<'a> {
                         style,
                     );
                 }
-                buf.set_lines(col, table_area.top(), column, *width, false);
+                buf.set_line(col, table_area.top(), column, *width, false);
                 col += *width + self.column_spacing;
             }
             if self.separator {
                 let max: u16 = columns_widths.iter().sum();
                 for i in table_area.left() + 3..max + table_area.left() + 4 {
-                    buf.set_lines(i, table_area.top() + 1, &lines!("─"), 1, false);
+                    buf.set_line(i, table_area.top() + 1, &lines!("─"), 1, false);
                 }
             }
             current_height += max_header_height;
@@ -308,7 +308,7 @@ impl<'a> Table<'a> {
                         style,
                     );
                 }
-                buf.set_lines(x, y, column, *width, false);
+                buf.set_line(x, y, column, *width, false);
                 x += width + self.column_spacing;
             }
         }

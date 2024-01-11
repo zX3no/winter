@@ -1,6 +1,6 @@
 use crate::{buffer::Buffer, layout::Rect, *};
 
-pub fn list<'a>(items: &[Lines<'a>]) -> List<'a> {
+pub fn list<'a>(items: &[Line<'a>]) -> List<'a> {
     List {
         block: None,
         items: items.to_vec(),
@@ -13,7 +13,7 @@ pub fn list<'a>(items: &[Lines<'a>]) -> List<'a> {
 #[derive(Debug, Clone)]
 pub struct List<'a> {
     pub block: Option<Block<'a>>,
-    pub items: Vec<Lines<'a>>,
+    pub items: Vec<Line<'a>>,
     pub selection_symbol: Option<&'a str>,
     pub selection_style: Option<Style>,
     pub start_from_bottom: bool,
@@ -96,7 +96,7 @@ impl<'a> List<'a> {
             if let Some(style) = item.style {
                 buf.set_style(area, style);
             }
-            buf.set_lines(elem_x, y, item, max_element_width, false);
+            buf.set_line(elem_x, y, item, max_element_width, false);
 
             //TODO: Maybe skip the symbol area and just style the list item?
             //Could have a symbol_style and a selection_style?

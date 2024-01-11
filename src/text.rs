@@ -4,7 +4,7 @@ use std::ops::Deref;
 use unicode_width::UnicodeWidthStr;
 
 #[derive(Debug, Clone, Default)]
-pub struct Lines<'a> {
+pub struct Line<'a> {
     pub lines: Box<[Text<'a>]>,
     pub block: Option<Block<'a>>,
     pub style: Option<Style>,
@@ -12,7 +12,7 @@ pub struct Lines<'a> {
     pub scroll: bool,
 }
 
-impl<'a> Lines<'a> {
+impl<'a> Line<'a> {
     pub fn block(mut self, block: Block<'a>) -> Self {
         self.block = Some(block);
         self
@@ -44,14 +44,14 @@ impl<'a> Lines<'a> {
             Alignment::Left => 0,
         };
 
-        buf.set_lines(area.x + alignment, area.y, self, area.width, self.scroll);
+        buf.set_line(area.x + alignment, area.y, self, area.width, self.scroll);
     }
     pub fn height(&self) -> usize {
         self.lines.len()
     }
 }
 
-impl<'a> Deref for Lines<'a> {
+impl<'a> Deref for Line<'a> {
     type Target = Box<[Text<'a>]>;
 
     fn deref(&self) -> &Self::Target {
@@ -59,9 +59,9 @@ impl<'a> Deref for Lines<'a> {
     }
 }
 
-impl<'a> Into<Lines<'a>> for Text<'a> {
-    fn into(self) -> Lines<'a> {
-        Lines {
+impl<'a> Into<Line<'a>> for Text<'a> {
+    fn into(self) -> Line<'a> {
+        Line {
             style: Some(self.style),
             lines: Box::new([self]),
             block: None,
@@ -71,9 +71,9 @@ impl<'a> Into<Lines<'a>> for Text<'a> {
     }
 }
 
-impl<'a> Into<Lines<'a>> for &'a [Text<'a>] {
-    fn into(self) -> Lines<'a> {
-        Lines {
+impl<'a> Into<Line<'a>> for &'a [Text<'a>] {
+    fn into(self) -> Line<'a> {
+        Line {
             lines: self.into(),
             block: None,
             style: None,
@@ -89,10 +89,10 @@ impl<'a> Into<Lines<'a>> for &'a [Text<'a>] {
 #[macro_export]
 macro_rules! lines {
     () => {
-        Lines::default()
+        Line::default()
     };
     ($($text:expr),*) => {
-        Lines {
+        Line {
             lines: Box::new([
                 $(
                     $text.into()
@@ -130,7 +130,7 @@ impl<'a> Text<'a> {
     pub fn width(&self) -> usize {
         self.inner.width()
     }
-    pub fn into_lines(self) -> Lines<'a> {
+    pub fn into_lines(self) -> Line<'a> {
         self.into()
     }
 }
@@ -240,9 +240,9 @@ macro_rules! impl_into {
                 }
             }
 
-            impl<'a> Into<Lines<'a>> for $t {
-                fn into(self) -> Lines<'a> {
-                    Lines {
+            impl<'a> Into<Line<'a>> for $t {
+                fn into(self) -> Line<'a> {
+                    Line {
                         lines: Box::new([self.into()]),
                         block: None,
                         style: None,

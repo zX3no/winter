@@ -42,11 +42,11 @@ pub fn browser(area: Rect, buf: &mut Buffer, index: Option<usize>) {
         &[Length(size), Length(size), Length(size + rem)],
     );
 
-    let a: [Lines<'_>; 3] = ["Artist 1".into(), "Artist 2".into(), "Artist 3".into()];
-    let b: [Lines<'_>; 3] = ["Album 1".into(), "Album 2".into(), "Album 3".into()];
-    let c: [Lines<'_>; 3] = ["Song 1".into(), "Song 2".into(), "Song 3".into()];
+    let a: [Line<'_>; 3] = ["Artist 1".into(), "Artist 2".into(), "Artist 3".into()];
+    let b: [Line<'_>; 3] = ["Album 1".into(), "Album 2".into(), "Album 3".into()];
+    let c: [Line<'_>; 3] = ["Song 1".into(), "Song 2".into(), "Song 3".into()];
 
-    fn browser_list<'a>(title: &'static str, content: &[Lines<'a>], use_symbol: bool) -> List<'a> {
+    fn browser_list<'a>(title: &'static str, content: &[Line<'a>], use_symbol: bool) -> List<'a> {
         let block = block().title(title.bold()).title_margin(1);
         let symbol = if use_symbol { ">" } else { " " };
         list(content).block(block).symbol(symbol)
