@@ -54,6 +54,7 @@ impl<'a> Gauge<'a> {
             for x in area.left()..end {
                 // spaces are needed to apply the background styling
                 buf.get_mut(x, y)
+                    .unwrap()
                     .set_symbol(" ")
                     .set_fg(self.left_style.fg)
                     .set_bg(self.left_style.bg);
@@ -64,7 +65,7 @@ impl<'a> Gauge<'a> {
         for x in label_col..area.width {
             if let Some(char) = chars.next() {
                 let fg = if x < end { Color::Black } else { Color::Reset };
-                buf.get_mut(x, label_row).set_char(char).set_fg(fg);
+                buf.get_mut(x, label_row).unwrap().set_char(char).set_fg(fg);
             } else {
                 break;
             }

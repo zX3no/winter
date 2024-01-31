@@ -97,9 +97,10 @@ impl Winter {
             self.buffers[self.current].resize(self.viewport);
             self.buffers[1 - self.current].resize(self.viewport);
 
-            // Reset the back buffer to make sure the next update will redraw everything.
+            //Reset the back buffer to make sure the next update will redraw everything.
             self.buffers[1 - self.current].reset();
-            // clear(&mut self.stdout);
+            //Screen must be cleared here.
+            clear(&mut self.stdout);
         }
     }
 

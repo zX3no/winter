@@ -1,4 +1,7 @@
-use std::cmp::{max, min};
+use std::{
+    cmp::{max, min},
+    ptr::addr_of_mut,
+};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Corner {
@@ -118,12 +121,12 @@ pub fn layout_margin(
             let rem_x = area.width - x;
             match direction {
                 Direction::Horizontal => {
-                    for RECT in &mut RECTS {
+                    for RECT in &mut *addr_of_mut!(RECTS) {
                         RECT.x += rem_x;
                     }
                 }
                 Direction::Vertical => {
-                    for RECT in &mut RECTS {
+                    for RECT in &mut *addr_of_mut!(RECTS) {
                         RECT.y += rem_y;
                     }
                 }
@@ -137,7 +140,7 @@ pub fn layout_margin(
             RECTS.push(Rect::new(x, y, area.width - x, area.height - y))
         }
 
-        Ok(std::mem::take(&mut RECTS))
+        Ok(std::mem::take(&mut *addr_of_mut!(RECTS)))
     }
 }
 

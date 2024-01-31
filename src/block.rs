@@ -110,6 +110,7 @@ impl<'a> Block<'a> {
         if self.borders.intersects(Borders::LEFT) {
             for y in area.top()..area.bottom() {
                 buf.get_mut(area.left(), y)
+                    .unwrap()
                     .set_symbol(symbols.vertical)
                     .set_style(self.style);
             }
@@ -117,6 +118,7 @@ impl<'a> Block<'a> {
         if self.borders.intersects(Borders::TOP) {
             for x in area.left()..area.right() {
                 buf.get_mut(x, area.top())
+                    .unwrap()
                     .set_symbol(symbols.horizontal)
                     .set_style(self.style);
             }
@@ -125,6 +127,7 @@ impl<'a> Block<'a> {
             let x = area.right() - 1;
             for y in area.top()..area.bottom() {
                 buf.get_mut(x, y)
+                    .unwrap()
                     .set_symbol(symbols.vertical)
                     .set_style(self.style);
             }
@@ -133,6 +136,7 @@ impl<'a> Block<'a> {
             let y = area.bottom() - 1;
             for x in area.left()..area.right() {
                 buf.get_mut(x, y)
+                    .unwrap()
                     .set_symbol(symbols.horizontal)
                     .set_style(self.style);
             }
@@ -141,21 +145,25 @@ impl<'a> Block<'a> {
         // Corners
         if self.borders.contains(Borders::RIGHT | Borders::BOTTOM) {
             buf.get_mut(area.right() - 1, area.bottom() - 1)
+                .unwrap()
                 .set_symbol(symbols.bottom_right)
                 .set_style(self.style);
         }
         if self.borders.contains(Borders::RIGHT | Borders::TOP) {
             buf.get_mut(area.right() - 1, area.top())
+                .unwrap()
                 .set_symbol(symbols.top_right)
                 .set_style(self.style);
         }
         if self.borders.contains(Borders::LEFT | Borders::BOTTOM) {
             buf.get_mut(area.left(), area.bottom() - 1)
+                .unwrap()
                 .set_symbol(symbols.bottom_left)
                 .set_style(self.style);
         }
         if self.borders.contains(Borders::LEFT | Borders::TOP) {
             buf.get_mut(area.left(), area.top())
+                .unwrap()
                 .set_symbol(symbols.top_left)
                 .set_style(self.style);
         }

@@ -117,9 +117,9 @@ impl Buffer {
         }
         Self { area, content }
     }
-    pub fn get_mut(&mut self, x: u16, y: u16) -> &mut Cell {
-        let i = self.index_of(x, y).unwrap();
-        &mut self.content[i]
+    pub fn get_mut(&mut self, x: u16, y: u16) -> Result<&mut Cell, String> {
+        let i = self.index_of(x, y)?;
+        Ok(&mut self.content[i])
     }
     pub fn set_line(
         &mut self,
@@ -211,7 +211,7 @@ impl Buffer {
     pub fn set_style(&mut self, area: Rect, style: Style) {
         for y in area.top()..area.bottom() {
             for x in area.left()..area.right() {
-                self.get_mut(x, y).set_style(style);
+                self.get_mut(x, y).unwrap().set_style(style);
             }
         }
     }
@@ -283,7 +283,7 @@ impl Buffer {
     pub fn clear(&mut self, area: Rect) {
         for y in area.top()..area.bottom() {
             for x in area.left()..area.right() {
-                self.get_mut(x, y).reset();
+                self.get_mut(x, y).unwrap().reset();
             }
         }
     }
