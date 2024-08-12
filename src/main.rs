@@ -152,7 +152,7 @@ fn main() {
 
     loop {
         //Draw the widgets into the front buffer.
-        draw(&mut winter.buffer());
+        draw(winter.buffer());
 
         // show_cursor(&mut stdout);
         // show_blinking(&mut stdout);

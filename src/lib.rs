@@ -155,6 +155,7 @@ pub fn uninit(stdout: &mut Stdout, stdin: &mut Stdin) {
     set_mode(stdin.as_raw_handle(), 0);
     hide_alternate_screen(stdout);
     show_cursor(stdout);
+    reset(stdout);
     stdout.flush().unwrap();
 }
 
