@@ -56,6 +56,14 @@ impl Winter {
     pub fn new() -> Self {
         let mut stdout = stdout();
         let stdin = stdin();
+        //Enable ANSI codes on conhost terminals, can also use:
+        //[HKEY_CURRENT_USER\Console]
+        //"VirtualTerminalLevel"=dword:00000001
+        //https://ss64.com/nt/syntax-ansi.html
+        set_mode(
+            stdout.as_raw_handle(),
+            ENABLE_PROCESSED_OUTPUT | ENABLE_VIRTUAL_TERMINAL_PROCESSING,
+        );
         set_mode(
             stdin.as_raw_handle(),
             ENABLE_WINDOW_INPUT | ENABLE_EXTENDED_FLAGS | ENABLE_MOUSE_INPUT,
