@@ -28,13 +28,12 @@ pub fn window_size() -> (u16, u16) {
     (window_size.width, window_size.height)
 }
 
-#[cfg(target_os = "windows")]
 pub fn disable_mouse_capture(stdout: &mut Stdout) {
     execute!(stdout, DisableMouseCapture).unwrap();
 }
 
 pub fn poll() -> Option<(Event, KeyModifiers)> {
-    if !crossterm::event::poll(Duration::default()).ok()? {
+    if !crossterm::event::poll(Duration::from_millis(16)).ok()? {
         return None;
     }
 

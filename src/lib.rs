@@ -18,6 +18,8 @@ pub mod guage;
 pub mod list;
 pub mod table;
 pub mod text;
+
+#[cfg(target_os = "windows")]
 pub mod win32;
 
 #[cfg(target_os = "windows")]
@@ -90,6 +92,7 @@ impl Winter {
 
         #[cfg(target_os = "macos")]
         let (width, height) = window_size();
+        dbg!(width, height);
 
         let viewport = Rect::new(0, 0, width, height);
 
