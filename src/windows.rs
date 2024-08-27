@@ -5,7 +5,9 @@ use std::time::{Duration, Instant};
 use std::{io::stdin, mem::zeroed};
 
 use crate::{
-    Event, GetConsoleScreenBufferInfo, Info, KeyState, CONSOLE_SCREEN_BUFFER_INFO, ENABLE_EXTENDED_FLAGS, ENABLE_MOUSE_INPUT, ENABLE_PROCESSED_OUTPUT, ENABLE_VIRTUAL_TERMINAL_PROCESSING, ENABLE_WINDOW_INPUT, INPUT_RECORD
+    Event, GetConsoleScreenBufferInfo, Info, KeyState, CONSOLE_SCREEN_BUFFER_INFO,
+    ENABLE_EXTENDED_FLAGS, ENABLE_MOUSE_INPUT, ENABLE_PROCESSED_OUTPUT,
+    ENABLE_VIRTUAL_TERMINAL_PROCESSING, ENABLE_WINDOW_INPUT, INPUT_RECORD,
 };
 
 // #[cfg(target_os = "windows")]
@@ -15,8 +17,8 @@ pub fn initialise() -> (Stdout, Stdin) {
     //"VirtualTerminalLevel"=dword:00000001
     //https://ss64.com/nt/syntax-ansi.html
 
-        let mut stdout = stdout();
-        let stdin = stdin();
+    let mut stdout = stdout();
+    let stdin = stdin();
 
     set_mode(
         stdout.as_raw_handle(),
