@@ -162,7 +162,7 @@ fn main() {
         //Handle events
         {
             if let Some((event, state)) = winter.poll() {
-                // println!("{}", event);
+                println!("{}", event);
 
                 //TODO: I might want a class or trait or something to handle this pattern.
                 if event == Event::Up {

@@ -4,11 +4,8 @@ use std::os::windows::io::AsRawHandle;
 use std::time::{Duration, Instant};
 use std::{io::stdin, mem::zeroed};
 
-use crate::{
-    Event, GetConsoleScreenBufferInfo, Info, KeyState, CONSOLE_SCREEN_BUFFER_INFO,
-    ENABLE_EXTENDED_FLAGS, ENABLE_MOUSE_INPUT, ENABLE_PROCESSED_OUTPUT,
-    ENABLE_VIRTUAL_TERMINAL_PROCESSING, ENABLE_WINDOW_INPUT, INPUT_RECORD,
-};
+use crate::Event;
+use crate::{win32::*, KeyModifiers};
 
 // #[cfg(target_os = "windows")]
 pub fn initialise() -> (Stdout, Stdin) {
@@ -17,7 +14,7 @@ pub fn initialise() -> (Stdout, Stdin) {
     //"VirtualTerminalLevel"=dword:00000001
     //https://ss64.com/nt/syntax-ansi.html
 
-    let mut stdout = stdout();
+    let stdout = stdout();
     let stdin = stdin();
 
     set_mode(
@@ -57,10 +54,10 @@ pub fn info(output: *mut c_void) -> Info {
 }
 
 pub fn window_size(stdout: &Stdout) -> (u16, u16) {
-    stdout.as_raw_handle().window_size
+    info(stdout.as_raw_handle()).window_size
 }
 
-pub fn reset_stdin(stdin: &mut Stdin) {
+pub fn disable_mouse_capture(stdin: &mut Stdin) {
     set_mode(stdin.as_raw_handle(), 0);
 }
 
@@ -86,7 +83,7 @@ pub fn get_mode(handle: *mut c_void) -> u32 {
     }
 }
 
-pub fn poll_timeout(stdin: &Stdin, timeout: Duration) -> Option<(Event, KeyState)> {
+pub fn poll_timeout(stdin: &Stdin, timeout: Duration) -> Option<(Event, KeyModifiers)> {
     let now = Instant::now();
     let handle = stdin.as_raw_handle();
 
@@ -97,7 +94,7 @@ pub fn poll_timeout(stdin: &Stdin, timeout: Duration) -> Option<(Event, KeyState
             let event = unsafe { convert_event(input_event.clone()) };
             //TODO: This could be done better.
             return if let Some(event) = event {
-                let state = key_state(input_event);
+                let state = get_key_KeyModifiers(input_event);
                 Some((event, state))
             } else {
                 None
@@ -111,12 +108,6 @@ pub fn poll_timeout(stdin: &Stdin, timeout: Duration) -> Option<(Event, KeyState
     }
 }
 
-pub const CONTROL: u32 = 0b0000_0000_0001;
-pub const SHIFT: u32 = 0b0000_0000_0010;
-pub const ALT: u32 = 0b0000_0000_0100;
-
-pub struct KeyState(u32);
-
 pub struct Info {
     pub buffer_size: (u16, u16),
     ///Use this one.
@@ -124,34 +115,22 @@ pub struct Info {
     pub cursor_position: (u16, u16),
 }
 
-impl KeyState {
-    pub fn control(&self) -> bool {
-        (self.0 & CONTROL) != 0
-    }
-    pub fn shift(&self) -> bool {
-        (self.0 & SHIFT) != 0
-    }
-    pub fn alt(&self) -> bool {
-        (self.0 & ALT) != 0
-    }
-}
-
-pub fn key_state(event: INPUT_RECORD) -> KeyState {
+pub fn get_key_KeyModifiers(event: INPUT_RECORD) -> KeyModifiers {
     if event.EventType == KEY_EVENT {
         let ks = unsafe { event.Event.KeyEvent().dwControlKeyState };
         let mut state = 0;
         if ks & SHIFT_PRESSED != 0 {
-            state |= SHIFT;
+            state |= KeyModifiers::SHIFT;
         }
         if ks & LEFT_CTRL_PRESSED != 0 || ks & RIGHT_CTRL_PRESSED != 0 {
-            state |= CONTROL;
+            state |= KeyModifiers::CONTROL;
         }
         if ks & LEFT_ALT_PRESSED != 0 || ks & RIGHT_ALT_PRESSED != 0 {
-            state |= ALT;
+            state |= KeyModifiers::ALT;
         }
-        KeyState(state)
+        KeyModifiers(state)
     } else {
-        KeyState(0)
+        KeyModifiers(0)
     }
 }
 

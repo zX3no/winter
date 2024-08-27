@@ -1,11 +1,8 @@
-#![feature(macro_metavar_expr)]
 #![allow(non_camel_case_types, non_snake_case)]
 use std::{
     fmt::Display,
-    io::{stdin, stdout, Stdin, Stdout, Write},
-    mem::zeroed,
+    io::{Stdin, Stdout, Write},
     process::Command,
-    time::{Duration, Instant},
 };
 
 //Widgets
@@ -23,15 +20,18 @@ pub mod table;
 pub mod text;
 pub mod win32;
 
+#[cfg(target_os = "windows")]
 pub mod windows;
 
-// #[cfg(target_os = "windows")]
-pub use windows::*;
+#[cfg(target_os = "macos")]
+pub mod macos;
+
+#[cfg(target_os = "macos")]
+pub use macos::*;
 
 pub use buffer::{Buffer, Cell};
 pub use layout::Alignment::*;
 pub use style::{Color::*, *};
-pub use win32::*;
 
 pub use layout::Constraint::*;
 pub use layout::Direction::*;
@@ -44,6 +44,24 @@ pub mod symbols;
 
 //Re-export unicode width.
 pub use unicode_width::{UnicodeWidthChar, UnicodeWidthStr};
+
+pub struct KeyModifiers(u32);
+
+impl KeyModifiers {
+    pub const CONTROL: u32 = 0b0000_0000_0001;
+    pub const SHIFT: u32 = 0b0000_0000_0010;
+    pub const ALT: u32 = 0b0000_0000_0100;
+
+    pub fn control(&self) -> bool {
+        (self.0 & Self::CONTROL) != 0
+    }
+    pub fn shift(&self) -> bool {
+        (self.0 & Self::SHIFT) != 0
+    }
+    pub fn alt(&self) -> bool {
+        (self.0 & Self::ALT) != 0
+    }
+}
 
 pub struct Winter {
     pub viewport: Rect,
@@ -58,12 +76,21 @@ impl Winter {
     //Alternate screen, raw mode, mouse support.
     //I want to be able to use copy and paste sometimes.
     pub fn new() -> Self {
+        #[cfg(target_os = "macos")]
         let (mut stdout, stdin) = initialise();
+
+        #[cfg(target_os = "windows")]
+        let (mut stdout, stdin) = windows::initialise();
 
         show_alternate_screen(&mut stdout);
         clear(&mut stdout);
 
-        let (width, height) = window_size(&stdout);
+        #[cfg(target_os = "windows")]
+        let (width, height) = windows::window_size(&stdout);
+
+        #[cfg(target_os = "macos")]
+        let (width, height) = window_size();
+
         let viewport = Rect::new(0, 0, width, height);
 
         Self {
@@ -87,7 +114,13 @@ impl Winter {
 
         //Update the viewport area.
         //TODO: I think there is a resize event that might be better.
-        let (width, height) = window_size(&self.stdout);
+
+        #[cfg(target_os = "macos")]
+        let (width, height) = window_size();
+
+        #[cfg(target_os = "windows")]
+        let (width, height) = windows::window_size(&self.stdout);
+
         self.viewport = Rect::new(0, 0, width, height);
 
         //Resize
@@ -102,11 +135,18 @@ impl Winter {
         }
     }
 
-    pub fn poll(&self) -> Option<(Event, KeyState)> {
-        self.poll_timeout(Duration::from_secs(0))
-    }
-    pub fn poll_timeout(&self, timeout: Duration) -> Option<(Event, KeyState)> {
-        poll_timeout(&self.stdin, timeout)
+    // pub fn poll(&self) -> Option<(Event, KeyModifiers)> {
+    //     self.poll_timeout(Duration::from_secs(0))
+    // }
+    // pub fn poll_timeout(&self, timeout: Duration) -> Option<(Event, KeyModifiers)> {
+    //     poll_timeout(&self.stdin, timeout)
+    // }
+    pub fn poll(&self) -> Option<(Event, KeyModifiers)> {
+        #[cfg(target_os = "windows")]
+        return windows::poll_timeout(&self.stdin, std::time::Duration::from_secs(0));
+
+        #[cfg(target_os = "macos")]
+        return poll();
     }
     pub fn flush(&mut self) -> Result<(), std::io::Error> {
         self.stdout.flush()
@@ -128,8 +168,16 @@ impl Winter {
 ///         std::process::exit(1);
 /// }));
 /// ```
-pub fn uninit(stdout: &mut Stdout, stdin: &mut Stdin) {
-    reset_stdin(stdin);
+pub fn uninit(stdout: &mut Stdout, _stdin: &mut Stdin) {
+    #[cfg(target_os = "windows")]
+    windows::disable_mouse_capture(_stdin);
+
+    #[cfg(target_os = "macos")]
+    disable_mouse_capture(stdout);
+
+    // #[cfg(target_os = "windows")]
+    // disable_mouse_capture(&mut _stdin);
+
     hide_alternate_screen(stdout);
     show_cursor(stdout);
     reset(stdout);
