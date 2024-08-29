@@ -20,7 +20,13 @@ fn main() {
         }
 
         if let Some((event, state)) = winter.poll() {
-            println!("{}", event);
+            // println!("{}", event);
+            if let Event::Resize(width, height) = event {
+                //TODO: Cleanup.
+                winter.viewport = Rect::new(0, 0, width, height);
+                winter.resize();
+            }
+
             if event == Event::Char('c') && state.control() || event == Event::Escape {
                 break;
             }

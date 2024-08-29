@@ -12,6 +12,31 @@ use std::{
     time::Duration,
 };
 
+extern "C" {
+    pub fn ioctl(fd: i32, request: u64, ...) -> i32;
+}
+
+#[repr(C)]
+struct TermSize {
+    row: u16,
+    col: u16,
+    x: u16,
+    y: u16,
+}
+
+pub const STDOUT_FILENO: i32 = 1;
+
+pub const TIOCGWINSZ: u64 = 0x40087468;
+
+pub fn terminal_size() -> (u16, u16) {
+    unsafe {
+        let mut size: TermSize = core::mem::zeroed();
+        //TODO: Handle errors.
+        ioctl(STDOUT_FILENO, TIOCGWINSZ.into(), &mut size as *mut _);
+        (size.col as u16, size.row as u16)
+    }
+}
+
 pub fn initialise() -> (Stdout, Stdin) {
     let mut stdout = stdout();
     let stdin = stdin();
@@ -20,12 +45,6 @@ pub fn initialise() -> (Stdout, Stdin) {
 
     enable_raw_mode().unwrap();
     (stdout, stdin)
-}
-
-#[cfg(target_os = "macos")]
-pub fn window_size() -> (u16, u16) {
-    let window_size = crossterm::terminal::window_size().unwrap();
-    (window_size.width, window_size.height)
 }
 
 pub fn disable_mouse_capture(stdout: &mut Stdout) {
@@ -95,6 +114,7 @@ pub fn poll() -> Option<(Event, KeyModifiers)> {
                 _ => None,
             }
         }
+        CEvent::Resize(width, height) => Some((Event::Resize(width, height), KeyModifiers(0))),
         _ => None,
     }
 }

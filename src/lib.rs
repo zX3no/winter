@@ -2,7 +2,6 @@
 use std::{
     fmt::Display,
     io::{Stdin, Stdout, Write},
-    process::Command,
 };
 
 //Widgets
@@ -27,9 +26,6 @@ pub mod windows;
 
 #[cfg(target_os = "macos")]
 pub mod macos;
-
-#[cfg(target_os = "macos")]
-pub use macos::*;
 
 pub use buffer::{Buffer, Cell};
 pub use layout::Alignment::*;
@@ -79,20 +75,19 @@ impl Winter {
     //I want to be able to use copy and paste sometimes.
     pub fn new() -> Self {
         #[cfg(target_os = "macos")]
-        let (mut stdout, stdin) = initialise();
+        let (mut stdout, stdin) = macos::initialise();
 
         #[cfg(target_os = "windows")]
         let (mut stdout, stdin) = windows::initialise();
 
-        show_alternate_screen(&mut stdout);
+        // show_alternate_screen(&mut stdout);
         clear(&mut stdout);
 
         #[cfg(target_os = "windows")]
         let (width, height) = windows::window_size(&stdout);
 
         #[cfg(target_os = "macos")]
-        let (width, height) = window_size();
-        dbg!(width, height);
+        let (width, height) = macos::terminal_size();
 
         let viewport = Rect::new(0, 0, width, height);
 
@@ -119,7 +114,7 @@ impl Winter {
         //TODO: I think there is a resize event that might be better.
 
         #[cfg(target_os = "macos")]
-        let (width, height) = window_size();
+        let (width, height) = macos::terminal_size();
 
         #[cfg(target_os = "windows")]
         let (width, height) = windows::window_size(&self.stdout);
@@ -127,6 +122,18 @@ impl Winter {
         self.viewport = Rect::new(0, 0, width, height);
 
         //Resize
+        if self.buffers[self.current].area != self.viewport {
+            self.buffers[self.current].resize(self.viewport);
+            self.buffers[1 - self.current].resize(self.viewport);
+
+            //Reset the back buffer to make sure the next update will redraw everything.
+            self.buffers[1 - self.current].reset();
+            //Screen must be cleared here.
+            clear(&mut self.stdout);
+        }
+    }
+
+    pub fn resize(&mut self) {
         if self.buffers[self.current].area != self.viewport {
             self.buffers[self.current].resize(self.viewport);
             self.buffers[1 - self.current].resize(self.viewport);
@@ -149,7 +156,7 @@ impl Winter {
         return windows::poll_timeout(&self.stdin, std::time::Duration::from_secs(0));
 
         #[cfg(target_os = "macos")]
-        return poll();
+        return macos::poll();
     }
     pub fn flush(&mut self) -> Result<(), std::io::Error> {
         self.stdout.flush()
@@ -176,7 +183,7 @@ pub fn uninit(stdout: &mut Stdout, _stdin: &mut Stdin) {
     windows::disable_mouse_capture(_stdin);
 
     #[cfg(target_os = "macos")]
-    disable_mouse_capture(stdout);
+    macos::disable_mouse_capture(stdout);
 
     // #[cfg(target_os = "windows")]
     // disable_mouse_capture(&mut _stdin);
@@ -235,9 +242,16 @@ impl Display for Event {
 //https://learn.microsoft.com/en-us/windows/console/console-virtual-terminal-sequences
 
 ///Clear the entire screen, using `cmd /c cls`.
+#[cfg(target_os = "windows")]
 pub fn clear_all() {
     Command::new("cmd").args(["/C", "cls"]).status().unwrap();
 }
+
+#[cfg(target_os = "macos")]
+pub fn clear_all<W: Write>(w: &mut W) {
+    clear(w)
+}
+
 pub fn show_cursor<W: Write>(w: &mut W) {
     write!(w, "\x1b[?25h").unwrap();
 }
@@ -272,6 +286,7 @@ pub fn shift_down<W: Write>(w: &mut W, amount: u16) {
 pub fn reset<W: Write>(w: &mut W) {
     write!(w, "\x1b[0m").unwrap();
 }
+
 ///Same as \x1b[0J
 pub fn clear_from_cursor<W: Write>(w: &mut W) {
     write!(w, "\x1b[J").unwrap();
