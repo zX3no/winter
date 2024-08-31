@@ -183,7 +183,7 @@ pub fn uninit(stdout: &mut Stdout, _stdin: &mut Stdin) {
     windows::disable_mouse_capture(_stdin);
 
     #[cfg(target_os = "macos")]
-    macos::disable_mouse_capture(stdout);
+    macos::uninit(stdout);
 
     // #[cfg(target_os = "windows")]
     // disable_mouse_capture(&mut _stdin);

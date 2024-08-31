@@ -5,7 +5,7 @@ use crossterm::{
         KeyModifiers as CKeyModifiers, MouseButton, MouseEventKind,
     },
     execute,
-    terminal::enable_raw_mode,
+    terminal::{disable_raw_mode, enable_raw_mode},
 };
 use std::{
     io::{stdin, stdout, Stdin, Stdout},
@@ -38,16 +38,17 @@ pub fn terminal_size() -> (u16, u16) {
 }
 
 pub fn initialise() -> (Stdout, Stdin) {
+    enable_raw_mode().unwrap();
     let mut stdout = stdout();
     let stdin = stdin();
 
     execute!(stdout, EnableMouseCapture).unwrap();
 
-    enable_raw_mode().unwrap();
     (stdout, stdin)
 }
 
-pub fn disable_mouse_capture(stdout: &mut Stdout) {
+pub fn uninit(stdout: &mut Stdout) {
+    disable_raw_mode().unwrap();
     execute!(stdout, DisableMouseCapture).unwrap();
 }
 
