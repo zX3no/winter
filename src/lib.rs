@@ -1,4 +1,3 @@
-#![feature(macro_metavar_expr, const_fn_floating_point_arithmetic)]
 #![allow(non_camel_case_types, non_snake_case)]
 use std::{
     fmt::Display,
